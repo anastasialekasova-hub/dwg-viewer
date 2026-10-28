@@ -5,6 +5,13 @@ import * as engine from './engine.js';
 import { OPEN_TIME_LIMIT_S, LINK_LIMIT_MB } from '../lib/config.js';
 import { loadSettings } from '../lib/settings.js';
 import { VERSION_CODES, SUPPORTED_RANGE } from '../lib/format.js';
+import {
+  LINK_LIMIT_BYTES,
+  classifyLinkStatus,
+  isHtmlContentType,
+  looksLikeHtml,
+  isOverLinkLimit,
+} from '../lib/link-classify.js';
 
 const $ = (id) => document.getElementById(id);
 const msg = (key, ...args) => chrome.i18n.getMessage(key, args.map(String));
@@ -12,7 +19,6 @@ const msg = (key, ...args) => chrome.i18n.getMessage(key, args.map(String));
 const isMac = /Mac/i.test(navigator.platform ?? '');
 const OLDEST_NAME = VERSION_CODES[SUPPORTED_RANGE.oldest] ?? SUPPORTED_RANGE.oldest;
 const NEWEST_NAME = VERSION_CODES[SUPPORTED_RANGE.newest] ?? SUPPORTED_RANGE.newest;
-const LINK_LIMIT_BYTES = LINK_LIMIT_MB * 1e6;
 
 const ICON_OPEN =
   '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 4.5A1.5 1.5 0 0 1 3.5 3h2.6l1.5 2h5.4A1.5 1.5 0 0 1 14.5 6.5v5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 11.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>';
@@ -430,14 +436,15 @@ async function fetchLink(token, url) {
     e.name = 'AbortError';
     throw e;
   }
-  if (!res.ok) fail(res.status === 401 || res.status === 403 ? 'auth' : 'generic');
-  if ((res.headers.get('content-type') ?? '').toLowerCase().includes('text/html')) fail('auth');
+  const statusKind = classifyLinkStatus(res.status);
+  if (statusKind) fail(statusKind);
+  if (isHtmlContentType(res.headers.get('content-type'))) fail('auth');
   const len = Number(res.headers.get('content-length'));
-  if (Number.isFinite(len) && len > 0 && len > LINK_LIMIT_BYTES) fail('size');
+  if (Number.isFinite(len) && len > 0 && isOverLinkLimit(len)) fail('size');
 
   if (!res.body) {
     const buf = await res.arrayBuffer();
-    if (buf.byteLength > LINK_LIMIT_BYTES) fail('size');
+    if (isOverLinkLimit(buf.byteLength)) fail('size');
     const out = new Uint8Array(buf);
     if (looksLikeHtml(out)) fail('auth');
     return out;
@@ -456,7 +463,7 @@ async function fetchLink(token, url) {
     }
     if (r.done) break;
     total += r.value.byteLength;
-    if (total > LINK_LIMIT_BYTES) {
+    if (isOverLinkLimit(total)) {
       try {
         await reader.cancel();
       } catch {
@@ -474,14 +481,6 @@ async function fetchLink(token, url) {
   }
   if (looksLikeHtml(out)) fail('auth');
   return out;
-}
-
-function looksLikeHtml(bytes) {
-  const head = new TextDecoder('ascii', { fatal: false })
-    .decode(bytes.subarray(0, 64))
-    .trimStart()
-    .toLowerCase();
-  return head.startsWith('<!doctype') || head.startsWith('<html');
 }
 
 function openLink(url) {
