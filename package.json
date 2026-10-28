@@ -3,6 +3,13 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "scripts": {
+    "i18n": "node tools/i18n/build.js",
+    "icons": "node tools/make-icons.js",
+    "vendor": "node tools/vendor-build.js",
+    "validate": "node tools/validate.js",
+    "test": "node tools/test.js"
+  },
   "dependencies": {
     "@mlightcad/cad-simple-viewer": "1.7.6",
     "@mlightcad/libredwg-converter": "3.15.17",
