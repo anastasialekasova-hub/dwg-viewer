@@ -149,7 +149,76 @@
   "colLayers": {
     "message": "Layers"
   },
+  "partialTypeXref": {
+    "message": "Xref"
+  },
+  "partialTypeImage": {
+    "message": "Image"
+  },
+  "partialTypeFont": {
+    "message": "Font"
+  },
+  "partialUnknownTypes": {
+    "message": "unsupported object types"
+  },
   "fontNote": {
     "message": "Text is drawn with a system font and may look different from your CAD program."
+  },
+  "zoomOut": {
+    "message": "Zoom out"
+  },
+  "zoomIn": {
+    "message": "Zoom in"
+  },
+  "fit": {
+    "message": "Fit"
+  },
+  "modelTab": {
+    "message": "Model"
+  },
+  "hintPan": {
+    "message": "Drag to pan"
+  },
+  "hintZoom": {
+    "message": "Scroll to zoom"
+  },
+  "hintFit": {
+    "message": "Double-click to fit"
+  },
+  "tipLink1": {
+    "message": "Tip: click a .dwg or .dxf link on any site and the drawing opens here."
+  },
+  "tipLink2": {
+    "message": "Or right-click the link and choose Open in DWG Viewer."
+  },
+  "srcOpenedFrom": {
+    "message": "Opened from"
+  },
+  "srcDownload": {
+    "message": "Download original"
+  },
+  "dropToOpen": {
+    "message": "Drop to open"
+  },
+  "errLinkTitle": {
+    "message": "Couldn’t get the drawing from this link"
+  },
+  "errLinkAuthBody": {
+    "message": "$1 didn’t let DWG Viewer download $2."
+  },
+  "errLinkAuthWhy": {
+    "message": "The site may need you to sign in."
+  },
+  "errLinkHint": {
+    "message": "Download it the usual way, then drop the file here."
+  },
+  "errLinkDownload": {
+    "message": "Download instead"
+  },
+  "errLinkSizeBody": {
+    "message": "$1 is $2. DWG Viewer opens files from links up to $3."
+  },
+  "errLinkOver": {
+    "message": "over $1"
   }
 }

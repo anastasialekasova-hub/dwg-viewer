@@ -88,10 +88,10 @@ function threeSubpaths() {
 
 const BUNDLES = [
   {
-    entry: nm('@mlightcad/cad-simple-viewer/dist/cad-simple-viewer.js'),
+    entry: path.join(root, 'tools', 'vendor', 'cad-viewer-entry.js'),
     out: path.join(vendorDir, 'cad-viewer.js'),
     meta: SOURCES.cadViewer,
-    note: 'Viewer engine: AcApDocManager, scenes, adapters (bundled with three, lodash-es, @mlightcad/three-renderer, mtext-parser, mtext-renderer, data-model).',
+    note: 'Viewer engine: AcApDocManager, scenes, adapters (bundled with three, lodash-es, @mlightcad/three-renderer, mtext-parser, mtext-renderer, data-model, @mlightcad/libredwg-converter). Wrapper entry: tools/vendor/cad-viewer-entry.js re-exports the names used by the extension.',
   },
   {
     entry: nm('@mlightcad/libredwg-converter/lib/AcDbLibreDwgParserWorker.js'),

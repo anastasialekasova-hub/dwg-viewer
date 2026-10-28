@@ -2,7 +2,7 @@
  * Package: @mlightcad/cad-simple-viewer 1.7.6
  * License: MIT
  * Source: https://github.com/mlightcad/cad-viewer
- * Note: Viewer engine: AcApDocManager, scenes, adapters (bundled with three, lodash-es, @mlightcad/three-renderer, mtext-parser, mtext-renderer, data-model).
+ * Note: Viewer engine: AcApDocManager, scenes, adapters (bundled with three, lodash-es, @mlightcad/three-renderer, mtext-parser, mtext-renderer, data-model, @mlightcad/libredwg-converter). Wrapper entry: tools/vendor/cad-viewer-entry.js re-exports the names used by the extension.
  * Vendored by tools/vendor-build.js — do not edit.
  */
 
@@ -83592,12 +83592,12 @@ function argbToRgba(argb) {
 function lerpArgbToRgba(argbA, argbB, t) {
   const tc3 = Math.min(1, Math.max(0, t));
   const mix = (a2, b2) => Math.round(a2 + (b2 - a2) * tc3);
-  const aA2 = argbA >>> 24 & 255;
+  const aA = argbA >>> 24 & 255;
   const aB = argbB >>> 24 & 255;
   const r = mix(argbA >>> 16 & 255, argbB >>> 16 & 255);
   const g = mix(argbA >>> 8 & 255, argbB >>> 8 & 255);
   const b = mix(argbA & 255, argbB & 255);
-  const a = mix(aA2, aB) / 255;
+  const a = mix(aA, aB) / 255;
   return `rgba(${r},${g},${b},${a.toFixed(3)})`;
 }
 function invertCssColor(color) {
@@ -97493,7 +97493,6 @@ var init_lib4 = __esm({
 
 // node_modules/@mlightcad/cad-simple-viewer/dist/cad-simple-viewer.js
 init_lib4();
-init_lib4();
 
 // node_modules/@mlightcad/three-renderer/dist/index.js
 init_lib4();
@@ -101112,24 +101111,24 @@ var Matrix4 = class _Matrix4 {
       te3[6] = be3 + af3 * d;
       te3[10] = a * c;
     } else if (euler.order === "YXZ") {
-      const ce4 = c * e, cf3 = c * f, de4 = d * e, df3 = d * f;
-      te3[0] = ce4 + df3 * b;
+      const ce4 = c * e, cf3 = c * f, de4 = d * e, df2 = d * f;
+      te3[0] = ce4 + df2 * b;
       te3[4] = de4 * b - cf3;
       te3[8] = a * d;
       te3[1] = a * f;
       te3[5] = a * e;
       te3[9] = -b;
       te3[2] = cf3 * b - de4;
-      te3[6] = df3 + ce4 * b;
+      te3[6] = df2 + ce4 * b;
       te3[10] = a * c;
     } else if (euler.order === "ZXY") {
-      const ce4 = c * e, cf3 = c * f, de4 = d * e, df3 = d * f;
-      te3[0] = ce4 - df3 * b;
+      const ce4 = c * e, cf3 = c * f, de4 = d * e, df2 = d * f;
+      te3[0] = ce4 - df2 * b;
       te3[4] = -a * f;
       te3[8] = de4 + cf3 * b;
       te3[1] = cf3 + de4 * b;
       te3[5] = a * e;
-      te3[9] = df3 - ce4 * b;
+      te3[9] = df2 - ce4 * b;
       te3[2] = -a * d;
       te3[6] = b;
       te3[10] = a * c;
@@ -104010,16 +104009,16 @@ var BufferGeometry = class _BufferGeometry extends EventDispatcher {
       tan1[i] = new Vector3();
       tan2[i] = new Vector3();
     }
-    const vA2 = new Vector3(), vB = new Vector3(), vC2 = new Vector3(), uvA = new Vector2(), uvB = new Vector2(), uvC = new Vector2(), sdir = new Vector3(), tdir = new Vector3();
+    const vA = new Vector3(), vB = new Vector3(), vC2 = new Vector3(), uvA = new Vector2(), uvB = new Vector2(), uvC = new Vector2(), sdir = new Vector3(), tdir = new Vector3();
     function handleTriangle(a, b, c) {
-      vA2.fromBufferAttribute(positionAttribute, a);
+      vA.fromBufferAttribute(positionAttribute, a);
       vB.fromBufferAttribute(positionAttribute, b);
       vC2.fromBufferAttribute(positionAttribute, c);
       uvA.fromBufferAttribute(uvAttribute, a);
       uvB.fromBufferAttribute(uvAttribute, b);
       uvC.fromBufferAttribute(uvAttribute, c);
-      vB.sub(vA2);
-      vC2.sub(vA2);
+      vB.sub(vA);
+      vC2.sub(vA);
       uvB.sub(uvA);
       uvC.sub(uvA);
       const r = 1 / (uvB.x * uvC.y - uvC.x * uvB.y);
@@ -104089,37 +104088,37 @@ var BufferGeometry = class _BufferGeometry extends EventDispatcher {
           normalAttribute.setXYZ(i, 0, 0, 0);
         }
       }
-      const pA2 = new Vector3(), pB = new Vector3(), pC2 = new Vector3();
-      const nA2 = new Vector3(), nB = new Vector3(), nC2 = new Vector3();
+      const pA = new Vector3(), pB = new Vector3(), pC2 = new Vector3();
+      const nA = new Vector3(), nB = new Vector3(), nC2 = new Vector3();
       const cb2 = new Vector3(), ab2 = new Vector3();
       if (index) {
         for (let i = 0, il3 = index.count; i < il3; i += 3) {
-          const vA2 = index.getX(i + 0);
+          const vA = index.getX(i + 0);
           const vB = index.getX(i + 1);
           const vC2 = index.getX(i + 2);
-          pA2.fromBufferAttribute(positionAttribute, vA2);
+          pA.fromBufferAttribute(positionAttribute, vA);
           pB.fromBufferAttribute(positionAttribute, vB);
           pC2.fromBufferAttribute(positionAttribute, vC2);
           cb2.subVectors(pC2, pB);
-          ab2.subVectors(pA2, pB);
+          ab2.subVectors(pA, pB);
           cb2.cross(ab2);
-          nA2.fromBufferAttribute(normalAttribute, vA2);
+          nA.fromBufferAttribute(normalAttribute, vA);
           nB.fromBufferAttribute(normalAttribute, vB);
           nC2.fromBufferAttribute(normalAttribute, vC2);
-          nA2.add(cb2);
+          nA.add(cb2);
           nB.add(cb2);
           nC2.add(cb2);
-          normalAttribute.setXYZ(vA2, nA2.x, nA2.y, nA2.z);
+          normalAttribute.setXYZ(vA, nA.x, nA.y, nA.z);
           normalAttribute.setXYZ(vB, nB.x, nB.y, nB.z);
           normalAttribute.setXYZ(vC2, nC2.x, nC2.y, nC2.z);
         }
       } else {
         for (let i = 0, il3 = positionAttribute.count; i < il3; i += 3) {
-          pA2.fromBufferAttribute(positionAttribute, i + 0);
+          pA.fromBufferAttribute(positionAttribute, i + 0);
           pB.fromBufferAttribute(positionAttribute, i + 1);
           pC2.fromBufferAttribute(positionAttribute, i + 2);
           cb2.subVectors(pC2, pB);
-          ab2.subVectors(pA2, pB);
+          ab2.subVectors(pA, pB);
           cb2.cross(ab2);
           normalAttribute.setXYZ(i + 0, cb2.x, cb2.y, cb2.z);
           normalAttribute.setXYZ(i + 1, cb2.x, cb2.y, cb2.z);
@@ -104477,12 +104476,12 @@ var Mesh = class extends Object3D {
     }
   }
 };
-function checkIntersection$1(object, material, raycaster, ray, pA2, pB, pC2, point) {
+function checkIntersection$1(object, material, raycaster, ray, pA, pB, pC2, point) {
   let intersect2;
   if (material.side === BackSide) {
-    intersect2 = ray.intersectTriangle(pC2, pB, pA2, true, point);
+    intersect2 = ray.intersectTriangle(pC2, pB, pA, true, point);
   } else {
-    intersect2 = ray.intersectTriangle(pA2, pB, pC2, material.side === FrontSide, point);
+    intersect2 = ray.intersectTriangle(pA, pB, pC2, material.side === FrontSide, point);
   }
   if (intersect2 === null) return null;
   _intersectionPointWorld.copy(point);
@@ -154189,10 +154188,10 @@ var GeometryEpsilon = class extends Geometry {
     const Ax2 = left[0];
     const Ay2 = left[1];
     const Bx2 = right[0];
-    const By2 = right[1];
+    const By = right[1];
     const Cx2 = p[0];
     const Cy2 = p[1];
-    return (Bx2 - Ax2) * (Cy2 - Ay2) - (By2 - Ay2) * (Cx2 - Ax2) >= -this.epsilon;
+    return (Bx2 - Ax2) * (Cy2 - Ay2) - (By - Ay2) * (Cx2 - Ax2) >= -this.epsilon;
   }
   pointBetween(p, left, right) {
     const d_py_ly = p[1] - left[1];
@@ -171445,12 +171444,6 @@ function Bh2(s) {
   const e = s.trim();
   return e ? e.replace(/\/+$/, "") : jl2.replace(/\/+$/, "");
 }
-var dE = {
-  unchanged: 10265519,
-  deleted: 14753096,
-  added: 2278750,
-  modified: 16096779
-};
 var Rh2 = 16777215;
 var _y3 = 0;
 var Py = class {
@@ -171791,19 +171784,8 @@ function fr3() {
 function Us3(s) {
   ws3 = s, $h2(s);
 }
-function uE() {
-  return ws3;
-}
 function ld2(s) {
   bs3.delete(s), ws3 === s && (ws3 = void 0);
-}
-function hE(s) {
-  var e;
-  return ((e = bs3.get(s)) == null ? void 0 : e.store.list()) ?? [];
-}
-function pE(s) {
-  var e;
-  return (e = bs3.get(s)) == null ? void 0 : e.store;
 }
 var Vl2 = "markup";
 var je3 = "markup-live";
@@ -171978,7 +171960,6 @@ function Kh2(s, e, t) {
   const i = Math.hypot(e.x - s.x, e.y - s.y), n = Math.hypot(t.x - s.x, t.y - s.y);
   return Math.min(i, n) * Ny;
 }
-var By = 1;
 function Yh2(s) {
   const e = new AcGeBox2d();
   switch (s.type) {
@@ -172008,19 +171989,6 @@ function Yh2(s) {
       return;
   }
   return e.isEmpty() ? void 0 : e;
-}
-function Ry(s) {
-  const e = s.max.x - s.min.x, t = s.max.y - s.min.y;
-  if (e > 1e-8 || t > 1e-8) return;
-  const i = By;
-  s.expandByPoint({ x: s.min.x - i, y: s.min.y - i }), s.expandByPoint({ x: s.max.x + i, y: s.max.y + i });
-}
-function jy(s, e, t) {
-  const i = Yh2(s), n = i ? new AcGeBox2d(i.min, i.max) : new AcGeBox2d();
-  for (const o of e)
-    o.right <= o.left && o.bottom <= o.top || (n.expandByPoint(t(o.left, o.top)), n.expandByPoint(t(o.right, o.bottom)));
-  if (!n.isEmpty())
-    return Ry(n), n;
 }
 function Zh2(s, e, t, i) {
   switch (s.type) {
@@ -172168,12 +172136,6 @@ function Wl2(s) {
     auprec: ht3.auprec ?? s.auprec,
     lengthUnit: ht3.lengthUnit ?? Xh2
   };
-}
-function mE() {
-  return { ...ht3 };
-}
-function fE(s) {
-  s.lunits != null && (ht3.lunits = s.lunits), s.luprec != null && (ht3.luprec = s.luprec), s.aunits != null && (ht3.aunits = s.aunits), s.auprec != null && (ht3.auprec = s.auprec), s.lengthUnit != null && (ht3.lengthUnit = s.lengthUnit);
 }
 function Gy() {
   ht3 = {};
@@ -172342,9 +172304,6 @@ function On3() {
 function qy(s) {
   Fo3 = s.clone();
 }
-function yE(s) {
-  !Number.isFinite(s) || s <= 0 || (yr3 = s, Cn3 = "adaptive", Si3 = void 0);
-}
 function Jy() {
   return Cn3;
 }
@@ -172359,9 +172318,6 @@ function eg(s, e) {
     }
     Si3 = e;
   }
-}
-function gE() {
-  Fo3 = void 0, yr3 = Sn3, Cn3 = "adaptive", Si3 = void 0;
 }
 function Le2(s) {
   return {
@@ -173081,55 +173037,11 @@ function pp2(s) {
 function ko3() {
   for (const s of Oa3) s();
 }
-function bE(s) {
-  return Da3.add(s), () => {
-    Da3.delete(s);
-  };
-}
 function _n3() {
   for (const s of Da3) s();
 }
 function _g() {
   _n3();
-}
-function wE(s) {
-  const e = s.activeLayoutBtrId;
-  return fp2(s).filter(
-    (t) => t.layoutId == null || t.layoutId === e
-  );
-}
-function vE(s, e) {
-  const t = Lt2.get(s);
-  return !(t != null && t.value) || !e ? "" : No2(e, t.value);
-}
-function xE(s, e) {
-  const t = jy(
-    e.geometry,
-    Pg(s, e.id),
-    (i, n) => {
-      const o = s.viewportToCanvas({ x: i, y: n });
-      return s.screenToWorld(o);
-    }
-  );
-  t && (s.zoomTo(t, 1.5), s.htmlTransientManager.selectGroup(e.id));
-}
-function Pg(s, e) {
-  const t = s.htmlTransientManager.getGroup(e);
-  if (!t) return [];
-  const i = [];
-  for (const n of t.children) {
-    const o = n.element;
-    if (o.classList.contains("ml-html-dot") || o.classList.contains("ml-html-grip"))
-      continue;
-    const r = o.getBoundingClientRect();
-    r.width <= 0 && r.height <= 0 || i.push(r);
-  }
-  return i;
-}
-function kE(s, e) {
-  s.htmlTransientManager.getGroup(e) && (gt3(s, "Delete Measurement", () => {
-    s.htmlTransientManager.detach(e);
-  }), s.isHtmlDirty = true);
 }
 function Zl2(s, e) {
   zn3.set(s, Ts3(e));
@@ -173204,19 +173116,6 @@ function Eg(s, e, t) {
       a.canvas.style.fontSize = `${t.fontSize}px`;
   const i = Lt2.get(e.id);
   (r = i == null ? void 0 : i.redraw) == null || r.call(i, t), s.isHtmlDirty = true;
-}
-function SE(s, e) {
-  var t;
-  for (const i of s.htmlTransientManager.groupsOnLayer(oe3)) {
-    const n = Lt2.get(i.id);
-    if (!(n != null && n.value)) continue;
-    const o = No2(e, n.value);
-    for (const r of i.children) {
-      const a = r;
-      (t = a.setText) == null || t.call(a, o);
-    }
-  }
-  s.isHtmlDirty = true, _n3();
 }
 function fp2(s) {
   const e = [];
@@ -177047,17 +176946,6 @@ N2(Y2, "activeEditor", null), N2(Y2, "sharedToolbar", null), N2(Y2, "sharedToolb
   bigFont: ""
 }), N2(Y2, "DEFAULT_LINE_SPACE_FACTOR", 0.3);
 var za2 = Y2;
-function CE(s) {
-  return acgiContrastingForegroundColor(s);
-}
-function _E(s) {
-  if (typeof s == "number")
-    return s === 1;
-  if (typeof s == "boolean")
-    return s;
-  const e = String(s).toLowerCase();
-  return e === "light" || e === "1" || e === "true";
-}
 function mb(s) {
   return s.currentSpaceId === s.tables.blockTable.modelSpace.objectId;
 }
@@ -177078,10 +176966,6 @@ function $r3(s, e) {
 function yb(s) {
   const e = s.RGB ?? ACGI_MODEL_SPACE_BACKGROUND, t = new AcCmColor(AcCmColorMethod.ByColor);
   return acgiIsLightBackground(e) ? t.setRGB(0, 0, 0) : t.setRGB(255, 255, 255), t;
-}
-function PE(s) {
-  const e = new AcCmColor(AcCmColorMethod.ByColor);
-  return e.setRGBValue(s & 16777215), e;
 }
 function Kr3(s) {
   return acgiIsLightBackground(s) ? "black" : "white";
@@ -177391,9 +177275,6 @@ var nr2 = class nr3 {
 };
 nr2.COMMAND_LINE_INPUT_CLASS = "ml-cli-text";
 var Na3 = nr2;
-function LE(s) {
-  return s.directBatchPrimitive != null;
-}
 function bb(s, e) {
   if (s.directBatchPrimitive == null)
     return null;
@@ -177493,17 +177374,6 @@ function Ro3(s, e) {
   u.sort((f, y) => f - y);
   const p = u.length > 0 && u[Math.floor(u.length / 2)] || d, m = Math.max(p * 10, d * 20);
   return n < m ? s : l.map((f) => f.box);
-}
-function xb(s) {
-  if (s.length === 0)
-    return null;
-  const e = jo3(s);
-  if (s.length < 8)
-    return e;
-  let t = s.slice(), i = -1;
-  for (; t.length !== i; )
-    i = t.length, t = Ro3(t, "x"), t = Ro3(t, "y");
-  return jo3(t) ?? e;
 }
 async function kb(s, e) {
   if (s.length === 0)
@@ -177660,17 +177530,6 @@ var kp2 = class {
     await accmYieldForPaint(), this.lastYield = performance.now();
   }
 };
-function EE(s) {
-  const e = Eb(s);
-  if (!e)
-    return;
-  const t = Ab(e), i = xb(t.length > 0 ? t : e);
-  if (i)
-    return new AcGeBox2d(
-      { x: i.minX, y: i.minY },
-      { x: i.maxX, y: i.maxY }
-    );
-}
 async function Lb(s, e = new kp2()) {
   const t = await Mb(s, e);
   if (!t)
@@ -177687,19 +177546,6 @@ async function Lb(s, e = new kp2()) {
       { x: n.minX, y: n.minY },
       { x: n.maxX, y: n.maxY }
     );
-}
-function Eb(s) {
-  const e = s.filter(Ke2);
-  if (e.length === 0)
-    return;
-  const t = e.map(
-    (r) => Math.max(r.maxX - r.minX, r.maxY - r.minY, 1e-9)
-  );
-  t.sort((r, a) => r - a);
-  const i = t[Math.floor(t.length / 2)] || 1, n = Math.max(i * 50, 1e10), o = [];
-  for (const r of e)
-    Math.max(r.maxX - r.minX, r.maxY - r.minY) >= n || o.push(r);
-  return o.length > 0 ? o : void 0;
 }
 async function Mb(s, e) {
   const t = [];
@@ -177726,22 +177572,6 @@ async function Mb(s, e) {
     Math.max(l.maxX - l.minX, l.maxY - l.minY) < o && r.push(l), (a & 2047) === 2047 && await e.maybeYield();
   }
   return r.length > 0 ? r : void 0;
-}
-function Ab(s) {
-  if (s.length < 2)
-    return s;
-  const e = s.map((d) => ({
-    x: (d.minX + d.maxX) / 2,
-    y: (d.minY + d.maxY) / 2,
-    box: d
-  })), t = e.map((d) => d.x).sort((d, u) => d - u), i = e.map((d) => d.y).sort((d, u) => d - u), n = t[Math.floor(t.length / 2)], o = i[Math.floor(i.length / 2)], r = s.map(
-    (d) => Math.max(d.maxX - d.minX, d.maxY - d.minY, 1e-9)
-  );
-  r.sort((d, u) => d - u);
-  const a = r[Math.floor(r.length / 2)] || 1, l = Math.max(a * 50, 1e10), c = e.filter(
-    (d) => Math.hypot(d.x - n, d.y - o) <= l
-  );
-  return c.length > 0 ? c.map((d) => d.box) : s;
 }
 async function Ib(s, e) {
   if (s.length < 2)
@@ -181941,12 +181771,6 @@ var Zb = class {
     return this.providers.delete(e);
   }
 };
-function ME(s) {
-  q2.emit("message", {
-    message: s,
-    type: "warning"
-  });
-}
 var Xr3 = class {
   /**
    * Creates a new AcEdConditionWaiter.
@@ -182109,7 +181933,6 @@ var _p2 = `(max-width: ${Jl2}px)`;
 var os3 = 440;
 var Pp2 = 24;
 var Ha3 = `calc(100vw - ${Pp2}px)`;
-var AE = 1;
 var Jb = 2;
 var Qb = 45;
 var ew = 46;
@@ -182160,8 +181983,6 @@ var cw = "--ml-ui-grip-size";
 var dw = "--ml-ui-grip-normal";
 var uw = "--ml-ui-grip-hot";
 var hw = 8;
-var IE = "#0080ff";
-var TE = "#ff0000";
 function Ep2(s, e) {
   s.style.setProperty(cw, `${e.size}px`), s.style.setProperty(dw, e.colorCss), s.style.setProperty(uw, e.hotColorCss);
 }
@@ -184193,10 +184014,6 @@ function lv(s, e, t) {
     x: e.x + l * Math.cos(m),
     y: e.y + l * Math.sin(m)
   };
-}
-function OE(s) {
-  const e = Fs3(s), t = Ql2(e), i = (t & rs3) !== 0 ? t & ~rs3 : t | rs3;
-  return AcDbSysVarManager.instance().setVar(AcDbSystemVariables.POLARMODE, i, e), i;
 }
 var ec2 = class {
   /**
@@ -195748,12 +195565,6 @@ h.mergeLocaleMessage("ar", {
   jig: pv,
   main: mv
 });
-var Fp2 = (s, e) => {
-  const t = `command.${s}.${e}`;
-  return h.t(t);
-};
-var DE = (s) => Fp2(Ge3.SYSTEMT_COMMAND_GROUP_NAME, s);
-var zE = (s) => Fp2(Ge3.DEFAUT_COMMAND_GROUP_NAME, s);
 var nc2 = class {
   constructor(e) {
     this.options = e;
@@ -196655,14 +196466,8 @@ var Ya2 = or2;
 function sc2(...s) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 1024 1024">${s.map((t) => `<path fill="currentColor" d="${t}"/>`).join("")}</svg>`;
 }
-var NE = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><path fill="currentColor" d="M10.4379 15.2979h.002l4.86-4.86-9.722-4.86 4.86 9.72Zm7.562-5.298-3.434 3.434 3.2 3.2-1.132 1.132-3.2-3.2-3.434 3.434-7.6-15.6 15.6 7.6Z"/></svg>';
-var FE = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><path fill="currentColor" d="M15.08 12.8537l.002-.002V5.5897c0-.422-.652-.414-.652 0v3.466c0 .938-1.482.95-1.482 0v-4.83c0-.414-.6381-.414-.6381 0h-.014v4.83c.014.95-1.482.95-1.482 0V3.4437c0-.42-.638-.414-.638 0v5.612c0 .95-1.494.95-1.494 0V4.2317c0-.408-.64-.42-.64 0v6.756c0 .802-1.094 1.088-1.494.388-.26-.446-.518-.892-.776-1.338-.338-.482-1.1-.15-.794.38.326.566.652 1.132.978 1.698.006.012.014.026.02.04.552.946 1.106 1.89 1.658 2.834.19.3.422.578.666.802h-.006c.672.61 1.528.964 2.418 1.052.888.06 1.7921-.124 2.5601-.612.3-.19.572-.416.816-.68.326-.368.57-.776.734-1.204.176-.482.258-.97.258-1.494Zm-.91-8.608-.004-.002c.958-.38 2.058.244 2.058 1.346v7.266c0 .652-.108 1.29-.332 1.894-.216.564-.53 1.114-.964 1.576-.318.34-.666.632-1.046.884-.978.612-2.1461.862-3.2601.774-1.128-.102-2.228-.564-3.098-1.352-.326-.292-.612-.646-.87-1.034-.558-.96-1.114-1.92-1.672-2.88l-.012-.028c-.326-.568-.652-1.138-.978-1.706-.59-1.018.068-2.186 1.156-2.336.536-.074 1.126.116 1.562.72.026.028.04.062.054.096.04.074.082.146.122.218V4.2337c0-1.176 1.244-1.788 2.202-1.278.42-1.278 2.378-1.264 2.792-.014.9721-.51 2.2221.102 2.2221 1.284v.06c.022-.014.046-.026.068-.04Z"/></svg>';
 var Rp2 = '<path fill="currentColor" d="M9.3333 14.125 5.875 10.6667V14.125H9.3333Zm4.7917-3.4583-3.4583 3.4583H14.125V10.6667ZM10.6667 5.875 14.125 9.3333V5.875H10.6667ZM5.875 9.3333 9.3333 5.875H5.875V9.3333Zm9.2083 5.475c1.2333-1.3 1.9083-3.0333 1.9083-4.825-.0083-3.325-2.35-6.1833-5.6083-6.8417C8.125 2.4833 4.85 4.2 3.55 7.2583c-1.3 3.0583-.275 6.6083 2.4583 8.5 2.725 1.8917 6.4167 1.6 8.8167-.6917.0917-.0833.175-.175.2583-.2583Zm1.2583.5917 2.575 2.575c-.3167.3167-.625.625-.9417.9417-.8583-.8583-1.7167-1.7167-2.575-2.575-3.4083 2.9-8.4917 2.5917-11.525-.6917S.9417 7.275 4.1083 4.1083C7.2667.9417 12.3667.8417 15.65 3.875s3.5917 8.1167.6917 11.525Z"/>';
 var BE = `<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20">${Rp2}</svg>`;
-var Av = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><path fill="currentColor" d="M15.0833 14.8083c1.2333-1.3 1.9083-3.0333 1.9083-4.825-.0083-3.325-2.35-6.1833-5.6083-6.8417C8.125 2.4833 4.85 4.2 3.55 7.2583c-1.3 3.0583-.275 6.6083 2.4583 8.5 2.725 1.8917 6.4167 1.6 8.8167-.6917.0917-.0833.175-.175.2583-.2583Zm1.2583.5917 2.575 2.575c-.3167.3167-.625.625-.9417.9417-.8583-.8583-1.7167-1.7167-2.575-2.575-3.4083 2.9-8.4917 2.5917-11.525-.6917C.8417 12.3667.9417 7.275 4.1083 4.1083 7.2667.9417 12.3667.8417 15.65 3.875s3.5917 8.1167.6917 11.525Zm-3.55-2.6083V7.2083H7.2083v5.5833h5.5833ZM5.875 5.875h8.25v8.25H5.875V5.875Z"/></svg>';
-var RE = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 512 512"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="m434.8 137.65l-149.36-68.1c-16.19-7.4-42.69-7.4-58.88 0L77.3 137.65c-17.6 8-17.6 21.09 0 29.09l148 67.5c16.89 7.7 44.69 7.7 61.58 0l148-67.5c17.52-8 17.52-21.1-.08-29.09M160 308.52l-82.7 37.11c-17.6 8-17.6 21.1 0 29.1l148 67.5c16.89 7.69 44.69 7.69 61.58 0l148-67.5c17.6-8 17.6-21.1 0-29.1l-79.94-38.47"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="m160 204.48l-82.8 37.16c-17.6 8-17.6 21.1 0 29.1l148 67.49c16.89 7.7 44.69 7.7 61.58 0l148-67.49c17.7-8 17.7-21.1.1-29.1L352 204.48"/></svg>';
-var jE = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><rect x="2" y="2" width="8.2" height="5" rx="1.2" fill="currentColor"/><rect x="2" y="8.5" width="8.2" height="9.5" rx="1.2" fill="currentColor"/><rect x="11.7" y="2" width="6.3" height="10" rx="1.2" fill="currentColor"/><rect x="11.7" y="13.5" width="6.3" height="4.5" rx="1.2" fill="currentColor"/></svg>';
-var VE = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><path fill="currentColor" fill-rule="evenodd" d="M1.5 7h17v6h-17ZM4.25 7h1v2.5h-1ZM7.5 7h.75v1.5H7.5ZM10.25 7h1v2.5h-1ZM13.5 7h.75v1.5H13.5ZM16.25 7h1v2.5h-1Z"/></svg>';
 var Iv = '<path fill="currentColor" fill-rule="evenodd" d="M2.25 15h15.5v3.4H2.25Zm1.5 0h.7v1.45h-.7Zm2.95 0h.7v1.45h-.7Zm2.95 0h.7v1.45h-.7Zm2.95 0h.7v1.45h-.7Zm2.95 0h.7v1.45h-.7Z"/>';
 var ae2 = "var(--el-color-primary, var(--ml-ui-accent, #409eff))";
 function Gi3(s) {
@@ -196689,11 +196494,6 @@ var KE = Gi3(
 var Tv = Gi3(
   `<g fill="none" stroke="${ae2}" stroke-linecap="round" stroke-linejoin="round"><path stroke-width="1.4" d="M4 4.8v7.4h7.6"/><path stroke-width="1.2" stroke-dasharray="1.7 1.2" d="M4 6.9h7M11 12.2V6.9"/></g><path fill="${ae2}" d="M4 2.5 2.45 4.8h3.1ZM13.8 12.2 11.5 10.7v3Z"/><circle fill="${ae2}" cx="11" cy="6.9" r="1.3"/>`
 );
-var jp2 = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 512 512" fill="currentColor" aria-hidden="true"><path d="M 459.5 0 L 475.5 0 L 476.5 1 L 479.5 1 L 485.5 3 Q 487.8 6.2 492.5 7 L 501 14.5 L 505 19.5 L 511 32.5 Q 510.2 35.8 512 36.5 L 512 52.5 L 511 53.5 L 511 56.5 L 509 62.5 L 506 68.5 L 493 89.5 L 483 108.5 L 478 115.5 L 472 127.5 L 467 134.5 L 457 153.5 L 452 160.5 L 442 179.5 L 437 186.5 L 431 198.5 L 440 213.5 L 440 215.5 L 443 220.5 L 447 232.5 L 448 240.5 L 449 241.5 L 449 245.5 L 450 246.5 L 450 254.5 L 451 255.5 L 451 274.5 L 450 275.5 L 450 283.5 L 449 284.5 L 449 289.5 L 448 290.5 L 448 294.5 L 447 295.5 L 446 302.5 L 442 314.5 L 438 322.5 L 438 324.5 L 428 345.5 L 428 347.5 L 425 352.5 L 422 361.5 L 418 368.5 L 418 370.5 L 415 375.5 L 412 384.5 L 408 391.5 L 408 393.5 L 405 398.5 L 402 407.5 L 398 414.5 L 395 423.5 L 391 430.5 L 391 432.5 L 381 453.5 L 381 455.5 L 378 460.5 L 375 469.5 L 371 476.5 L 368 485.5 L 361.5 497 L 353.5 501 L 348.5 501 L 347.5 500 L 344.5 500 L 329.5 495 L 326.5 493 L 321.5 492 L 318.5 490 L 303.5 485 L 289.5 478 L 287.5 478 L 282 473.5 L 279 467.5 L 279 459.5 L 280 458.5 L 280 455.5 L 281 454.5 L 281 451.5 L 282 450.5 L 283 442.5 L 284 441.5 L 286 431.5 L 285.5 431 L 281.5 435 L 259.5 455 L 255.5 457 L 246.5 457 L 223.5 444 L 189.5 421 L 155.5 394 L 133 373.5 L 130 367.5 L 130 359.5 L 134 352.5 L 223 233.5 L 242 206.5 L 254.5 192 L 271.5 177 L 285.5 168 L 299.5 161 L 314.5 156 L 317.5 156 L 318.5 155 L 330.5 154 L 331.5 153 L 352.5 153 L 354 151.5 L 356 146.5 L 372 120.5 L 374 115.5 L 387 94.5 L 397 75.5 L 402 68.5 L 408 56.5 L 413 49.5 L 423 30.5 L 431 17.5 L 439.5 9 L 449.5 3 L 455.5 1 L 458.5 1 L 459.5 0 Z M 466 30 L 459 33 L 454 39 L 448 51 L 443 58 L 433 77 L 428 84 L 414 110 L 409 117 L 407 122 L 405 124 L 403 129 L 401 131 L 399 136 L 384 161 L 386 162 L 388 162 L 396 166 L 409 175 L 422 153 L 424 148 L 429 141 L 431 136 L 433 134 L 435 129 L 437 127 L 439 122 L 444 115 L 454 96 L 459 89 L 469 70 L 474 63 L 482 47 L 482 43 L 480 38 L 475 32 L 469 30 L 466 30 Z M 333 183 L 332 184 L 328 184 L 327 185 L 324 185 L 323 186 L 320 186 L 314 188 L 300 195 L 286 205 L 271 220 L 267 225 L 266 228 L 410 310 L 412 307 L 412 305 L 416 296 L 418 285 L 419 284 L 419 279 L 420 278 L 420 252 L 419 251 L 419 246 L 417 241 L 417 238 L 411 224 L 402 211 L 389 198 L 371 188 L 362 185 L 352 184 L 351 183 L 333 183 Z M 248 252 L 195 322 L 193 326 L 172 353 L 167 361 L 194 384 L 228 409 L 249 422 L 256 417 L 303 372 L 310 368 L 318 368 L 322 370 L 328 378 Q 327 381 329 382 L 329 386 L 326 395 L 326 399 L 323 408 L 323 411 L 322 412 L 322 416 L 319 425 L 319 428 L 318 429 L 318 432 L 317 433 L 317 437 L 314 446 L 314 449 L 313 450 L 313 453 L 312 454 L 316 456 L 318 456 L 331 462 L 343 466 L 351 448 L 351 446 L 354 441 L 354 439 L 357 434 L 357 432 L 364 418 L 364 416 L 367 411 L 367 409 L 370 404 L 370 402 L 377 388 L 377 386 L 380 381 L 380 379 L 383 374 L 383 372 L 387 365 L 390 356 L 393 351 L 393 349 L 396 344 L 397 339 L 375 326 L 373 324 L 368 322 L 366 320 L 361 318 L 354 313 L 349 311 L 347 309 L 342 307 L 340 305 L 335 303 L 321 294 L 316 292 L 314 290 L 309 288 L 307 286 L 302 284 L 295 279 L 276 269 L 248 252 Z "/><path d="M 170.5 100 L 179.5 100 Q 185 102 188 106.5 L 190 110.5 L 190 134.5 L 184.5 142 L 177.5 145 L 171.5 145 L 166.5 143 L 162 138.5 L 159 129.5 L 159 115.5 L 160 114.5 Q 159.2 109.7 161 107.5 L 166.5 102 L 170.5 100 Z "/><path d="M 131.5 140 L 151.5 140 L 156.5 142 L 162 147.5 L 164 151.5 L 164 159.5 L 163 162.5 L 158.5 168 L 152.5 171 L 130.5 171 L 124.5 168 L 122 165.5 L 119 159.5 L 119 151.5 Q 121.3 145.3 126.5 142 L 131.5 140 Z "/><path d="M 197.5 140 L 218.5 140 L 223.5 142 L 228 146.5 L 231 152.5 L 231 158.5 L 229 163.5 L 223.5 169 L 218.5 171 L 197.5 171 L 192.5 169 L 188 164.5 L 186 160.5 L 185 153.5 L 188 146.5 L 191.5 143 L 197.5 140 Z "/><path d="M 171.5 166 L 177.5 166 L 180.5 167 L 187 171.5 L 190 176.5 L 190 200.5 Q 188 206 183.5 209 L 179.5 211 L 173.5 212 L 167.5 210 L 161 203.5 Q 159.2 201.3 160 196.5 L 159 195.5 L 159 181.5 L 162 172.5 L 165.5 169 L 171.5 166 Z "/><path d="M 50.5 223 L 60.5 223 L 68 228.5 L 71 234.5 L 71 256.5 Q 69.1 262.6 64.5 266 L 59.5 268 L 51.5 268 Q 45.3 265.7 42 260.5 L 40 255.5 L 40 235.5 L 42 230.5 L 48.5 224 L 50.5 223 Z "/><path d="M 13.5 263 L 30.5 263 Q 31.5 265 35.5 264 L 43 270.5 L 45 274.5 L 45 282.5 Q 43.1 288.6 38.5 292 L 33.5 294 L 10.5 294 Q 5 292 2 287.5 L 0 283.5 L 0 274.5 Q 2.3 268.3 7.5 265 L 13.5 263 Z "/><path d="M 80.5 263 L 97.5 263 L 103.5 265 L 108 268.5 L 111 273.5 L 112 279.5 L 109 287.5 L 104.5 292 L 100.5 294 L 77.5 294 Q 71.3 291.7 68 286.5 L 66 281.5 L 66 276.5 L 69 269.5 L 72.5 266 L 80.5 263 Z "/><path d="M 54.5 289 L 61.5 290 L 69 296.5 L 71 301.5 L 71 322.5 L 69 327.5 L 63.5 333 L 58.5 335 L 53.5 335 L 46.5 332 L 43 328.5 L 40 321.5 L 40 302.5 Q 41.8 301.8 41 298.5 L 46.5 292 L 54.5 289 Z "/><path d="M 98.5 400 L 107.5 402 L 113 407.5 L 115 411.5 L 115 434.5 Q 112.7 440.7 107.5 444 L 101.5 446 L 96.5 446 L 90.5 443 L 87 439.5 L 84 430.5 L 84 415.5 L 85 414.5 Q 84.3 410.3 86 408.5 L 92.5 402 L 98.5 400 Z "/><path d="M 55.5 441 L 77.5 441 L 80.5 442 L 86 446.5 L 89 451.5 L 89 460.5 Q 86.7 466.7 81.5 470 L 76.5 472 L 56.5 472 L 51.5 470 L 46 464.5 L 44 460.5 L 44 452.5 L 45 449.5 L 49.5 444 L 55.5 441 Z "/><path d="M 121.5 441 L 144.5 441 Q 150.7 443.3 154 448.5 L 156 453.5 L 156 458.5 L 154 464.5 L 148.5 470 L 146.5 470 L 143.5 472 L 122.5 472 L 116.5 469 L 113 465.5 L 111 461.5 L 110 455.5 Q 112 454.5 111 450.5 L 117.5 443 L 121.5 441 Z "/><path d="M 96.5 467 L 103.5 467 L 106.5 468 L 113 473.5 L 115 478.5 L 115 501.5 Q 113 507 108.5 510 L 104.5 512 L 95.5 512 Q 89.3 509.7 86 504.5 Q 84.3 502.7 85 498.5 L 84 497.5 L 84 482.5 L 87 473.5 L 91.5 469 L 96.5 467 Z "/></svg>';
-var YE = jp2;
-var ZE = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" fill="currentColor"/><rect x="14" y="14" width="7" height="7" fill="none" stroke="currentColor" stroke-width="1"/><path d="M12 4a8 8 0 0 1 7.25 7.25" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"/><path d="M20.75 10 L17.25 10 L19 12.5 Z" fill="currentColor"/><path d="M12 20a8 8 0 0 1-8-8" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"/><path d="M6 14 L2.5 14 L4 11 Z" fill="currentColor"/></svg>';
-var XE = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><rect x="2.5" y="2.5" width="15" height="15" rx="1.5" fill="#fff" stroke="currentColor" stroke-width="1.2"/><g fill="none" stroke="#000" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 6.5h4.5M5.5 10h7M5.5 13.5h9"/><path d="M13.25 6.5v4.25h-3.25"/></g></svg>';
-var qE = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20" fill="none" style="fill:none"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.4 3.25H5.5A2.25 2.25 0 0 0 3.25 5.5v9A2.25 2.25 0 0 0 5.5 16.75h9A2.25 2.25 0 0 0 16.75 14.5V8.6"/><g transform="rotate(45 13.2 6.7)"><rect x="11.7" y="1.55" width="3" height="7.45" rx="1.45"/><path d="M11.7 3.2h3"/><path d="M11.7 9 13.2 12.15 14.7 9"/><rect x="12.8" y="7.05" width="0.8" height="1.2" rx="0.4"/></g></g></svg>';
 var Ov = '<path fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="butt" stroke-linejoin="miter" d="M2.6 6.8v8.5h5.2l2.2 2.4 2.2-2.4h5.2"/>';
 var Vp2 = '<g fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" transform="rotate(46 14.8 9)"><rect x="13.65" y="4.7" width="2.3" height="5.6" rx="1.05"/><path d="M13.65 10.3 14.8 12.9 15.95 10.3"/></g>';
 function Bn3(s) {
@@ -196714,8 +196514,6 @@ var JE = Bn3(
 var QE = Bn3(
   '<path fill="currentColor" fill-rule="evenodd" d="M10 2.2 15.3 13.1h-2.2l-1.05-2.95H7.95L6.9 13.1H4.7L10 2.2Zm0 3.4-1.15 3.2h2.3L10 5.6Z"/>'
 );
-var eM = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M4 16 16 4"/><circle cx="4" cy="16" r="1.6" fill="currentColor"/><circle cx="16" cy="4" r="1.6" fill="currentColor"/></svg>';
-var tM = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><rect x="3" y="5.5" width="14" height="9" rx="1.5" fill="currentColor" fill-opacity="0.28" stroke="currentColor" stroke-width="1.5"/></svg>';
 var iM = Bn3(
   '<g transform="rotate(-40 10 7.6)" fill="currentColor"><path d="M3.5 6.75h9V5.15L16.7 7.6 12.5 10.05V8.45h-9Z"/></g>'
 );
@@ -196723,11 +196521,6 @@ var nM = sc2(
   "M624 475.968V640h144a128 128 0 0 1 128 128H128a128 128 0 0 1 128-128h144V475.968a192 192 0 1 1 224 0M128 896v-64h768v64z"
 );
 var Fv = `<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><rect x="3.5" y="3" width="13" height="14" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" d="M3.5 6.5h13"/><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" d="M6.5 9.5h7M6.5 12h7M6.5 14.5h3.2"/><g fill="none" stroke="${ae2}" stroke-width="1.7" stroke-linecap="round"><circle cx="14.5" cy="14.7" r="4.2"/><path d="M17.5 17.7 19.5 19.7"/></g></svg>`;
-var sM = Fv;
-var oM = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" d="M4.5 2h6.4L15.5 6.6V16.5A1.5 1.5 0 0 1 14 18H4.5A1.5 1.5 0 0 1 3 16.5V3.5A1.5 1.5 0 0 1 4.5 2z"/><path stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" d="M10.9 2v4.6h4.6"/><path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M10 5.8v6M7.2 9.6 10 12.5l2.8-2.9"/></svg>';
-var rM = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" d="M2.5 5.5V15a1.5 1.5 0 0 0 1.5 1.5h12A1.5 1.5 0 0 0 17.5 15V7.5A1.5 1.5 0 0 0 16 6H9.2L7.5 4H4A1.5 1.5 0 0 0 2.5 5.5z"/><path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M10 9.2v4.8M7.6 11.6 10 14l2.4-2.4"/></svg>';
-var Bv = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" d="M15.5 2H9.1L4.5 6.6V16.5A1.5 1.5 0 0 0 6 18h9.5A1.5 1.5 0 0 0 17 16.5V3.5A1.5 1.5 0 0 0 15.5 2z"/><path stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" d="M9.1 2v4.6H4.5"/><path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M10 14.2V8M7.2 10.4 10 7.5l2.8 2.9"/></svg>';
-var aM = jp2;
 var Rv = sc2(
   "M512 160c320 0 512 352 512 352S832 864 512 864 0 512 0 512s192-352 512-352m0 64c-225.28 0-384.128 208.064-436.8 288 52.608 79.872 211.456 288 436.8 288 225.28 0 384.128-208.064 436.8-288-52.608-79.872-211.456-288-436.8-288m0 64a224 224 0 1 1 0 448 224 224 0 0 1 0-448m0 64a160.19 160.19 0 0 0-160 160c0 88.192 71.744 160 160 160s160-71.808 160-160-71.744-160-160-160"
 );
@@ -196735,41 +196528,11 @@ var jv = sc2(
   "M876.8 156.8c0-9.6-3.2-16-9.6-22.4s-12.8-9.6-22.4-9.6-16 3.2-22.4 9.6L736 220.8c-64-32-137.6-51.2-224-60.8-160 16-288 73.6-377.6 176S0 496 0 512s48 73.6 134.4 176c22.4 25.6 44.8 48 73.6 67.2l-86.4 89.6c-6.4 6.4-9.6 12.8-9.6 22.4s3.2 16 9.6 22.4 12.8 9.6 22.4 9.6 16-3.2 22.4-9.6l704-710.4c3.2-6.4 6.4-12.8 6.4-22.4m-646.4 528Q115.2 579.2 76.8 512q43.2-72 153.6-172.8C304 272 400 230.4 512 224c64 3.2 124.8 19.2 176 44.8l-54.4 54.4C598.4 300.8 560 288 512 288c-64 0-115.2 22.4-160 64s-64 96-64 160c0 48 12.8 89.6 35.2 124.8L256 707.2c-9.6-6.4-19.2-16-25.6-22.4m140.8-96Q352 555.2 352 512c0-44.8 16-83.2 48-112s67.2-48 112-48c28.8 0 54.4 6.4 73.6 19.2zM889.599 336c-12.8-16-28.8-28.8-41.6-41.6l-48 48c73.6 67.2 124.8 124.8 150.4 169.6q-43.2 72-153.6 172.8c-73.6 67.2-172.8 108.8-284.8 115.2-51.2-3.2-99.2-12.8-140.8-28.8l-48 48c57.6 22.4 118.4 38.4 188.8 44.8 160-16 288-73.6 377.6-176S1024 528 1024 512s-48.001-73.6-134.401-176",
   "M511.998 672c-12.8 0-25.6-3.2-38.4-6.4l-51.2 51.2c28.8 12.8 57.6 19.2 89.6 19.2 64 0 115.2-22.4 160-64 41.6-41.6 64-96 64-160 0-32-6.4-64-19.2-89.6l-51.2 51.2c3.2 12.8 6.4 25.6 6.4 38.4 0 44.8-16 83.2-48 112s-67.2 48-112 48"
 );
-var lM = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="m18.5 10 4.4 11h-2.155l-1.201-3h-4.09l-1.199 3h-2.154L16.5 10h2zM10 2v2h6v2h-1.968a18.222 18.222 0 0 1-3.62 6.301 14.864 14.864 0 0 0 2.336 1.707l-.751 1.878A17.015 17.015 0 0 1 9 13.725 16.676 16.676 0 0 1 3.524 17.273l-.536-1.929a14.7 14.7 0 0 0 5.327-3.042A18.078 18.078 0 0 1 4.767 8h2.24A16.032 16.032 0 0 0 9 10.877 16.165 16.165 0 0 0 11.91 6.001L2 6V4h6V2h2zm7.5 10.885L16.253 16h2.492L17.5 12.885z"/></svg>';
-var cM = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><circle cx="10" cy="10" r="4" fill="currentColor"/><path fill="none" stroke="currentColor" stroke-width="1.5" d="M10 2v2M10 16v2M2 10h2M16 10h2M4.2 4.2l1.4 1.4M14.4 14.4l1.4 1.4M4.2 15.8l1.4-1.4M14.4 5.6l1.4-1.4"/></svg>';
-var dM = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><path fill="currentColor" d="M10 3a7 7 0 1 0 0 14 9 9 0 0 1 0-14Z"/></svg>';
-var uM = Bv;
-var hM = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><path fill="currentColor" d="M4 3h12v14H4V3Zm2 2v2h8V5H6Zm0 4v6h8V9H6Z"/></svg>';
-var pM = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><path fill="currentColor" d="M5 3h7l3 3v11H5V3Zm6 0v3h3"/><text x="6" y="16" fill="currentColor" font-size="5" font-family="Arial">PDF</text></svg>';
-var mM = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><path fill="none" stroke="currentColor" stroke-width="1.5" d="M4 4h12v12H4z"/><circle cx="8" cy="10" r="2" fill="currentColor"/></svg>';
-var fM = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><rect x="3" y="3" width="14" height="14" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="15" y="5" width="1.5" height="10" rx=".5" fill="currentColor"/></svg>';
-var yM = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><rect x="3" y="3" width="14" height="3" rx=".5" fill="currentColor"/><rect x="5" y="8" width="10" height="9" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>';
-var gM = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><rect x="5" y="3" width="10" height="9" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="14" width="14" height="3" rx=".5" fill="currentColor"/></svg>';
-var bM = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><rect x="3" y="3" width="3" height="14" rx=".5" fill="currentColor"/><rect x="8" y="5" width="9" height="10" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>';
-var wM = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><rect x="5" y="5" width="9" height="10" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="3" width="3" height="14" rx=".5" fill="currentColor"/></svg>';
-var vM = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M5 5l10 10M15 5 5 15"/></svg>';
-var xM = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><circle cx="10" cy="4" r="1.5" fill="currentColor"/><circle cx="10" cy="10" r="1.5" fill="currentColor"/><circle cx="10" cy="16" r="1.5" fill="currentColor"/></svg>';
 var Vv = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" aria-hidden="true"><path fill="currentColor" d="M10 6.5 5.5 11h9L10 6.5Z"/></svg>';
 var Hv = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" aria-hidden="true"><path fill="currentColor" d="M10 13.5 14.5 9h-9L10 13.5Z"/></svg>';
 var Hp2 = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" aria-hidden="true"><path fill="currentColor" d="M13.5 10 9 14.5V5.5L13.5 10Z"/></svg>';
 var Wp2 = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" aria-hidden="true"><path fill="currentColor" d="M6.5 10 11 14.5V5.5L6.5 10Z"/></svg>';
-var kM = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><path fill="currentColor" d="M10 2.6 18 9.8h-2.1V17h-4.4v-4.4H8.5V17H4.1V9.8H2L10 2.6Zm0 1.8L5.3 9.8V15.8h2V11.4h5.4v4.4h2V9.8L10 4.4Z"/></svg>';
 var SM = `<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20">${Rp2}<path fill="${ae2}" d="M14.85 0.85 15.95 4.05 19.15 5.15 15.95 6.25 14.85 9.45 13.75 6.25 10.55 5.15 13.75 4.05Z"/><path fill="${ae2}" d="M17.55 8.35 18.15 10.15 19.95 10.75 18.15 11.35 17.55 13.15 16.95 11.35 15.15 10.75 16.95 10.15Z"/></svg>`;
-var CM = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><path fill="currentColor" d="M8.08 2.1h3.84l.32 1.52a6.4 6.4 0 0 1 1.36.78l1.48-.64 1.92 1.92-.64 1.48c.3.42.54.88.78 1.36l1.52.32v3.84l-1.52.32a6.4 6.4 0 0 1-.78 1.36l.64 1.48-1.92 1.92-1.48-.64a6.4 6.4 0 0 1-1.36.78l-.32 1.52H8.08l-.32-1.52a6.4 6.4 0 0 1-1.36-.78l-1.48.64-1.92-1.92.64-1.48a6.4 6.4 0 0 1-.78-1.36L1.34 11.92V8.08l1.52-.32c.24-.48.48-.94.78-1.36l-.64-1.48 1.92-1.92 1.48.64c.42-.3.88-.54 1.36-.78L8.08 2.1ZM10 7.2A2.8 2.8 0 1 0 10 12.8 2.8 2.8 0 0 0 10 7.2Z"/></svg>';
-var _M = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><path fill="none" stroke="currentColor" stroke-width="1.5" d="M10 2.5v6M7 5.5h6"/><circle cx="10" cy="14.5" r="3.2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="14.5" r="1.1" fill="currentColor"/></svg>';
-var PM = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><path fill="currentColor" d="M10.09 3.53 16.09 6.97 10.09 10.29 4.18 7 10.09 3.56M10.09 2.4 2.17 7 3.31 7.65 10.09 11.45 17 7.62 18.17 7 10.08 2.37 10.09 2.4Z"/><path fill="currentColor" d="M10.25 14.83 18.17 10.22 17 9.57 10.22 13.57 3.32 9.59 2.17 10.22 10.25 14.83Z"/><path fill="currentColor" d="M10.25 17.63 18.17 13 17 12.37 10.22 16.37 3.32 12.38 2.17 13 10.25 17.63Z"/></svg>';
-var LM = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><path fill="currentColor" d="M10.09 5.15 16.09 8.59 10.09 11.91 4.18 8.59 10.09 5.15ZM10.09 4 2.17 8.61 3.31 9.25 10.09 13.06 17 9.24 18.16 8.61 10.08 4 10.09 4Z"/><path fill="currentColor" d="M10.25 16.46 18.17 11.85 17 11.2 10.22 15.2 3.32 11.21 2.17 11.85 10.25 16.46Z"/><path fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" d="M3.5 3.5 16.5 16.5"/></svg>';
-var EM = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2.25 2.25h4.878v4.878H2.25V2.25Zm.978.978v2.924h2.924V3.228H3.228Z"/><path fill="currentColor" d="M5.175 20.773V7.128H4.204V21.75H21.75V4.204H7.128v.971H20.773v15.598H5.175Z"/></svg>';
-var MM = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><path fill="currentColor" fill-rule="evenodd" d="M3 2H2v16h16v-1H8v-5H3V2zm0 11v4h4v-4H3z"/></svg>';
-var AM = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><path fill="currentColor" fill-rule="evenodd" d="M16.98 11L18.5 11L18.5 10L16.98 10C16.86 8.13 16.05 6.44 14.8 5.2L16.88 2.83L16.12 2.17L14.05 4.54C12.79 3.57 11.21 3 9.5 3C5.36 3 2 6.36 2 10.5C2 14.64 5.36 18 9.5 18C13.47 18 16.73 14.91 16.98 11ZM15.98 10C15.86 8.43 15.18 7.01 14.14 5.95L10.6 10L15.98 10ZM13.39 5.29L8.4 11L15.98 11C15.73 14.36 12.92 17 9.5 17C5.91 17 3 14.09 3 10.5C3 6.91 5.91 4 9.5 4C10.96 4 12.31 4.48 13.39 5.29Z"/></svg>';
-var IM = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="#e75958" d="M22 12H12l5 8.66A10 10 0 0 0 22 12Z"/><path fill="#814dff" d="M17 20.66 12 12 7 20.66A10 10 0 0 0 17 20.66Z"/><path fill="#13b0ce" d="M7 20.66 12 12H2A10 10 0 0 0 7 20.66Z"/><path fill="#4ecd83" d="M2 12H12L7 3.34A10 10 0 0 0 2 12Z"/><path fill="#ffc33f" d="M7 3.34 12 12l5-8.66A10 10 0 0 0 7 3.34Z"/><path fill="#ff9543" d="M17 3.34 12 12H22A10 10 0 0 0 17 3.34Z"/></svg>';
-var TM = Av;
-var OM = Tv;
-var DM = Dv;
-var zM = zv;
-var NM = Nv;
-var FM = Rv;
-var BM = jv;
 var Up2 = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20"><circle cx="4" cy="10" r="1.6" fill="currentColor"/><circle cx="10" cy="10" r="1.6" fill="currentColor"/><circle cx="16" cy="10" r="1.6" fill="currentColor"/></svg>';
 var Wv = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>';
 var Uv = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>';
@@ -198149,10 +197912,6 @@ function iu2(s) {
   const e = xs3.get(s);
   e && (e.style.display = "none");
 }
-function RM(s) {
-  const e = xs3.get(s);
-  e && (e.remove(), xs3.delete(s));
-}
 var kx = 52;
 var Sx = class {
   mapFingerToSample(e, t) {
@@ -198219,9 +197978,6 @@ function Je2(s = performance.now()) {
 }
 function qp2(s) {
   return Dt3(s) ? true : Je2();
-}
-function jM() {
-  Qa2(), Go2 = 0;
 }
 var Jp2 = class {
   constructor() {
@@ -201987,7 +201743,6 @@ var sl2 = hs2;
 var ks3 = 128;
 var Qp2 = 3;
 var au2 = 8;
-var VM = 8;
 function Vx(s, e) {
   return {
     x: au2,
@@ -202640,159 +202395,6 @@ var hi3 = class {
       } catch {
         break;
       }
-  }
-};
-var HM = class {
-  constructor(e = []) {
-    this._typedValues = [...e];
-  }
-  /**
-   * Returns typed values used by this filter.
-   */
-  get typedValues() {
-    return [...this._typedValues];
-  }
-  /**
-   * Returns whether the specified entity satisfies all filter clauses.
-   */
-  matches(e) {
-    if (this._typedValues.length === 0)
-      return true;
-    let t = "equals";
-    for (const i of this._typedValues) {
-      if (i.code === AcDbDxfCode.Operator) {
-        t = this.parseOperator(i.value);
-        continue;
-      }
-      if (!this.matchTypedValue(e, i, t))
-        return false;
-      t = "equals";
-    }
-    return true;
-  }
-  /**
-   * Parses one operator token from typed-value input.
-   *
-   * Accepted tokens follow common AutoCAD comparison syntax. Unknown values
-   * safely fall back to equality.
-   *
-   * @param raw - Raw operator token (usually from `AcDbDxfCode.Operator`)
-   * @returns Normalized internal comparison operator
-   */
-  parseOperator(e) {
-    switch (String(e ?? "").trim()) {
-      case "!=":
-      case "<>":
-        return "notEquals";
-      case ">":
-        return "greaterThan";
-      case ">=":
-        return "greaterThanOrEqual";
-      case "<":
-        return "lessThan";
-      case "<=":
-        return "lessThanOrEqual";
-      case "=":
-      case "==":
-      default:
-        return "equals";
-    }
-  }
-  /**
-   * Evaluates whether one typed-value clause matches the given entity.
-   *
-   * The method first resolves an entity-side value by DXF code, then compares
-   * it with the filter value using the operator currently in effect.
-   *
-   * @param entity - Entity being tested
-   * @param tv - Typed-value clause (`code` + `value`)
-   * @param op - Comparison operator for this clause
-   * @returns `true` if the clause matches; otherwise `false`
-   */
-  matchTypedValue(e, t, i) {
-    const n = this.resolveEntityValue(e, t.code);
-    return n == null ? false : t.code === AcDbDxfCode.Handle ? this.compareStrings(String(n), String(t.value ?? ""), i) : this.compare(n, t.value, i);
-  }
-  /**
-   * Resolves the entity property value associated with one DXF group code.
-   *
-   * Only codes used by current Quick Select flow are mapped. Unsupported
-   * codes return `undefined` and are treated as non-matching clauses.
-   *
-   * @param entity - Source entity
-   * @param code - DXF code indicating which property to read
-   * @returns Resolved value for comparison, or `undefined` if unsupported
-   */
-  resolveEntityValue(e, t) {
-    var i;
-    switch (t) {
-      case AcDbDxfCode.Start:
-        return e.dxfTypeName || e.type;
-      case AcDbDxfCode.Handle:
-        return e.objectId;
-      case AcDbDxfCode.LayerName:
-        return e.layer;
-      case AcDbDxfCode.ColorName:
-        return (i = e.color) == null ? void 0 : i.toString();
-      case AcDbDxfCode.LinetypeName:
-        return e.lineType;
-      case AcDbDxfCode.LineWeight:
-        return Number(e.lineWeight);
-      default:
-        return;
-    }
-  }
-  /**
-   * Compares runtime value and filter value with the given operator.
-   *
-   * Comparison strategy:
-   * - Numeric path: when both values are finite numbers
-   * - String path: case-insensitive lexicographic comparison otherwise
-   *
-   * @param actual - Runtime value resolved from entity
-   * @param expected - Target value from filter clause
-   * @param op - Comparison operator
-   * @returns `true` when comparison succeeds; otherwise `false`
-   */
-  compare(e, t, i) {
-    const n = Number(e), o = Number(t);
-    if (Number.isFinite(n) && Number.isFinite(o) && `${e}`.trim() !== "" && `${t}`.trim() !== "")
-      switch (i) {
-        case "equals":
-          return n === o;
-        case "notEquals":
-          return n !== o;
-        case "greaterThan":
-          return n > o;
-        case "greaterThanOrEqual":
-          return n >= o;
-        case "lessThan":
-          return n < o;
-        case "lessThanOrEqual":
-          return n <= o;
-      }
-    return this.compareStrings(String(e), String(t), i);
-  }
-  /**
-   * Case-insensitive string comparison used for non-numeric clauses
-   * (and always for handle / objectId).
-   */
-  compareStrings(e, t, i) {
-    const n = e.toLowerCase(), o = t.toLowerCase();
-    switch (i) {
-      case "equals":
-        return n === o;
-      case "notEquals":
-        return n !== o;
-      case "greaterThan":
-        return n > o;
-      case "greaterThanOrEqual":
-        return n >= o;
-      case "lessThan":
-        return n < o;
-      case "lessThanOrEqual":
-        return n <= o;
-    }
   }
 };
 var Zx = class {
@@ -204005,9 +203607,6 @@ function rm(s, e, t = "drawing") {
     o += 1, r = `${i}-${o + 1}${n}`;
   return rl2.add(r), r;
 }
-function WM() {
-  rl2.clear();
-}
 var du2 = "ml-ui-simple-toolbar-styles";
 var f02 = `
   .ml-ui-simple-toolbar {
@@ -204719,9 +204318,6 @@ function L02() {
 function E02(s) {
   dm = s.clone(), uc2();
 }
-function UM(s) {
-  !Number.isFinite(s) || s <= 0 || (dc2 = s, _s3 = "adaptive", zi3 = void 0, uc2());
-}
 function M02(s, e) {
   !Number.isFinite(e) || e <= 0 || (_s3 = s, s === "adaptive" ? (dc2 = e, zi3 = void 0) : zi3 = e, uc2());
 }
@@ -205245,9 +204841,6 @@ var H02 = W2.Review;
 function mm(s) {
   s.mode = H02, s.recordsUndoStack = false;
 }
-function GM(s) {
-  mm(s), lm(s);
-}
 function qt3(s, e, t, i) {
   const n = O02();
   return {
@@ -205285,12 +204878,6 @@ async function yc2(s, e) {
     multiline: (e == null ? void 0 : e.multiline) ?? true,
     initialText: (e == null ? void 0 : e.initialText) ?? ""
   }) ?? "").trim();
-}
-async function $M(s, e) {
-  await s.view.withMode(
-    mt3.SELECTION,
-    () => s.view.editor.withCursor(Nn3.Crosshair, e)
-  );
 }
 function fm(s, e, t) {
   const i = s.worldToScreen(t), n = { x: i.x + e, y: i.y }, o = s.screenToWorld(n);
@@ -205333,14 +204920,6 @@ function Sr3(s, e, t, i) {
     });
   }
   return y;
-}
-function W02(s, e) {
-  return [
-    { x: s.x, y: s.y },
-    { x: e.x, y: s.y },
-    { x: e.x, y: e.y },
-    { x: s.x, y: e.y }
-  ];
 }
 function U02(s, e, t, i = 6) {
   if (Math.abs(t) < 1e-8)
@@ -205400,31 +204979,7 @@ function G02(s, e, t, i, n, o, r, a) {
     s.lineTo(f[y].x, f[y].y);
   s.closePath(), s.stroke();
 }
-function KM(s, e, t, i) {
-  const n = Sr3(e, t, i);
-  s.reset(false);
-  for (let o = 0; o < n.length; o++)
-    s.addVertexAt(
-      o,
-      { x: n[o].x, y: n[o].y },
-      n[o].bulge
-    );
-  s.closed = true;
-}
-function YM(s, e, t) {
-  const i = W02(e, t);
-  s.reset(false);
-  for (let n = 0; n < i.length; n++)
-    s.addVertexAt(n, i[n]);
-  s.closed = true;
-}
 var bn3 = true;
-function ZM() {
-  return bn3;
-}
-function XM(s) {
-  bn3 = s;
-}
 async function bc2(s, e) {
   for (; ; ) {
     const t = bn3 ? "jig.markup.shape.calloutOn" : "jig.markup.shape.calloutOff", i = new F2(
@@ -206458,7 +206013,6 @@ function ym(s) {
       return new ek(s);
   }
 }
-var qM = ym;
 var ik = class {
   constructor() {
     this.published = /* @__PURE__ */ new Set(), this.suppressingStoreRemove = false;
@@ -206639,7 +206193,6 @@ function yu2(s, e) {
 }
 var gu2 = "ml-aci-palette-styles";
 var ok = "ml-aci-stacks--fill";
-var rk = 6;
 var ak = 350;
 var bu2 = 10;
 var na2 = 56;
@@ -206872,13 +206425,6 @@ function wc2() {
   if (typeof document > "u") return;
   let s = document.getElementById(gu2);
   s || (s = document.createElement("style"), s.id = gu2, document.head.appendChild(s)), s.textContent = lk;
-}
-function JM(s, e, t = rk) {
-  const i = e.getBoundingClientRect();
-  s.style.boxSizing = "border-box", s.style.left = `${-i.left}px`, s.style.right = "auto", s.style.width = `${window.innerWidth}px`, s.style.maxWidth = "none", s.style.top = "auto", s.style.bottom = `${i.height + t}px`;
-}
-function QM(s) {
-  s.style.boxSizing = "", s.style.left = "", s.style.right = "", s.style.width = "", s.style.maxWidth = "", s.style.top = "", s.style.bottom = "";
 }
 function vc2(s) {
   const e = new AcCmColor();
@@ -207933,7 +207479,6 @@ var Ot3 = class Ot4 {
   }
 };
 Ot3._cache = /* @__PURE__ */ new Map(), Ot3._docListenerBound = false;
-var Pu2 = Ot3;
 var _k = 0.92;
 var Pk = class {
   /**
@@ -217587,7 +217132,6 @@ async function Oc2(s, e) {
     () => s.view.editor.withCursor(i_, e)
   );
 }
-var eA = Oc2;
 var jn3 = class extends cm {
   constructor() {
     super(), this.mode = W2.Read;
@@ -218913,22 +218457,6 @@ var H_ = class extends mi3 {
     });
   }
 };
-function tA(s, e) {
-  return Yo3(s, e);
-}
-function iA(s, e, t) {
-  fe3(s, e, t);
-}
-function nA(s) {
-  return tt3(s);
-}
-function sA(s) {
-  const { outline: e, ...t } = s;
-  return pc2({
-    ...t,
-    constrainTip: e ? (i) => Ps3(e, i) : void 0
-  });
-}
 var W_ = class extends Z3 {
   constructor(e, t, i) {
     super(e), this._radius = 0, this._view = e, this._center = t, this._color = i, this._preview = new Ze2(
@@ -219570,9 +219098,6 @@ var p1 = class extends mi3 {
   }
 };
 var Nc2 = true;
-function oA() {
-  return Nc2;
-}
 function m1(s, e) {
   Nc2 = e, s.htmlTransientManager.setVisible(e, Vl2), s.htmlTransientManager.setVisible(e, je3), s.isHtmlDirty = true;
 }
@@ -220770,188 +220295,6 @@ var _1 = class extends G2 {
     AcCmPerformanceCollector.getInstance().printAll();
   }
 };
-function P1(s) {
-  return !Number.isFinite(s) || s < 0 ? "\u2014" : s < 1024 ? `${Math.round(s)} B` : s < 1024 * 1024 ? `${(s / 1024).toFixed(1)} KB` : s < 1024 * 1024 * 1024 ? `${(s / (1024 * 1024)).toFixed(2)} MB` : `${(s / (1024 * 1024 * 1024)).toFixed(2)} GB`;
-}
-function L1() {
-  const e = performance.memory;
-  if (e)
-    return {
-      usedJSHeapSize: e.usedJSHeapSize,
-      totalJSHeapSize: e.totalJSHeapSize,
-      jsHeapSizeLimit: e.jsHeapSizeLimit
-    };
-}
-function Ju2(s) {
-  return Object.entries(s).map(([e, t]) => ({
-    name: e,
-    count: t.count,
-    estimatedBytes: t.bytes
-  })).sort((e, t) => t.estimatedBytes - e.estimatedBytes);
-}
-function E1(s) {
-  const e = acdbEstimateDatabaseMemory(s);
-  return {
-    estimate: e,
-    categories: Ju2(e.byCategory),
-    entitiesByType: Ju2(e.byEntityType),
-    estimatedBytes: e.totalBytes,
-    entityCount: e.entityCount,
-    objectCount: e.objectCount,
-    isEstimated: true
-  };
-}
-function M1(s, e) {
-  const t = [];
-  return s.layouts.forEach((i, n) => {
-    const o = e[n] ?? `layout-${n}`;
-    for (const r of i.layers)
-      t.push({
-        layoutKey: o,
-        layoutIndex: n,
-        layerName: r.name,
-        entityCount: r.summary.entityCount,
-        lineBytes: r.line.indexed.geometrySize + r.line.nonIndexed.geometrySize,
-        meshBytes: r.mesh.indexed.geometrySize + r.mesh.nonIndexed.geometrySize,
-        pointBytes: r.point.indexed.geometrySize + r.point.nonIndexed.geometrySize,
-        unbatchedBytes: r.unbatched.geometrySize,
-        geometryBytes: r.summary.totalGeometrySize,
-        mappingBytes: r.summary.totalMappingSize,
-        unbatchedCount: r.unbatched.count
-      });
-  }), t;
-}
-function Qu2(s, e) {
-  try {
-    for (const t of e.tables.blockTable.newIterator())
-      if (t.objectId === s)
-        return String(t.name ?? s);
-  } catch {
-  }
-  return s;
-}
-function eh2(s) {
-  const e = [
-    ...s.mainThread.fonts,
-    ...s.workers.flatMap((i) => i.fonts)
-  ], t = /* @__PURE__ */ new Map();
-  for (const i of e) {
-    const n = i.names[0] ?? "(unnamed)", o = t.get(n);
-    (!o || i.estimatedBytes > o.estimatedBytes) && t.set(n, {
-      name: n,
-      type: i.type,
-      estimatedBytes: i.estimatedBytes
-    });
-  }
-  return [...t.values()].sort(
-    (i, n) => n.estimatedBytes - i.estimatedBytes
-  );
-}
-async function A1() {
-  const s = j.instance.missedFonts ?? {}, e = Object.keys(s), t = await be.getInstance().estimateMemoryUsage(), i = t.workers.reduce(
-    (n, o) => n + o.totalEstimatedBytes,
-    0
-  );
-  return {
-    missedCount: e.length,
-    missedNames: e,
-    estimatedBytes: t.totalEstimatedBytes,
-    mainThreadBytes: t.mainThread.totalEstimatedBytes,
-    workerBytes: i,
-    loadedFontCount: eh2(t).length,
-    indexedDbBytes: t.indexedDbFontCache.totalBytes,
-    indexedDbFontCount: t.indexedDbFontCache.fontCount,
-    fonts: eh2(t),
-    report: t,
-    isEstimated: true
-  };
-}
-async function I1(s, e) {
-  const t = s.stats, i = [...s.cadScene.layouts.entries()], n = i.map(
-    ([b]) => Qu2(b, e)
-  ), o = M1(t, n), r = i.map(
-    ([b, C2]) => ({
-      layoutKey: Qu2(b, e),
-      stats: C2.spatialIndexStats
-    })
-  ), a = r.reduce(
-    (b, C2) => b + C2.stats.estimatedBytes,
-    0
-  ), l = r.reduce(
-    (b, C2) => b + (C2.stats.rootItemCount ?? C2.stats.itemCount),
-    0
-  ), c = r.reduce(
-    (b, C2) => b + (C2.stats.childItemCount ?? 0),
-    0
-  ), d = E1(e), u = s.renderer.styleManager.getStats(), p = await A1(), m = L1(), f = t.summary.totalSize.geometry, y = t.summary.totalSize.mapping, g = [`${p.loadedFontCount} loaded`];
-  p.missedCount > 0 && g.push(`${p.missedCount} missed`);
-  const k2 = [
-    {
-      id: "geometry",
-      bytes: f,
-      isEstimated: false,
-      detail: `${t.summary.entityCount} entities`
-    },
-    {
-      id: "mapping",
-      bytes: y,
-      isEstimated: true,
-      detail: "batch slot metadata"
-    },
-    {
-      id: "spatial",
-      bytes: a,
-      isEstimated: true,
-      detail: `${l} root / ${c} child items`
-    },
-    {
-      id: "dataModel",
-      bytes: d.estimatedBytes,
-      isEstimated: true,
-      detail: `${d.entityCount} entities`
-    },
-    {
-      id: "materials",
-      bytes: u.totalEstimatedBytes,
-      isEstimated: true,
-      detail: `${u.totalCount} cached`
-    },
-    {
-      id: "fonts",
-      bytes: p.estimatedBytes,
-      isEstimated: true,
-      detail: g.join(" \xB7 ")
-    }
-  ];
-  return m && k2.unshift({
-    id: "heap",
-    bytes: m.usedJSHeapSize,
-    isEstimated: true,
-    detail: `limit ${P1(m.jsHeapSizeLimit)}`
-  }), {
-    collectedAt: Date.now(),
-    heap: m,
-    summary: k2,
-    geometry: {
-      scene: t,
-      layers: o
-    },
-    spatial: {
-      layouts: r,
-      totalEstimatedBytes: a,
-      totalRootItems: l,
-      totalChildItems: c
-    },
-    dataModel: d,
-    materials: u,
-    fonts: p
-  };
-}
-var rA = class {
-  static collect(e, t) {
-    return I1(e, t);
-  }
-};
 var T1 = class extends G2 {
   /**
    * Executes the open file command.
@@ -221095,38 +220438,6 @@ var V1 = class extends G2 {
     t === "markup" && pi4().republishAll(e.view), Ui3();
   }
 };
-function aA(s) {
-  const e = () => {
-    const n = x.tryGetInstance();
-    if (!n) {
-      s.setDocState({
-        hasDocument: false,
-        isOpening: false,
-        openMode: W2.Read
-      });
-      return;
-    }
-    const o = n.curDocument;
-    s.setDocState({
-      hasDocument: !!o,
-      isOpening: false,
-      openMode: (o == null ? void 0 : o.openMode) ?? W2.Read
-    });
-  }, t = () => {
-    s.setDocState({ isOpening: true });
-  }, i = (n = 0) => {
-    const o = x.tryGetInstance();
-    if (!o) {
-      n < 20 && queueMicrotask(() => i(n + 1));
-      return;
-    }
-    o.events.documentActivated.addEventListener(e), o.events.documentToBeOpened.addEventListener(t), e();
-  };
-  return i(), () => {
-    const n = x.tryGetInstance();
-    n == null || n.events.documentActivated.removeEventListener(e), n == null || n.events.documentToBeOpened.removeEventListener(t);
-  };
-}
 var H1 = class extends G2 {
   /**
    * Executes the pan command.
@@ -222642,14 +221953,7 @@ var lt2 = class lt3 {
 };
 lt2.OVERLAY_DEFAULT = "rgba(0,0,0,0.45)", lt2.OVERLAY_SEE_THROUGH = "rgba(0,0,0,0.16)", lt2.HOLD_IDLE_STREAK = 2, lt2.HOLD_POLL_MS = 50;
 var Ll2 = lt2;
-var lA = "libredwg-parser-worker.js";
-var cA = "libredwg-web.wasm";
 var oP = "mtext-renderer-worker.js";
-var dA = "dwg-parser-worker.js";
-var uA = "dwg-parser-main.js";
-var hA = "@mlightcad/libredwg-converter";
-var pA = "@mlightcad/mtext-renderer";
-var mA = "@mlightcad/dwg-converter";
 var Zm = {
   mtextRender: `./assets/${oP}`
 };
@@ -223078,10 +222382,6 @@ function mP(s) {
   }
   return e;
 }
-function fA(s) {
-  var e;
-  return s.length === 1 && ((e = s[0]) == null ? void 0 : e.id) === Fc2 && !s[0].requiresAuth;
-}
 function mo3(s, e, t, i, n) {
   return {
     id: `${s.id}:${e}`,
@@ -223091,64 +222391,6 @@ function mo3(s, e, t, i, n) {
     labelParams: i,
     label: n ?? pP(h.t(t), i)
   };
-}
-async function fP(s, e) {
-  if (s.id === e.sourceId) {
-    if (e.action === "sign-in") {
-      await s.signIn();
-      return;
-    }
-    if (e.action === "sign-out") {
-      await s.signOut();
-      return;
-    }
-    return s.pick();
-  }
-}
-function yA(s, e = 1080, t = 680) {
-  const i = window.screenLeft !== void 0 ? window.screenLeft : window.screenX, n = window.screenTop !== void 0 ? window.screenTop : window.screenY, o = window.innerWidth || document.documentElement.clientWidth || screen.width, r = window.innerHeight || document.documentElement.clientHeight || screen.height, a = Math.max(
-    0,
-    Math.round(i + (o - e) / 2)
-  ), l = Math.max(
-    0,
-    Math.round(n + (r - t) / 2)
-  ), c = [
-    `width=${e}`,
-    `height=${t}`,
-    `left=${a}`,
-    `top=${l}`,
-    "resizable=yes",
-    "scrollbars=yes"
-  ].join(",");
-  return window.open("", s, c);
-}
-async function gA(s, e, t) {
-  var r;
-  const i = t ?? ((r = x.tryGetInstance()) == null ? void 0 : r.dataSourceManager), n = i == null ? void 0 : i.get(s.sourceId);
-  if (!n) return;
-  const o = await fP(n, s);
-  s.action !== "pick" || !o || await Km(o, e);
-}
-async function bA(s, e) {
-  const t = e ?? h.t("main.dataSource.downloading"), i = x.tryGetInstance();
-  if (i) {
-    i.showBusyIndicator(t);
-    try {
-      return await s();
-    } finally {
-      i.hideBusyIndicator();
-    }
-  }
-  const n = new Es3({
-    host: document.body,
-    message: t
-  });
-  n.show();
-  try {
-    return await s();
-  } finally {
-    n.hide(), n.destroy();
-  }
 }
 var yP = ["font-missed", "unsupported-entities"];
 var nh2 = {
@@ -223472,32 +222714,13 @@ function qm(s, e) {
 function _P(s, e) {
   return e.map((t) => qm(s, t)).join(", ");
 }
-function wA(s) {
-  return qm(be2, s);
-}
 function oh2(s) {
   return _P(be2, s);
 }
 var PP = "https://mlightcad.com/dwg-parser.html";
 var Jm = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
-function fo3(s) {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
 function LP(s, e) {
   return `[${s}](${e})`;
-}
-function vA(s) {
-  const e = [];
-  let t = 0;
-  for (const i of s.matchAll(Jm)) {
-    const n = i.index ?? 0;
-    n > t && e.push(fo3(s.slice(t, n)));
-    const o = fo3(i[1]), r = fo3(i[2]);
-    e.push(
-      `<a href="${r}" target="_blank" rel="noopener noreferrer">${o}</a>`
-    ), t = n + i[0].length;
-  }
-  return t < s.length && e.push(fo3(s.slice(t))), e.join("");
 }
 function EP(s, e) {
   s.replaceChildren();
@@ -223511,9 +222734,6 @@ function EP(s, e) {
     o.href = i[2], o.target = "_blank", o.rel = "noopener noreferrer", o.textContent = i[1], s.appendChild(o), t = n + i[0].length;
   }
   t < e.length && s.appendChild(document.createTextNode(e.slice(t)));
-}
-function xA(s) {
-  typeof window > "u" || window.open(s, "_blank", "noopener,noreferrer");
 }
 function MP(s, e) {
   if (!e) return s;
@@ -223530,11 +222750,6 @@ function AP(s) {
     s("main.message.failedToOpenFileWorkerOomLink"),
     PP
   );
-}
-function IP(s, e) {
-  return s("main.message.failedToOpenFileToast", {
-    fileName: e.fileName
-  });
 }
 function TP(s, e) {
   switch (e.errorCode) {
@@ -223581,9 +222796,6 @@ function OP(s, e) {
 }
 function DP(s) {
   return TP(Bc2, s);
-}
-function kA(s) {
-  return IP(Bc2, s);
 }
 function zP(s) {
   return OP(Bc2, s);
@@ -224352,18 +223564,6 @@ var HP = class {
   }
 };
 var Vn3 = new HP();
-function SA() {
-  return Vn3.center;
-}
-function CA(s) {
-  Vn3.setCenter(s);
-}
-function _A() {
-  return Vn3.placement;
-}
-function PA(s) {
-  Vn3.setPlacement(s ?? void 0);
-}
 function WP(s, e) {
   Vn3.install(s, e);
 }
@@ -229688,9 +228888,6 @@ var ka3 = class {
 function Vc2(s) {
   return typeof s.hasEntity == "function" && typeof s.setEntitySceneVisible == "function";
 }
-function EA(s, e, t) {
-  !s.isObjectHidden(t) || !Vc2(e) || e.setEntitySceneVisible(t, false);
-}
 function ML(s, e) {
   const t = s.view;
   if (!Vc2(t))
@@ -229717,443 +228914,6 @@ function AL(s) {
   }
   return e.selectionSet.clear(), o;
 }
-var df2 = 500;
-var IL = /[̀-ͯ]/g;
-var Hc2 = /\s+/g;
-function ir2(s, e = false) {
-  let t = s.normalize("NFKC").replace(Hc2, " ").trim();
-  return e || (t = t.normalize("NFD").replace(IL, "").toLowerCase()), t;
-}
-function yo3(s) {
-  const e = /\\(U\+[0-9a-fA-F]{4}|[PX~SfFHWTQCcAaRrpLlOoKk\\{}])|[{}]/g, t = [];
-  let i = 0, n = false, o;
-  for (; o = e.exec(s); ) {
-    t.push(s.slice(i, o.index));
-    const r = o[1];
-    let a = "";
-    if (r != null && r.startsWith("U+"))
-      a = String.fromCharCode(parseInt(r.slice(2), 16));
-    else if (r === "P" || r === "X" || r === "~")
-      a = " ";
-    else if (r === "\\" || r === "{" || r === "}")
-      a = r;
-    else if (r && /[SfFHWTQCcAaRrp]/.test(r)) {
-      const l = n ? -1 : s.indexOf(";", e.lastIndex);
-      if (l === -1)
-        n = true, a = o[0];
-      else {
-        if (r === "S") {
-          const c = s.slice(e.lastIndex, l), d = c.search(/[\^#/]/);
-          if (d === -1)
-            a = c;
-          else {
-            const u = c.slice(d + 1);
-            a = c.slice(0, d) + (u ? `/${u}` : "");
-          }
-        }
-        e.lastIndex = l + 1;
-      }
-    }
-    t.push(a), i = e.lastIndex;
-  }
-  return t.push(s.slice(i)), uf2(t.join("")).replace(Hc2, " ").trim();
-}
-function uf2(s) {
-  return s.replace(/%%[cC]/g, "\xD8").replace(/%%[dD]/g, "\xB0").replace(/%%[pP]/g, "\xB1");
-}
-function go3(s) {
-  return typeof s == "string" ? uf2(s).normalize("NFKC").replace(Hc2, " ").trim() : "";
-}
-function yh2(s, e, t) {
-  var r;
-  const i = t.get(e);
-  if (i !== void 0) return i;
-  const n = (r = s.tables.layerTable) == null ? void 0 : r.getAt(e), o = !(n != null && n.isOff || n != null && n.isFrozen);
-  return t.set(e, o), o;
-}
-function bo3(s) {
-  const e = s.position ?? s.location ?? s.textLocation ?? s.textPosition ?? { x: 0, y: 0 };
-  return { x: Number(e.x) || 0, y: Number(e.y) || 0 };
-}
-function TL(s, e) {
-  const t = new Array(16);
-  for (let i = 0; i < 4; i++)
-    for (let n = 0; n < 4; n++) {
-      let o = 0;
-      for (let r = 0; r < 4; r++) o += s[r * 4 + n] * e[i * 4 + r];
-      t[i * 4 + n] = o;
-    }
-  return t;
-}
-function hf2(s, e) {
-  if (!s) return { x: e.x, y: e.y };
-  const t = Number(e.z) || 0;
-  return {
-    x: s[0] * e.x + s[4] * e.y + s[8] * t + s[12],
-    y: s[1] * e.x + s[5] * e.y + s[9] * t + s[13]
-  };
-}
-function gh2(s) {
-  var e;
-  try {
-    const t = (e = s.blockTransform) == null ? void 0 : e.elements;
-    return Array.isArray(t) && t.length === 16 ? t : void 0;
-  } catch {
-    return;
-  }
-}
-function OL(s, e) {
-  var n, o;
-  let t;
-  try {
-    t = s.geometricExtents;
-  } catch {
-    return;
-  }
-  if (!t || !isFinite((n = t.min) == null ? void 0 : n.x) || !isFinite((o = t.max) == null ? void 0 : o.x)) return;
-  if (!e) return { min: { ...t.min }, max: { ...t.max } };
-  const i = [
-    { x: t.min.x, y: t.min.y },
-    { x: t.max.x, y: t.min.y },
-    { x: t.min.x, y: t.max.y },
-    { x: t.max.x, y: t.max.y }
-  ].map((r) => hf2(e, r));
-  return {
-    min: {
-      x: Math.min(...i.map((r) => r.x)),
-      y: Math.min(...i.map((r) => r.y))
-    },
-    max: {
-      x: Math.max(...i.map((r) => r.x)),
-      y: Math.max(...i.map((r) => r.y))
-    }
-  };
-}
-var DL = 8;
-function zL(s, e, t, i = {}) {
-  var g, k2, b, C2;
-  const n = i.matchCase === true, o = i.maxResults ?? df2, r = ir2(t, n), a = { hits: [], truncated: false };
-  if (!r) return a;
-  const l = s.tables.blockTable.getIdAt(e);
-  if (!l) return a;
-  const c = /* @__PURE__ */ new Map(), d = (S2) => S2 !== "" && ir2(S2, n).includes(r);
-  let u = false;
-  const p = (S2) => {
-    if (a.hits.length >= o) {
-      a.truncated = true, u = true;
-      return;
-    }
-    a.hits.push(S2);
-  }, m = (S2, M2, P2, D2, E2, v2, _ = {}) => {
-    const L2 = OL(P2, v2);
-    p({
-      entityId: S2.entity.objectId,
-      textEntityId: `${M2}/${P2.objectId}`,
-      kind: D2,
-      text: E2,
-      layer: S2.layer,
-      position: hf2(v2, bo3(P2)),
-      ...L2 ? { extents: L2 } : {},
-      ..._
-    });
-  }, f = (S2, M2, P2, D2, E2, v2) => {
-    var _, L2, A2;
-    for (const I2 of S2) {
-      if (u) return;
-      const z3 = I2.dxfTypeName;
-      if (z3 !== "TEXT" && z3 !== "MTEXT" && z3 !== "INSERT" && z3 !== "ATTRIB" && z3 !== "ATTDEF" || I2.visibility === false || z3 === "ATTDEF" && (I2.isInvisible || !(I2.isConst || I2.isConstMTextAttribute)) || I2.layer && I2.layer !== "0" && !yh2(s, I2.layer, c))
-        continue;
-      if (z3 === "INSERT") {
-        if (E2 >= DL) continue;
-        const Q2 = gh2(I2), $2 = P2 && Q2 ? TL(P2, Q2) : Q2 ?? P2, xe2 = `${D2}/${I2.objectId}`;
-        for (const bt4 of ((_ = I2.attributeIterator) == null ? void 0 : _.call(I2)) ?? []) {
-          if (u) return;
-          if (bt4.visibility === false || bt4.isInvisible) continue;
-          const Hs3 = go3(bt4.textString);
-          d(Hs3) && m(M2, xe2, bt4, "block", Hs3, P2, {
-            tag: bt4.tag,
-            blockName: I2.blockName
-          });
-        }
-        const Ie2 = I2.blockName;
-        if (!Ie2 || v2.has(Ie2)) continue;
-        const nt3 = (A2 = (L2 = s.tables.blockTable).getAt) == null ? void 0 : A2.call(L2, Ie2);
-        if (!nt3) continue;
-        v2.add(Ie2), f(
-          nt3.newIterator(),
-          M2,
-          $2,
-          xe2,
-          E2 + 1,
-          v2
-        ), v2.delete(Ie2);
-        continue;
-      }
-      const K3 = z3 === "MTEXT" || z3 === "ATTDEF" && I2.isConstMTextAttribute && I2.mtext ? yo3(
-        String((z3 === "MTEXT" ? I2 : I2.mtext).contents ?? "")
-      ) : go3(I2.textString);
-      d(K3) && m(
-        M2,
-        D2,
-        I2,
-        M2.kind,
-        K3,
-        P2,
-        z3 === "ATTDEF" ? { tag: I2.tag } : {}
-      );
-    }
-  }, y = (S2) => {
-    var M2, P2;
-    try {
-      const D2 = S2.blockTableRecord;
-      if (D2 != null && D2.newIterator)
-        return D2;
-      const E2 = S2.dimBlockId, v2 = E2 ? s.tables.blockTable.getIdAt(E2) : void 0;
-      if (v2) return v2;
-      const _ = S2.blockName;
-      return _ ? (P2 = (M2 = s.tables.blockTable).getAt) == null ? void 0 : P2.call(M2, _) : void 0;
-    } catch {
-      return;
-    }
-  };
-  for (const S2 of l.newIterator()) {
-    if (u) break;
-    const M2 = S2.dxfTypeName;
-    if (M2 !== "TEXT" && M2 !== "MTEXT" && M2 !== "INSERT" && M2 !== "DIMENSION" && M2 !== "MULTILEADER" && M2 !== "ACAD_TABLE" || S2.visibility === false || !yh2(s, S2.layer, c)) continue;
-    if (M2 === "INSERT") {
-      for (const v2 of ((g = S2.attributeIterator) == null ? void 0 : g.call(S2)) ?? []) {
-        if (u) break;
-        if (v2.visibility === false || v2.isInvisible) continue;
-        const _ = go3(v2.textString);
-        d(_) && p({
-          entityId: S2.objectId,
-          textEntityId: v2.objectId,
-          kind: "attribute",
-          text: _,
-          tag: v2.tag,
-          blockName: S2.blockName,
-          layer: S2.layer,
-          position: bo3(v2)
-        });
-      }
-      const D2 = S2.blockName, E2 = D2 ? (b = (k2 = s.tables.blockTable).getAt) == null ? void 0 : b.call(k2, D2) : void 0;
-      E2 && !u && f(
-        E2.newIterator(),
-        { entity: S2, kind: "block", layer: S2.layer },
-        gh2(S2),
-        String(S2.objectId),
-        1,
-        /* @__PURE__ */ new Set([D2])
-      );
-      continue;
-    }
-    if (M2 === "DIMENSION" || M2 === "ACAD_TABLE") {
-      const D2 = M2 === "DIMENSION" ? "dimension" : "table", E2 = { entity: S2, kind: D2, layer: S2.layer }, v2 = y(S2), _ = a.hits.length;
-      if (v2 && f(
-        v2.newIterator(),
-        E2,
-        void 0,
-        String(S2.objectId),
-        1,
-        /* @__PURE__ */ new Set()
-      ), v2 && a.hits.length > _) continue;
-      const L2 = [];
-      if (M2 === "DIMENSION") {
-        const A2 = String(S2.dimensionText ?? "");
-        A2 && A2 !== "<>" && A2 !== " " && L2.push(yo3(A2.replace("<>", "")));
-      } else {
-        const A2 = Number(S2.numRows) || 0, I2 = Number(S2.numColumns) || 0;
-        for (let z3 = 0; z3 < A2; z3++)
-          for (let V = 0; V < I2; V++)
-            try {
-              L2.push(
-                yo3(String(((C2 = S2.textString) == null ? void 0 : C2.call(S2, z3, V)) ?? ""))
-              );
-            } catch {
-            }
-      }
-      for (const A2 of L2) {
-        if (u) break;
-        d(A2) && p({
-          entityId: S2.objectId,
-          textEntityId: `${S2.objectId}/${a.hits.length}`,
-          kind: D2,
-          text: A2,
-          layer: S2.layer,
-          position: bo3(S2)
-        });
-      }
-      continue;
-    }
-    const P2 = M2 === "MTEXT" || M2 === "MULTILEADER" ? yo3(String(S2.contents ?? "")) : go3(S2.textString);
-    d(P2) && p({
-      entityId: S2.objectId,
-      textEntityId: S2.objectId,
-      kind: M2 === "MTEXT" ? "mtext" : M2 === "MULTILEADER" ? "leader" : "text",
-      text: P2,
-      layer: S2.layer,
-      position: bo3(S2)
-    });
-  }
-  return a;
-}
-function MA(s, e, t = false, i = 60) {
-  if (s.length <= i) return s;
-  const n = ir2(e, t), o = ir2(s, t).indexOf(n), r = Math.max(0, Math.min(o - 15, s.length - i)), a = s.slice(r, r + i);
-  return `${r > 0 ? "\u2026" : ""}${a}${r + i < s.length ? "\u2026" : ""}`;
-}
-function NL(s) {
-  var i;
-  const e = (i = s.objects) == null ? void 0 : i.layout;
-  if (!(e != null && e.newIterator)) return [];
-  const t = [];
-  for (const n of e.newIterator())
-    n.blockTableRecordId && t.push({
-      name: n.layoutName ?? "",
-      btrId: n.blockTableRecordId,
-      tabOrder: Number(n.tabOrder) || 0
-    });
-  return t.sort(
-    (n, o) => n.tabOrder - o.tabOrder || n.name.localeCompare(o.name)
-  );
-}
-function AA(s, e, t) {
-  const i = t.maxResults ?? df2, n = NL(s), o = (l) => {
-    var c;
-    return ((c = n.find((d) => d.btrId === l)) == null ? void 0 : c.name) ?? "";
-  };
-  let r;
-  t.scope === "layout" || n.length === 0 ? r = [
-    { btrId: t.currentLayoutId, name: o(t.currentLayoutId) }
-  ] : r = n.map((l) => ({ btrId: l.btrId, name: l.name }));
-  const a = { hits: [], truncated: false };
-  for (const l of r) {
-    const c = zL(s, l.btrId, e, {
-      matchCase: t.matchCase,
-      maxResults: i - a.hits.length
-    });
-    for (const d of c.hits)
-      a.hits.push({
-        ...d,
-        layoutId: l.btrId,
-        layoutName: l.name
-      });
-    if (c.truncated) {
-      a.truncated = true;
-      break;
-    }
-  }
-  return a;
-}
-function FL(s, e, t) {
-  var f;
-  const i = s.tables.blockTable.getIdAt(e), n = (f = i == null ? void 0 : i.getIdAt) == null ? void 0 : f.call(i, t.entityId);
-  let o = n;
-  if (t.kind === "attribute" && (n != null && n.attributeIterator)) {
-    for (const y of n.attributeIterator())
-      if (y.objectId === t.textEntityId) {
-        o = y;
-        break;
-      }
-  }
-  let r, a;
-  try {
-    const y = t.extents ?? (o == null ? void 0 : o.geometricExtents);
-    if (!y || !isFinite(y.min.x) || !isFinite(y.max.x))
-      throw new Error("no extents");
-    r = y.min, a = y.max;
-  } catch {
-    r = a = t.position;
-  }
-  const l = (r.x + a.x) / 2, c = (r.y + a.y) / 2, d = a.x - r.x, u = a.y - r.y, p = Math.max(d * 3, u * 10, 1e-3), m = Math.max(u * 3, p / 4, 1e-3);
-  return {
-    min: { x: l - p / 2, y: c - m / 2 },
-    max: { x: l + p / 2, y: c + m / 2 }
-  };
-}
-function BL(s, e, t, i) {
-  const n = Number(s.width) || 0, o = Number(s.height) || 0, r = Math.max(0, (i == null ? void 0 : i.left) ?? 0), a = Math.max(0, (i == null ? void 0 : i.right) ?? 0), l = Math.max(0, (i == null ? void 0 : i.top) ?? 0), c = Math.max(0, (i == null ? void 0 : i.bottom) ?? 0), d = n - r - a, u = o - l - c;
-  if (!(n > 0 && o > 0 && r + a + l + c > 0 && d >= n * 0.2 && u >= o * 0.2 && !!s.worldToScreen && !!s.screenToWorld)) {
-    s.zoomTo(
-      new AcGeBox2d(
-        new AcGePoint2d(e.min.x, e.min.y),
-        new AcGePoint2d(e.max.x, e.max.y)
-      ),
-      t
-    );
-    return;
-  }
-  const m = (e.min.x + e.max.x) / 2, f = (e.min.y + e.max.y) / 2, y = (e.max.x - e.min.x) / 2 * (n / d), g = (e.max.y - e.min.y) / 2 * (o / u);
-  s.zoomTo(
-    new AcGeBox2d(
-      new AcGePoint2d(m - y, f - g),
-      new AcGePoint2d(m + y, f + g)
-    ),
-    t
-  );
-  const k2 = s.worldToScreen({ x: m, y: f }), b = r + d / 2, C2 = l + u / 2, S2 = s.screenToWorld({
-    x: n / 2 + (k2.x - b),
-    y: o / 2 + (k2.y - C2)
-  });
-  isFinite(S2.x) && isFinite(S2.y) && (s.center = new AcGePoint2d(S2.x, S2.y));
-}
-var Sa2 = /* @__PURE__ */ new WeakMap();
-async function IA(s, e, t = {}) {
-  var a;
-  const i = s.curView, n = (a = s.curDocument) == null ? void 0 : a.database;
-  if (!i || !n) return "no-document";
-  const o = (Sa2.get(i) ?? 0) + 1;
-  if (Sa2.set(i, o), i.activeLayoutBtrId !== e.layoutId) {
-    if (t.activateLayout === false) return "layout-mismatch";
-    if (!n.tables.blockTable.getIdAt(e.layoutId)) return "layout-missing";
-    if (i.isLayoutInitialized(e.layoutId) || i.markLayoutAsInitialized(e.layoutId), acdbHostApplicationServices().layoutManager.setCurrentLayoutBtrId(
-      e.layoutId,
-      n
-    ), i.activeLayoutBtrId !== e.layoutId) return "layout-switch-failed";
-    if (await i.waitUntilIdle(t.idleTimeoutMs ?? 15e3), Sa2.get(i) !== o || i.activeLayoutBtrId !== e.layoutId) return "stale";
-  }
-  const r = FL(n, e.layoutId, e);
-  return BL(
-    i,
-    r,
-    t.margin ?? 1.1,
-    t.insets
-  ), i.selectionSet.clear(), i.selectionSet.add(e.entityId), "navigated";
-}
-var RL = class extends G2 {
-  async execute(e) {
-    log.info("Hello from ExamplePlugin!"), log.info("Current document:", e.doc), log.info("Current view:", e.view);
-  }
-};
-var TA = class {
-  constructor() {
-    this.name = "ExamplePlugin", this.version = "1.0.0", this.description = "An example plugin demonstrating the plugin system", this.registeredCommands = [];
-  }
-  /**
-   * Called when the plugin is loaded.
-   * Register custom commands here.
-   */
-  onLoad(e, t) {
-    t.addCommand(
-      "USER",
-      // Command group
-      "HELLO",
-      // Global command name
-      "Hello",
-      // Local command name
-      new RL()
-    ), this.registeredCommands.push({ group: "USER", name: "HELLO" }), log.info(`[${this.name}] Plugin loaded successfully`), log.info(`[${this.name}] Registered command: HELLO`);
-  }
-  /**
-   * Called when the plugin is unloaded.
-   * Clean up registered commands and other resources here.
-   */
-  onUnload(e, t) {
-    for (const i of this.registeredCommands)
-      t.removeCmd(i.group, i.name);
-    this.registeredCommands = [], log.info(`[${this.name}] Plugin unloaded`);
-  }
-};
 var bh2 = [".dxf", ".dwg"];
 var Jn2 = "local";
 var Ca2 = "url";
@@ -230815,7 +229575,6 @@ var un = class un2 {
   }
 };
 un.styleId = "ml-ui-file-open-panel-styles-v3";
-var vh2 = un;
 function HL(s = {}, e) {
   const t = { ...s, ...e };
   return {
@@ -230840,73 +229599,9 @@ function xh2(s) {
 function _e2(s) {
   return "type" in s && s.type === "separator";
 }
-function WL(s) {
-  return "preset" in s && typeof s.preset == "string";
-}
 function $t3(s) {
   var e;
   return typeof ((e = Object.getOwnPropertyDescriptor(s, "children")) == null ? void 0 : e.get) == "function";
-}
-function UL(s, e) {
-  return Object.defineProperty(s, "children", {
-    configurable: true,
-    enumerable: true,
-    get: e
-  }), s;
-}
-function GL(s, e) {
-  const t = Object.getOwnPropertyDescriptor(e, "children");
-  return typeof (t == null ? void 0 : t.get) != "function" ? false : (UL(s, t.get), true);
-}
-function OA(s) {
-  return { type: "separator", id: s };
-}
-function DA(s) {
-  return { preset: s };
-}
-function $L(s, e) {
-  return s.some((t) => _e2(t) ? false : t.id === e ? true : t.children ? $L(t.children, e) : false);
-}
-function KL(s, e) {
-  var t;
-  for (const i of s)
-    _e2(i) || (e.set(i.id, i), !$t3(i) && ((t = i.children) != null && t.length) && KL(i.children, e));
-}
-function YL(s, e) {
-  return s.flatMap((t) => {
-    const i = ZL(t, e);
-    return i ? [i] : [];
-  });
-}
-function ZL(s, e) {
-  var i;
-  if (_e2(s))
-    return {
-      type: "separator",
-      id: s.id ?? `separator-${Math.random().toString(36).slice(2, 9)}`
-    };
-  if (WL(s)) {
-    const n = e.get(s.preset);
-    return n ? Tl2(n) : (console.warn(
-      `[cad-simple-viewer] Unknown toolbar preset "${s.preset}".`
-    ), null);
-  }
-  const t = s;
-  return $t3(t) ? Tl2(t) : (i = t.children) != null && i.length ? {
-    ...t,
-    children: YL(
-      t.children,
-      e
-    )
-  } : t;
-}
-function Tl2(s) {
-  var t;
-  const e = { ...s, children: s.children };
-  return GL(e, s) || !((t = s.children) != null && t.length) ? e : {
-    ...e,
-    children: s.children.map((i) => Tl2(i))
-  };
 }
 function XL(s, e) {
   return s.minOpenMode == null ? true : e >= s.minOpenMode;
@@ -231577,12 +230272,6 @@ function ff2() {
   color: var(--ml-ui-accent, #409eff);
   background: var(--ml-ui-accent-soft, rgba(64, 158, 255, 0.12));
 }  `, document.head.appendChild(s);
-}
-function zA() {
-  var s;
-  document.querySelector(
-    ".ml-ex-ui-toolbar, .ml-ex-ui-subtoolbar, .ml-ex-ui-dropdown"
-  ) || (s = document.getElementById(Dl2)) == null || s.remove();
 }
 function JL(s, e, t = 0) {
   const i = Math.max(24, e - 4);
@@ -232795,863 +231484,3233 @@ dr2.IN_PARENT_HOST_CLASSES = [
   "ml-ex-ui-toolbar-in-parent-left",
   "ml-ex-ui-toolbar-in-parent-right"
 ];
-var Sh2 = dr2;
+
+// node_modules/@mlightcad/libredwg-converter/lib/AcDbLibreDwgConverter.js
+init_lib4();
+
+// node_modules/@mlightcad/libredwg-converter/lib/AcDbEntitiyConverter.js
+init_lib4();
+var __assign24 = function() {
+  __assign24 = Object.assign || function(t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+      s = arguments[i];
+      for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+        t[p] = s[p];
+    }
+    return t;
+  };
+  return __assign24.apply(this, arguments);
+};
+var __values84 = function(o) {
+  var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+  if (m) return m.call(o);
+  if (o && typeof o.length === "number") return {
+    next: function() {
+      if (o && i >= o.length) o = void 0;
+      return { value: o && o[i++], done: !o };
+    }
+  };
+  throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
+var AcDbEntityConverter = (
+  /** @class */
+  (function() {
+    function AcDbEntityConverter2() {
+    }
+    AcDbEntityConverter2.prototype.convert = function(entity) {
+      var dbEntity = this.createEntity(entity);
+      if (dbEntity) {
+        this.processCommonAttrs(entity, dbEntity);
+        if (entity.type === "ARCALIGNEDTEXT") {
+          var raw = entity.rawTextColor;
+          dbEntity.applyRawTextColor(raw);
+        }
+      }
+      return dbEntity;
+    };
+    AcDbEntityConverter2.prototype.createEntity = function(entity) {
+      if (entity.type == "3DFACE") {
+        return this.convertFace(entity);
+      } else if (entity.type == "ARC") {
+        return this.convertArc(entity);
+      } else if (entity.type == "ATTDEF") {
+        return this.convertAttributeDefinition(entity);
+      } else if (entity.type == "ATTRIB") {
+        return this.convertAttribute(entity);
+      } else if (entity.type == "CIRCLE") {
+        return this.convertCirle(entity);
+      } else if (entity.type == "DIMENSION") {
+        return this.convertDimension(entity);
+      } else if (entity.type == "ELLIPSE") {
+        return this.convertEllipse(entity);
+      } else if (entity.type == "HATCH") {
+        return this.convertHatch(entity);
+      } else if (entity.type == "IMAGE") {
+        return this.convertImage(entity);
+      } else if (entity.type == "LEADER") {
+        return this.convertLeader(entity);
+      } else if (entity.type == "LINE") {
+        return this.convertLine(entity);
+      } else if (entity.type == "LWPOLYLINE") {
+        return this.convertLWPolyline(entity);
+      } else if (entity.type == "MLINE") {
+        return this.convertMLine(entity);
+      } else if (entity.type == "MTEXT") {
+        return this.convertMText(entity);
+      } else if (entity.type == "MULTILEADER" || entity.type == "MLEADER") {
+        return this.convertMLeader(entity);
+      } else if (entity.type == "POINT") {
+        return this.convertPoint(entity);
+      } else if (entity.type == "POLYLINE2D") {
+        return this.convertPolyline2d(entity);
+      } else if (entity.type == "POLYLINE3D") {
+        return this.convertPolyline3d(entity);
+      } else if (entity.type == "RAY") {
+        return this.convertRay(entity);
+      } else if (entity.type == "SPLINE") {
+        return this.convertSpline(entity);
+      } else if (entity.type == "ACAD_TABLE") {
+        return this.convertTable(entity);
+      } else if (entity.type == "TEXT") {
+        return this.convertText(entity);
+      } else if (entity.type == "TOLERANCE") {
+        return this.convertTolerance(entity);
+      } else if (entity.type == "SHAPE") {
+        return this.convertShape(entity);
+      } else if (entity.type == "SOLID") {
+        return this.convertSolid(entity);
+      } else if (entity.type == "TRACE") {
+        return this.convertTrace(entity);
+      } else if (entity.type == "VIEWPORT") {
+        return this.convertViewport(entity);
+      } else if (entity.type == "WIPEOUT") {
+        return this.convertWipeout(entity);
+      } else if (entity.type == "XLINE") {
+        return this.convertXline(entity);
+      } else if (entity.type == "INSERT") {
+        return this.convertBlockReference(entity);
+      } else if (entity.type == "ACAD_PROXY_ENTITY") {
+        return this.convertProxyEntity(entity);
+      } else if (entity.type == "OLE2FRAME") {
+        return this.convertOle2Frame(entity);
+      } else if (entity.type == "OLEFRAME") {
+        return this.convertOleFrame(entity);
+      } else if (entity.type == "ARCALIGNEDTEXT") {
+        return this.convertArcAlignedText(entity);
+      }
+      return null;
+    };
+    AcDbEntityConverter2.prototype.convertProxyEntity = function(entity) {
+      var _a5;
+      var proxy = new AcDbProxyEntity();
+      proxy.proxyEntityClassId = entity.proxyEntityClassId;
+      if (entity.originalDxfName) {
+        proxy.originalDxfName = entity.originalDxfName;
+      }
+      if (entity.applicationEntityClassId != null) {
+        proxy.applicationEntityClassId = entity.applicationEntityClassId;
+      }
+      if (entity.objectDrawingFormat != null) {
+        proxy.objectDrawingFormat = entity.objectDrawingFormat;
+      }
+      if (entity.originalDataFormat != null) {
+        proxy.originalDataFormat = entity.originalDataFormat;
+      }
+      if (entity.graphicsData) {
+        var bytes = acdbHexStringsToBytes([entity.graphicsData]);
+        var size = (_a5 = entity.graphicsDataSize) !== null && _a5 !== void 0 ? _a5 : bytes.length;
+        proxy.setProxyGraphic(bytes.subarray(0, size));
+      }
+      return proxy;
+    };
+    AcDbEntityConverter2.prototype.convertFace = function(face) {
+      var dbEntity = new AcDbFace();
+      if (face.corner1)
+        dbEntity.setVertexAt(0, face.corner1);
+      if (face.corner2)
+        dbEntity.setVertexAt(1, face.corner2);
+      if (face.corner3)
+        dbEntity.setVertexAt(2, face.corner3);
+      if (face.corner4)
+        dbEntity.setVertexAt(3, face.corner4);
+      dbEntity.setEdgeInvisibilities(face.flag);
+      return dbEntity;
+    };
+    AcDbEntityConverter2.prototype.convertArc = function(arc) {
+      var _a5;
+      var normal = (_a5 = arc.extrusionDirection) !== null && _a5 !== void 0 ? _a5 : AcGeVector3d.Z_AXIS;
+      var dbEntity = new AcDbArc(acgeTransformOcsPointToWcs(arc.center, normal), arc.radius, arc.startAngle, arc.endAngle, normal);
+      return dbEntity;
+    };
+    AcDbEntityConverter2.prototype.convertCirle = function(circle) {
+      var _a5;
+      var normal = (_a5 = circle.extrusionDirection) !== null && _a5 !== void 0 ? _a5 : AcGeVector3d.Z_AXIS;
+      var dbEntity = new AcDbCircle(acgeTransformOcsPointToWcs(circle.center, normal), circle.radius, normal);
+      return dbEntity;
+    };
+    AcDbEntityConverter2.prototype.convertEllipse = function(ellipse) {
+      var _a5;
+      var majorAxis = new AcGeVector3d(ellipse.majorAxisEndPoint);
+      var majorAxisRadius = majorAxis.length();
+      var dbEntity = new AcDbEllipse(ellipse.center, (_a5 = ellipse.extrusionDirection) !== null && _a5 !== void 0 ? _a5 : AcGeVector3d.Z_AXIS, majorAxis, majorAxisRadius, majorAxisRadius * ellipse.axisRatio, ellipse.startAngle, ellipse.endAngle);
+      return dbEntity;
+    };
+    AcDbEntityConverter2.prototype.convertLine = function(line) {
+      var start = line.startPoint;
+      var end = line.endPoint;
+      var dbEntity = new AcDbLine(new AcGePoint3d(start.x, start.y, start.z), new AcGePoint3d(end.x, end.y, end.z));
+      return dbEntity;
+    };
+    AcDbEntityConverter2.prototype.convertSpline = function(spline) {
+      return AcDbSpline.fromDwgSpline(spline);
+    };
+    AcDbEntityConverter2.prototype.convertPoint = function(point) {
+      var dbEntity = new AcDbPoint();
+      dbEntity.position = point.position;
+      return dbEntity;
+    };
+    AcDbEntityConverter2.prototype.convertShape = function(shape) {
+      var _a5, _b3, _c3, _d3, _e3;
+      var normal = (_a5 = shape.extrusionDirection) !== null && _a5 !== void 0 ? _a5 : AcGeVector3d.Z_AXIS;
+      var dbEntity = new AcDbShape();
+      dbEntity.position = acgeTransformOcsPointToWcs(shape.insertionPoint, normal);
+      dbEntity.size = shape.size;
+      dbEntity.shapeNumber = shape.shapeNumber;
+      if (shape.styleName) {
+        dbEntity.styleName = shape.styleName;
+      }
+      dbEntity.rotation = (_b3 = shape.rotation) !== null && _b3 !== void 0 ? _b3 : 0;
+      dbEntity.widthFactor = (_c3 = shape.xScale) !== null && _c3 !== void 0 ? _c3 : 1;
+      dbEntity.oblique = (_d3 = shape.obliqueAngle) !== null && _d3 !== void 0 ? _d3 : 0;
+      dbEntity.thickness = (_e3 = shape.thickness) !== null && _e3 !== void 0 ? _e3 : 0;
+      dbEntity.normal.copy(normal);
+      return dbEntity;
+    };
+    AcDbEntityConverter2.prototype.convertSolid = function(solid) {
+      return this.convertTraceLike(new AcDbSolid(), solid);
+    };
+    AcDbEntityConverter2.prototype.convertTrace = function(trace) {
+      return this.convertTraceLike(new AcDbTrace(), trace);
+    };
+    AcDbEntityConverter2.prototype.convertTraceLike = function(dbEntity, entity) {
+      var _a5, _b3, _c3;
+      var normal = (_a5 = entity.extrusionDirection) !== null && _a5 !== void 0 ? _a5 : AcGeVector3d.Z_AXIS;
+      var toWcs2 = function(corner) {
+        var _a6;
+        return acgeTransformOcsPointToWcs({ x: corner.x, y: corner.y, z: (_a6 = corner.z) !== null && _a6 !== void 0 ? _a6 : 0 }, normal);
+      };
+      var corner4 = (_b3 = entity.corner4) !== null && _b3 !== void 0 ? _b3 : entity.corner3;
+      dbEntity.setPointAt(0, toWcs2(entity.corner1));
+      dbEntity.setPointAt(1, toWcs2(entity.corner2));
+      dbEntity.setPointAt(2, toWcs2(entity.corner3));
+      dbEntity.setPointAt(3, toWcs2(corner4));
+      dbEntity.thickness = (_c3 = entity.thickness) !== null && _c3 !== void 0 ? _c3 : 0;
+      dbEntity.normal.copy(normal);
+      dbEntity.elevation = dbEntity.getPointAt(0).z;
+      return dbEntity;
+    };
+    AcDbEntityConverter2.prototype.convertLWPolyline = function(polyline) {
+      var _a5;
+      var dbEntity = new AcDbPolyline();
+      dbEntity.closed = !!(polyline.flag & 512);
+      var defaultWidth = (_a5 = polyline.constantWidth) !== null && _a5 !== void 0 ? _a5 : -1;
+      polyline.vertices.forEach(function(vertex2, index) {
+        var _a6, _b3;
+        dbEntity.addVertexAt(index, new AcGePoint2d(vertex2.x, vertex2.y), vertex2.bulge, (_a6 = vertex2.startWidth) !== null && _a6 !== void 0 ? _a6 : defaultWidth, (_b3 = vertex2.endWidth) !== null && _b3 !== void 0 ? _b3 : defaultWidth);
+      });
+      return dbEntity;
+    };
+    AcDbEntityConverter2.prototype.convertPolyline2d = function(polyline) {
+      var _a5, _b3, _c3, _d3;
+      var isClosed = !!(polyline.flag & 1);
+      var isPolygonMesh = !!(polyline.flag & 16);
+      var isPolyfaceMesh = !!(polyline.flag & 64);
+      var isClosedN = !!(polyline.flag & 32);
+      var vertices = [];
+      var bulges = [];
+      var faces = [];
+      polyline.vertices.map(function(vertex2) {
+        var _a6, _b4;
+        if (!(vertex2.flag & 16)) {
+          if (isPolyfaceMesh && vertex2.flag & 128) {
+            if (!(vertex2.flag & 64)) {
+              var faceVertices = [];
+              if (vertex2.polyfaceIndex0 != null && vertex2.polyfaceIndex0 != 0)
+                faceVertices.push(Math.abs(vertex2.polyfaceIndex0) - 1);
+              if (vertex2.polyfaceIndex1 != null && vertex2.polyfaceIndex1 != 0)
+                faceVertices.push(Math.abs(vertex2.polyfaceIndex1) - 1);
+              if (vertex2.polyfaceIndex2 != null && vertex2.polyfaceIndex2 != 0)
+                faceVertices.push(Math.abs(vertex2.polyfaceIndex2) - 1);
+              if (vertex2.polyfaceIndex3 != null && vertex2.polyfaceIndex3 != 0)
+                faceVertices.push(Math.abs(vertex2.polyfaceIndex3) - 1);
+              if (faceVertices.length >= 3) {
+                faces.push(faceVertices);
+              }
+            } else {
+              vertices.push({
+                x: vertex2.x,
+                y: vertex2.y,
+                z: vertex2.z
+              });
+              bulges.push((_a6 = vertex2.bulge) !== null && _a6 !== void 0 ? _a6 : 0);
+            }
+          } else {
+            vertices.push({
+              x: vertex2.x,
+              y: vertex2.y,
+              z: vertex2.z
+            });
+            bulges.push((_b4 = vertex2.bulge) !== null && _b4 !== void 0 ? _b4 : 0);
+          }
+        }
+      });
+      if (isPolygonMesh) {
+        var mCount = (_a5 = polyline.meshMVertexCount) !== null && _a5 !== void 0 ? _a5 : 2;
+        var nCount = (_b3 = polyline.meshNVertexCount) !== null && _b3 !== void 0 ? _b3 : 2;
+        return new AcDbPolygonMesh(mCount, nCount, vertices, isClosed, isClosedN);
+      } else if (isPolyfaceMesh) {
+        return new AcDbPolyFaceMesh(vertices, faces);
+      } else {
+        var polyType = AcDbPoly2dType.SimplePoly;
+        if (polyline.flag & 2) {
+          polyType = AcDbPoly2dType.FitCurvePoly;
+        } else if (polyline.flag & 4) {
+          if (polyline.smoothType == 6) {
+            polyType = AcDbPoly2dType.CubicSplinePoly;
+          } else if (polyline.smoothType == 5) {
+            polyType = AcDbPoly2dType.QuadSplinePoly;
+          }
+        }
+        var dbPolyline = new AcDb2dPolyline(polyType, vertices, (_d3 = (_c3 = vertices[0]) === null || _c3 === void 0 ? void 0 : _c3.z) !== null && _d3 !== void 0 ? _d3 : 0, isClosed, polyline.startWidth, polyline.endWidth, bulges);
+        if (polyline.extrusionDirection) {
+          dbPolyline.normal = polyline.extrusionDirection;
+        }
+        return dbPolyline;
+      }
+    };
+    AcDbEntityConverter2.prototype.convertPolyline3d = function(polyline) {
+      var isClosed = !!(polyline.flag & 1);
+      var vertices = [];
+      polyline.vertices.map(function(vertex2) {
+        if (!(vertex2.flag & 16)) {
+          vertices.push({
+            x: vertex2.x,
+            y: vertex2.y,
+            z: vertex2.z
+          });
+        }
+      });
+      var polyType = AcDbPoly3dType.SimplePoly;
+      if (polyline.flag & 4) {
+        if (polyline.smoothType == 6) {
+          polyType = AcDbPoly3dType.CubicSplinePoly;
+        } else if (polyline.smoothType == 5) {
+          polyType = AcDbPoly3dType.QuadSplinePoly;
+        }
+      }
+      return new AcDb3dPolyline(polyType, vertices, isClosed);
+    };
+    AcDbEntityConverter2.prototype.convertHatch = function(hatch) {
+      var _a5, _b3, _c3, _d3;
+      var dbEntity = new AcDbHatch();
+      (_a5 = hatch.definitionLines) === null || _a5 === void 0 ? void 0 : _a5.forEach(function(item) {
+        dbEntity.definitionLines.push({
+          angle: item.angle,
+          base: item.base,
+          offset: item.offset,
+          dashLengths: item.numberOfDashLengths > 0 ? item.dashLengths : []
+        });
+      });
+      dbEntity.hatchStyle = hatch.hatchStyle;
+      dbEntity.patternName = hatch.patternName;
+      if (hatch.solidFill == 1) {
+        dbEntity.isSolidFill = true;
+      }
+      dbEntity.patternType = hatch.patternType;
+      dbEntity.patternAngle = hatch.patternAngle == null ? 0 : hatch.patternAngle;
+      dbEntity.patternScale = hatch.patternScale == null ? 0 : hatch.patternScale;
+      var paths = hatch.boundaryPaths;
+      paths.forEach(function(path) {
+        var flag = path.boundaryPathTypeFlag;
+        if (flag & 2) {
+          var polylinePath = path;
+          var polyline_1 = new AcGePolyline2d();
+          polyline_1.closed = polylinePath.isClosed;
+          polylinePath.vertices.forEach(function(vertex2, index) {
+            polyline_1.addVertexAt(index, {
+              x: vertex2.x,
+              y: vertex2.y,
+              bulge: vertex2.bulge
+            });
+          });
+          dbEntity.add(polyline_1);
+        } else {
+          var edgePath = path;
+          var edges_1 = [];
+          edgePath.edges.forEach(function(edge) {
+            if (edge == null)
+              return;
+            if (edge.type == 1) {
+              var line = edge;
+              edges_1.push(new AcGeLine2d(line.start, line.end));
+            } else if (edge.type == 2) {
+              var arc = edge;
+              edges_1.push(new AcGeCircArc2d(arc.center, arc.radius, arc.startAngle, arc.endAngle, !arc.isCCW));
+            } else if (edge.type == 3) {
+              var ellipse = edge;
+              var majorAxis = new AcGeVector2d();
+              majorAxis.subVectors(ellipse.end, ellipse.center);
+              var majorAxisRadius = Math.sqrt(Math.pow(ellipse.end.x, 2) + Math.pow(ellipse.end.y, 2));
+              var minorAxisRadius = majorAxisRadius * ellipse.lengthOfMinorAxis;
+              var startAngle = ellipse.startAngle;
+              var endAngle = ellipse.endAngle;
+              var rotation = Math.atan2(ellipse.end.y, ellipse.end.x);
+              if (!ellipse.isCCW) {
+                startAngle = Math.PI * 2 - startAngle;
+                endAngle = Math.PI * 2 - endAngle;
+              }
+              edges_1.push(new AcGeEllipseArc2d(__assign24(__assign24({}, ellipse.center), { z: 0 }), majorAxisRadius, minorAxisRadius, startAngle, endAngle, !ellipse.isCCW, rotation));
+            } else if (edge.type == 4) {
+              var splineEdge = AcGeSpline3d.fromDwgSplineEdge(edge);
+              if (splineEdge) {
+                edges_1.push(splineEdge);
+              }
+            }
+          });
+          var loops = AcGeLoop2d.buildFromEdges(edges_1);
+          if (loops.length === 1) {
+            dbEntity.add(loops[0]);
+          } else if (edges_1.length > 0) {
+            dbEntity.add(new AcGeLoop2d(edges_1));
+          }
+        }
+      });
+      if (hatch.gradientFlag) {
+        var gradientHatch = hatch;
+        dbEntity.hatchObjectType = AcDbHatchObjectType.GradientObject;
+        dbEntity.gradientName = gradientHatch.gradientName;
+        dbEntity.gradientAngle = (_b3 = gradientHatch.gradientRotation) !== null && _b3 !== void 0 ? _b3 : 0;
+        dbEntity.gradientShift = (_c3 = gradientHatch.gradientDefinition) !== null && _c3 !== void 0 ? _c3 : 0;
+        dbEntity.gradientOneColorMode = gradientHatch.gradientColorFlag == 1;
+        dbEntity.shadeTintValue = (_d3 = gradientHatch.colorTint) !== null && _d3 !== void 0 ? _d3 : 0;
+        if (gradientHatch.gradientColors) {
+          var length_1 = gradientHatch.gradientColors.length;
+          if (length_1 > 1) {
+            dbEntity.gradientStartColor = gradientHatch.gradientColors[0].rgb;
+            dbEntity.gradientEndColor = gradientHatch.gradientColors[1].rgb;
+          } else if (length_1 > 0) {
+            dbEntity.gradientStartColor = gradientHatch.gradientColors[0].rgb;
+          }
+        }
+      }
+      if (hatch.extrusionDirection) {
+        dbEntity.normal = hatch.extrusionDirection;
+      }
+      return dbEntity;
+    };
+    AcDbEntityConverter2.prototype.convertTable = function(table) {
+      var _a5;
+      var dbEntity = new AcDbTable((_a5 = table.name) !== null && _a5 !== void 0 ? _a5 : "", table.rowCount, table.columnCount);
+      dbEntity.tableStyleId = table.tableStyleId;
+      dbEntity.owningBlockRecordId = table.blockRecordHandle;
+      if (table.directionVector) {
+        dbEntity.horizontalDirection = new AcGeVector3d(table.directionVector);
+      }
+      dbEntity.attachmentPoint = table.attachmentPoint;
+      dbEntity.position.copy(table.startPoint);
+      dbEntity.tableValueFlag = table.tableValue;
+      dbEntity.tableOverrideFlag = table.overrideFlag;
+      dbEntity.borderColorOverrideFlag = table.borderColorOverrideFlag;
+      dbEntity.borderLineweightOverrideFlag = table.borderLineWeightOverrideFlag;
+      dbEntity.borderVisibilityOverrideFlag = table.borderVisibilityOverrideFlag;
+      table.columnWidthArr.forEach(function(width, index) {
+        return dbEntity.setColumnWidth(index, width);
+      });
+      table.rowHeightArr.forEach(function(height, index) {
+        return dbEntity.setRowHeight(index, height);
+      });
+      table.cells.forEach(function(cell, index) {
+        dbEntity.setCell(index, cell);
+      });
+      return dbEntity;
+    };
+    AcDbEntityConverter2.prototype.convertText = function(text) {
+      var _a5, _b3, _c3;
+      var dbEntity = new AcDbText();
+      dbEntity.textString = text.text;
+      dbEntity.styleName = text.styleName;
+      dbEntity.height = text.textHeight;
+      dbEntity.position.copy(text.startPoint);
+      var isEndPointZero = !text.endPoint || text.endPoint.x === 0 && text.endPoint.y === 0 && ((_a5 = text.endPoint.z) !== null && _a5 !== void 0 ? _a5 : 0) === 0;
+      if (text.endPoint && !isEndPointZero) {
+        dbEntity.alignmentPoint.copy(text.endPoint);
+        dbEntity.hasAlignmentPoint = true;
+      } else {
+        dbEntity.alignmentPoint.copy(text.startPoint);
+        dbEntity.hasAlignmentPoint = false;
+      }
+      dbEntity.rotation = text.rotation;
+      dbEntity.oblique = (_b3 = text.obliqueAngle) !== null && _b3 !== void 0 ? _b3 : 0;
+      dbEntity.thickness = text.thickness;
+      dbEntity.horizontalMode = text.halign;
+      dbEntity.verticalMode = text.valign;
+      dbEntity.widthFactor = (_c3 = text.xScale) !== null && _c3 !== void 0 ? _c3 : 1;
+      return dbEntity;
+    };
+    AcDbEntityConverter2.prototype.convertArcAlignedText = function(entity) {
+      var dbEntity = new AcDbArcAlignedText();
+      dbEntity.textString = entity.text;
+      dbEntity.textSize = entity.textSize;
+      dbEntity.xScale = entity.xScale > 0 ? entity.xScale : 1;
+      dbEntity.characterSpacing = entity.characterSpacing;
+      if (entity.styleName)
+        dbEntity.styleName = entity.styleName;
+      dbEntity.fontName = entity.fontName;
+      dbEntity.bigFontName = entity.bigFontName;
+      dbEntity.offsetFromArc = entity.offsetFromArc;
+      dbEntity.rightOffset = entity.rightOffset;
+      dbEntity.leftOffset = entity.leftOffset;
+      dbEntity.center = new AcGePoint3d(entity.center.x, entity.center.y, entity.center.z);
+      dbEntity.radius = entity.radius;
+      dbEntity.startAngle = entity.startAngle;
+      dbEntity.endAngle = entity.endAngle;
+      dbEntity.normal = new AcGeVector3d(entity.extrusionDirection.x, entity.extrusionDirection.y, entity.extrusionDirection.z || 1);
+      dbEntity.characterSet = entity.characterSet;
+      dbEntity.pitchAndFamily = entity.pitchAndFamily;
+      dbEntity.isShx = entity.isShx;
+      dbEntity.isBold = entity.isBold;
+      dbEntity.isItalic = entity.isItalic;
+      dbEntity.isUnderlined = entity.isUnderlined;
+      dbEntity.alignment = entity.alignment;
+      dbEntity.isReverse = entity.isReverse;
+      dbEntity.wizardFlag = entity.wizardFlag;
+      dbEntity.textPosition = entity.textPosition;
+      dbEntity.textDirection = entity.textDirection;
+      if (entity.arcHandle)
+        dbEntity.arcId = entity.arcHandle;
+      return dbEntity;
+    };
+    AcDbEntityConverter2.prototype.convertTolerance = function(tolerance) {
+      var _a5;
+      var dbEntity = new AcDbFcf();
+      dbEntity.location.copy(tolerance.insertionPoint);
+      dbEntity.text = tolerance.text;
+      dbEntity.dimensionStyle = (_a5 = tolerance.styleName) !== null && _a5 !== void 0 ? _a5 : "";
+      if (tolerance.extrusionDirection) {
+        dbEntity.normal.copy(tolerance.extrusionDirection);
+      }
+      if (tolerance.xAxisDirection) {
+        dbEntity.direction.copy(tolerance.xAxisDirection);
+      }
+      return dbEntity;
+    };
+    AcDbEntityConverter2.prototype.convertMText = function(mtext) {
+      var dbEntity = new AcDbMText();
+      dbEntity.contents = mtext.text;
+      if (mtext.styleName != null) {
+        dbEntity.styleName = mtext.styleName;
+      }
+      dbEntity.height = mtext.textHeight;
+      dbEntity.width = mtext.rectWidth;
+      dbEntity.rotation = mtext.rotation || 0;
+      dbEntity.location = mtext.insertionPoint;
+      dbEntity.attachmentPoint = mtext.attachmentPoint;
+      if (mtext.direction) {
+        dbEntity.direction = new AcGeVector3d(mtext.direction);
+      }
+      dbEntity.drawingDirection = mtext.drawingDirection;
+      if (mtext.lineSpacing != null && mtext.lineSpacing > 0) {
+        dbEntity.lineSpacingFactor = mtext.lineSpacing;
+      }
+      if (mtext.lineSpacingStyle != null) {
+        dbEntity.lineSpacingStyle = mtext.lineSpacingStyle;
+      }
+      if (mtext.extentsWidth != null && mtext.extentsWidth > 0) {
+        dbEntity.extentsWidth = mtext.extentsWidth;
+      }
+      return dbEntity;
+    };
+    AcDbEntityConverter2.prototype.convertLeader = function(leader) {
+      var _a5;
+      var dbEntity = new AcDbLeader();
+      leader.vertices.forEach(function(point) {
+        dbEntity.appendVertex(point);
+      });
+      dbEntity.hasArrowHead = leader.isArrowheadEnabled;
+      dbEntity.hasHookLine = leader.isHooklineExists;
+      dbEntity.isHookLineSameDirection = leader.isHooklineSameDirection;
+      dbEntity.isSplined = leader.isSpline;
+      dbEntity.dimensionStyle = (_a5 = leader.styleName) !== null && _a5 !== void 0 ? _a5 : "";
+      dbEntity.annoType = leader.leaderCreationFlag;
+      if (leader.textHeight != null)
+        dbEntity.textHeight = leader.textHeight;
+      if (leader.textWidth != null)
+        dbEntity.textWidth = leader.textWidth;
+      if (leader.byBlockColor != null)
+        dbEntity.byBlockColor = leader.byBlockColor;
+      if (leader.associatedAnnotation) {
+        dbEntity.associatedAnnotation = leader.associatedAnnotation;
+      }
+      if (leader.normal)
+        dbEntity.normal = leader.normal;
+      if (leader.horizontalDirection) {
+        dbEntity.horizontalDirection = leader.horizontalDirection;
+      }
+      if (leader.offsetFromBlock)
+        dbEntity.offsetFromBlock = leader.offsetFromBlock;
+      if (leader.offsetFromAnnotation) {
+        dbEntity.offsetFromAnnotation = leader.offsetFromAnnotation;
+      }
+      return dbEntity;
+    };
+    AcDbEntityConverter2.prototype.convertMLine = function(mline) {
+      var _a5, _b3, _c3;
+      var dbEntity = new AcDbMLine();
+      dbEntity.styleName = mline.mlineStyle || "STANDARD";
+      dbEntity.scale = mline.scale;
+      dbEntity.flags = mline.flags;
+      dbEntity.justification = mline.justification;
+      dbEntity.startPosition = mline.startPoint;
+      dbEntity.normal = (_a5 = mline.extrusionDirection) !== null && _a5 !== void 0 ? _a5 : AcGeVector3d.Z_AXIS;
+      dbEntity.styleCount = (_b3 = mline.numberOfLines) !== null && _b3 !== void 0 ? _b3 : 0;
+      dbEntity.segments = ((_c3 = mline.vertices) !== null && _c3 !== void 0 ? _c3 : []).map(function(vertex2) {
+        var _a6;
+        return {
+          position: vertex2.vertex,
+          direction: vertex2.vertexDirection,
+          miterDirection: vertex2.miterDirection,
+          elements: ((_a6 = vertex2.lines) !== null && _a6 !== void 0 ? _a6 : []).map(function(line) {
+            var _a7, _b4;
+            return {
+              parameterCount: line.numberOfSegmentParams,
+              parameters: (_a7 = line.segmentParams) !== null && _a7 !== void 0 ? _a7 : [],
+              fillCount: line.numberOfAreaFillParams,
+              fillParameters: (_b4 = line.areaFillParams) !== null && _b4 !== void 0 ? _b4 : []
+            };
+          })
+        };
+      });
+      return dbEntity;
+    };
+    AcDbEntityConverter2.prototype.convertMLeader = function(mleader) {
+      var _a5, _b3, _c3, _d3, _e3, _f3, _g2, _h2, _j, _k2, _l3, _m2, _o3, _p3, _q, _r3;
+      var dbEntity = new AcDbMLeader();
+      var raw = mleader;
+      dbEntity.version = mleader.version;
+      dbEntity.leaderStyleId = mleader.leaderStyleId;
+      if (mleader.leaderStyleId)
+        dbEntity.mleaderStyleId = mleader.leaderStyleId;
+      dbEntity.propertyOverrideFlag = mleader.propertyOverrideFlag;
+      dbEntity.leaderLineType = (_a5 = mleader.leaderLineType) !== null && _a5 !== void 0 ? _a5 : AcDbMLeaderLineType.StraightLeader;
+      if (mleader.leaderLineColor != null) {
+        dbEntity.leaderLineColor = this.convertMLeaderEntityColor(mleader.leaderLineColor);
+      }
+      dbEntity.leaderLineTypeId = mleader.leaderLineTypeId;
+      dbEntity.leaderLineWeight = mleader.leaderLineWeight;
+      dbEntity.landingEnabled = mleader.landingEnabled;
+      dbEntity.doglegEnabled = (_b3 = mleader.doglegEnabled) !== null && _b3 !== void 0 ? _b3 : false;
+      dbEntity.doglegLength = (_c3 = mleader.doglegLength) !== null && _c3 !== void 0 ? _c3 : 0;
+      dbEntity.arrowheadId = mleader.arrowheadId;
+      dbEntity.arrowheadSize = mleader.arrowheadSize;
+      dbEntity.textStyleId = mleader.textStyleId;
+      dbEntity.textLeftAttachmentType = mleader.textLeftAttachmentType;
+      dbEntity.textRightAttachmentType = mleader.textRightAttachmentType;
+      dbEntity.textAngleType = mleader.textAngleType;
+      dbEntity.textAlignmentType = mleader.textAlignmentType;
+      if (mleader.textColor != null) {
+        dbEntity.textColor = this.convertMLeaderEntityColor(mleader.textColor);
+      }
+      dbEntity.textFrameEnabled = mleader.textFrameEnabled;
+      dbEntity.landingGap = mleader.landingGap;
+      dbEntity.textAttachment = mleader.textAttachment;
+      dbEntity.textFlowDirection = mleader.textFlowDirection;
+      if (this.isValidHandleId(mleader.blockContentId)) {
+        dbEntity.blockContentId = mleader.blockContentId;
+      }
+      if (mleader.blockContentColor != null) {
+        dbEntity.blockContentColor = this.convertMLeaderEntityColor(mleader.blockContentColor);
+      }
+      dbEntity.blockContentRotation = mleader.blockContentRotation;
+      dbEntity.blockContentConnectionType = mleader.blockContentConnectionType;
+      dbEntity.annotativeScaleEnabled = mleader.annotativeScaleEnabled;
+      dbEntity.arrowheadOverrides = mleader.arrowheadOverrides ? mleader.arrowheadOverrides.map(function(item) {
+        return __assign24({}, item);
+      }) : [];
+      dbEntity.blockAttributes = mleader.blockAttributes ? mleader.blockAttributes.map(function(item) {
+        return __assign24({}, item);
+      }) : [];
+      dbEntity.textDirectionNegative = mleader.textDirectionNegative;
+      dbEntity.textAlignInIPE = mleader.textAlignInIPE;
+      dbEntity.bottomTextAttachmentDirection = mleader.bottomTextAttachmentDirection;
+      dbEntity.topTextAttachmentDirection = mleader.topTextAttachmentDirection;
+      dbEntity.contentScale = mleader.contentScale;
+      dbEntity.textLineSpacingStyle = mleader.textLineSpacingStyle;
+      if (mleader.textBackgroundColor != null) {
+        dbEntity.textBackgroundColor = this.convertMLeaderEntityColor(mleader.textBackgroundColor);
+      }
+      dbEntity.textBackgroundScaleFactor = mleader.textBackgroundScaleFactor;
+      dbEntity.textBackgroundTransparency = mleader.textBackgroundTransparency;
+      dbEntity.textBackgroundColorOn = mleader.textBackgroundColorOn;
+      dbEntity.textFillOn = mleader.textFillOn;
+      dbEntity.textColumnType = mleader.textColumnType;
+      dbEntity.textUseAutoHeight = mleader.textUseAutoHeight;
+      dbEntity.textColumnWidth = mleader.textColumnWidth;
+      dbEntity.textColumnGutterWidth = mleader.textColumnGutterWidth;
+      dbEntity.textColumnFlowReversed = mleader.textColumnFlowReversed;
+      dbEntity.textColumnHeight = mleader.textColumnHeight;
+      dbEntity.textUseWordBreak = mleader.textUseWordBreak;
+      dbEntity.hasMText = mleader.hasMText;
+      dbEntity.hasBlock = mleader.hasBlock;
+      dbEntity.planeNormalReversed = mleader.planeNormalReversed;
+      if (mleader.blockContentScale) {
+        dbEntity.blockContentScale = new AcGeVector3d(mleader.blockContentScale);
+      }
+      if (mleader.contentBasePosition) {
+        dbEntity.contentBasePosition = new AcGePoint3d().copy(mleader.contentBasePosition);
+      }
+      if (mleader.textAnchor) {
+        dbEntity.textAnchor = new AcGePoint3d().copy(mleader.textAnchor);
+      }
+      if (mleader.planeOrigin) {
+        dbEntity.planeOrigin = new AcGePoint3d().copy(mleader.planeOrigin);
+      }
+      if (mleader.planeXAxisDirection) {
+        dbEntity.planeXAxisDirection = new AcGeVector3d(mleader.planeXAxisDirection);
+      }
+      if (mleader.planeYAxisDirection) {
+        dbEntity.planeYAxisDirection = new AcGeVector3d(mleader.planeYAxisDirection);
+      }
+      var rawTextContent = raw.textContent;
+      var rawTextContentRecord = rawTextContent && typeof rawTextContent === "object" ? rawTextContent : void 0;
+      var hasMTextContent = typeof rawTextContent === "string" && rawTextContent.length > 0 || this.readString(rawTextContentRecord !== null && rawTextContentRecord !== void 0 ? rawTextContentRecord : {}, ["text", "contents"]) != null || this.readString(raw, ["text", "contents", "mtext"]) != null;
+      var contentType = (_d3 = mleader.contentType) !== null && _d3 !== void 0 ? _d3 : hasMTextContent ? AcDbMLeaderContentType.MTextContent : mleader.blockContent ? AcDbMLeaderContentType.BlockContent : AcDbMLeaderContentType.NoneContent;
+      dbEntity.contentType = contentType;
+      var normal = this.readPoint(raw, ["normal", "extrusionDirection"]);
+      if (normal)
+        dbEntity.normal = normal;
+      var textStyleName = (_e3 = this.readString(rawTextContentRecord !== null && rawTextContentRecord !== void 0 ? rawTextContentRecord : {}, [
+        "styleName",
+        "textStyleName",
+        "textStyle"
+      ])) !== null && _e3 !== void 0 ? _e3 : this.readString(raw, ["textStyleName", "textStyle", "styleName"]);
+      if (textStyleName)
+        dbEntity.textStyleName = textStyleName;
+      var textHeight = (_g2 = (_f3 = this.readPositiveNumber(rawTextContentRecord !== null && rawTextContentRecord !== void 0 ? rawTextContentRecord : {}, [
+        "textHeight",
+        "height"
+      ])) !== null && _f3 !== void 0 ? _f3 : this.readPositiveNumber(raw, [
+        "textHeight",
+        "mtextHeight",
+        "textContentHeight"
+      ])) !== null && _g2 !== void 0 ? _g2 : this.readPositiveNumber(raw, ["arrowheadSize", "contentScale"]);
+      if (textHeight != null)
+        dbEntity.textHeight = textHeight;
+      var textWidth = (_h2 = this.readPositiveNumber(rawTextContentRecord !== null && rawTextContentRecord !== void 0 ? rawTextContentRecord : {}, [
+        "textWidth",
+        "width"
+      ])) !== null && _h2 !== void 0 ? _h2 : this.readPositiveNumber(raw, [
+        "textWidth",
+        "mtextWidth",
+        "textContentWidth"
+      ]);
+      if (textWidth != null)
+        dbEntity.textWidth = textWidth;
+      dbEntity.textLineSpacingFactor = (_k2 = (_j = this.readNumber(rawTextContentRecord !== null && rawTextContentRecord !== void 0 ? rawTextContentRecord : {}, [
+        "lineSpacingFactor",
+        "textLineSpacingFactor"
+      ])) !== null && _j !== void 0 ? _j : this.readNumber(raw, ["textLineSpacingFactor"])) !== null && _k2 !== void 0 ? _k2 : dbEntity.textLineSpacingFactor;
+      var textLineSpacingStyle = (_l3 = this.readNumber(rawTextContentRecord !== null && rawTextContentRecord !== void 0 ? rawTextContentRecord : {}, [
+        "lineSpacingStyle",
+        "textLineSpacingStyle"
+      ])) !== null && _l3 !== void 0 ? _l3 : this.readNumber(raw, ["textLineSpacingStyle"]);
+      if (textLineSpacingStyle != null) {
+        dbEntity.textLineSpacingStyle = textLineSpacingStyle;
+      }
+      var textRotation = (_m2 = this.readNumber(rawTextContentRecord !== null && rawTextContentRecord !== void 0 ? rawTextContentRecord : {}, [
+        "textRotation",
+        "rotation"
+      ])) !== null && _m2 !== void 0 ? _m2 : this.readNumber(raw, [
+        "textRotation",
+        "mtextRotation",
+        "textContentRotation"
+      ]);
+      if (textRotation != null) {
+        dbEntity.textRotation = textRotation;
+      }
+      var textDirection = this.readPoint(raw, [
+        "textDirection",
+        "mtextDirection",
+        "textDirectionVector"
+      ]);
+      if (textDirection)
+        dbEntity.textDirection = textDirection;
+      var textAttachmentPoint = this.readNumber(raw, [
+        "textAttachmentPoint",
+        "attachmentPoint"
+      ]);
+      if (textAttachmentPoint != null && textAttachmentPoint !== 0) {
+        dbEntity.textAttachmentPoint = textAttachmentPoint;
+      }
+      var textAttachmentDirection = mleader.textAttachmentDirection;
+      if (textAttachmentDirection != null) {
+        dbEntity.textAttachmentDirection = textAttachmentDirection;
+      }
+      var textDrawingDirection = this.readNumber(raw, [
+        "textDrawingDirection",
+        "drawingDirection"
+      ]);
+      if (textDrawingDirection != null) {
+        dbEntity.textDrawingDirection = textDrawingDirection;
+      }
+      var text = typeof rawTextContent === "string" ? rawTextContent : (_o3 = this.readString(rawTextContentRecord !== null && rawTextContentRecord !== void 0 ? rawTextContentRecord : {}, ["text", "contents"])) !== null && _o3 !== void 0 ? _o3 : this.readString(raw, ["text", "contents", "mtext"]);
+      var anchorPoint = (_p3 = this.readPoint(rawTextContentRecord !== null && rawTextContentRecord !== void 0 ? rawTextContentRecord : {}, [
+        "anchorPoint",
+        "textAnchor",
+        "textLocation",
+        "textPosition",
+        "textAnchorPoint"
+      ])) !== null && _p3 !== void 0 ? _p3 : this.readPoint(raw, [
+        "textAnchor",
+        "textLocation",
+        "textPosition",
+        "textAnchorPoint",
+        "contentBasePosition"
+      ]);
+      if (text != null && anchorPoint) {
+        dbEntity.mtextContent = { text, anchorPoint };
+      }
+      if (mleader.blockContent) {
+        var blockRecord = mleader.blockContent;
+        var blockContentId = mleader.blockContent.blockContentId;
+        if (this.isValidHandleId(blockContentId)) {
+          var rawBlockColor = this.readMLeaderEntityColor(blockRecord, [
+            "color"
+          ]);
+          dbEntity.blockContent = {
+            blockContentId,
+            normal: this.readPoint(blockRecord, ["normal"]),
+            position: mleader.blockContent.position,
+            scale: this.readPoint(blockRecord, ["scale"]),
+            rotation: this.readNumber(blockRecord, ["rotation"]),
+            color: rawBlockColor,
+            transformationMatrix: Array.isArray(mleader.blockContent.transformationMatrix) ? mleader.blockContent.transformationMatrix : []
+          };
+        }
+      } else if (this.isValidHandleId(mleader.blockContentId)) {
+        dbEntity.blockContent = {
+          blockContentId: mleader.blockContentId,
+          scale: mleader.blockContentScale,
+          rotation: mleader.blockContentRotation,
+          color: dbEntity.blockContentColor,
+          transformationMatrix: []
+        };
+      }
+      (_q = this.readMLeaderLeaders(raw)) === null || _q === void 0 ? void 0 : _q.forEach(function(leader) {
+        var _a6;
+        dbEntity.addLeader({
+          lastLeaderLinePoint: leader.lastLeaderLinePoint,
+          lastLeaderLinePointSet: leader.lastLeaderLinePointSet,
+          doglegVector: leader.doglegVector,
+          doglegVectorSet: leader.doglegVectorSet,
+          doglegLength: (_a6 = leader.doglegLength) !== null && _a6 !== void 0 ? _a6 : mleader.doglegLength,
+          breaks: leader.breaks,
+          leaderBranchIndex: leader.leaderBranchIndex,
+          leaderLines: leader.leaderLines
+        });
+      });
+      if (dbEntity.numberOfLeaders === 0) {
+        (_r3 = this.readLeaderLineArray(raw)) === null || _r3 === void 0 ? void 0 : _r3.forEach(function(line) {
+          dbEntity.addLeader({
+            doglegLength: mleader.doglegLength
+          });
+          dbEntity.addLeaderLine(dbEntity.numberOfLeaders - 1, line);
+        });
+      }
+      if (dbEntity.numberOfLeaders === 0 && mleader.contentBasePosition) {
+        dbEntity.addLeader({
+          lastLeaderLinePoint: mleader.contentBasePosition,
+          lastLeaderLinePointSet: true,
+          doglegLength: mleader.doglegLength
+        });
+      }
+      return dbEntity;
+    };
+    AcDbEntityConverter2.prototype.convertDimension = function(dimension) {
+      var _a5, _b3, _c3, _d3, _e3, _f3, _g2, _h2;
+      if (dimension.subclassMarker == "AcDbAlignedDimension") {
+        var entity = dimension;
+        var dbEntity = new AcDbAlignedDimension(entity.subDefinitionPoint1, entity.subDefinitionPoint2, entity.definitionPoint);
+        if (entity.insertionPoint) {
+          dbEntity.dimBlockPosition = {
+            x: entity.insertionPoint.x,
+            y: entity.insertionPoint.y,
+            z: 0
+          };
+        }
+        dbEntity.rotation = entity.rotationAngle;
+        this.processDimensionCommonAttrs(dimension, dbEntity);
+        return dbEntity;
+      } else if (dimension.subclassMarker == "AcDbRotatedDimension") {
+        var entity = dimension;
+        var dbEntity = new AcDbRotatedDimension(entity.subDefinitionPoint1, entity.subDefinitionPoint2, entity.definitionPoint);
+        if (entity.insertionPoint) {
+          dbEntity.dimBlockPosition = {
+            x: entity.insertionPoint.x,
+            y: entity.insertionPoint.y,
+            z: 0
+          };
+        }
+        dbEntity.rotation = entity.rotationAngle;
+        this.processDimensionCommonAttrs(dimension, dbEntity);
+        return dbEntity;
+      } else if (dimension.subclassMarker == "AcDb3PointAngularDimension") {
+        var entity = dimension;
+        var dbEntity = new AcDb3PointAngularDimension(entity.centerPoint, entity.subDefinitionPoint1, entity.subDefinitionPoint2, entity.definitionPoint);
+        this.processDimensionCommonAttrs(dimension, dbEntity);
+        return dbEntity;
+      } else if (dimension.subclassMarker == "AcDb2LineAngularDimension") {
+        var entity = dimension;
+        var arcPoint = (_b3 = (_a5 = entity.definitionPoint) !== null && _a5 !== void 0 ? _a5 : entity.arcPoint) !== null && _b3 !== void 0 ? _b3 : entity.subDefinitionPoint2;
+        var vertexPoint2 = (_d3 = (_c3 = entity.centerPoint) !== null && _c3 !== void 0 ? _c3 : entity.subDefinitionPoint2) !== null && _d3 !== void 0 ? _d3 : entity.subDefinitionPoint1;
+        var centerPoint = vertexPoint2 !== null && vertexPoint2 !== void 0 ? vertexPoint2 : arcPoint;
+        var subDefinitionPoint1 = (_f3 = (_e3 = entity.subDefinitionPoint1) !== null && _e3 !== void 0 ? _e3 : vertexPoint2) !== null && _f3 !== void 0 ? _f3 : arcPoint;
+        var subDefinitionPoint2 = (_h2 = (_g2 = entity.subDefinitionPoint2) !== null && _g2 !== void 0 ? _g2 : vertexPoint2) !== null && _h2 !== void 0 ? _h2 : arcPoint;
+        if (!arcPoint || !entity.name) {
+          return null;
+        }
+        var dbEntity = new AcDb3PointAngularDimension(centerPoint, subDefinitionPoint1, subDefinitionPoint2, arcPoint);
+        this.processDimensionCommonAttrs(dimension, dbEntity);
+        return dbEntity;
+      } else if (dimension.subclassMarker == "AcDbOrdinateDimension") {
+        var entity = dimension;
+        var dbEntity = new AcDbOrdinateDimension(entity.subDefinitionPoint1, entity.subDefinitionPoint2);
+        if (entity.definitionPoint) {
+          dbEntity.origin = new AcGePoint3d(entity.definitionPoint.x, entity.definitionPoint.y, entity.definitionPoint.z);
+        }
+        this.processDimensionCommonAttrs(dimension, dbEntity);
+        return dbEntity;
+      } else if (dimension.subclassMarker == "AcDbRadialDimension") {
+        var entity = dimension;
+        var dbEntity = new AcDbRadialDimension(entity.definitionPoint, entity.centerPoint, entity.leaderLength);
+        this.processDimensionCommonAttrs(dimension, dbEntity);
+        return dbEntity;
+      } else if (dimension.subclassMarker == "AcDbDiametricDimension") {
+        var entity = dimension;
+        var dbEntity = new AcDbDiametricDimension(entity.definitionPoint, entity.centerPoint, entity.leaderLength);
+        this.processDimensionCommonAttrs(dimension, dbEntity);
+        return dbEntity;
+      }
+      return null;
+    };
+    AcDbEntityConverter2.prototype.processImage = function(image, dbImage) {
+      dbImage.position.copy(image.position);
+      dbImage.brightness = image.brightness;
+      dbImage.contrast = image.contrast;
+      dbImage.fade = image.fade;
+      dbImage.imageSize.copy(image.imageSize);
+      dbImage.imageDefId = image.imageDefHandle;
+      dbImage.isClipped = image.clipping > 0;
+      dbImage.isShownClipped = (image.flags & 4) !== 0;
+      dbImage.isImageShown = (image.flags & 3) !== 0;
+      dbImage.isImageTransparent = (image.flags & 8) !== 0;
+      image.clippingBoundaryPath.forEach(function(point) {
+        dbImage.clipBoundary.push(new AcGePoint2d(point));
+      });
+      dbImage.clipBoundaryType = image.clippingBoundaryType;
+      dbImage.width = Math.sqrt(Math.pow(image.uPixel.x, 2) + Math.pow(image.uPixel.y, 2) + Math.pow(image.uPixel.z, 2)) * image.imageSize.x;
+      dbImage.height = Math.sqrt(Math.pow(image.vPixel.x, 2) + Math.pow(image.vPixel.y, 2) + Math.pow(image.vPixel.z, 2)) * image.imageSize.y;
+      dbImage.rotation = Math.atan2(image.uPixel.y, image.uPixel.x);
+    };
+    AcDbEntityConverter2.prototype.convertImage = function(image) {
+      var dbImage = new AcDbRasterImage();
+      this.processImage(image, dbImage);
+      return dbImage;
+    };
+    AcDbEntityConverter2.prototype.convertWipeout = function(wipeout) {
+      var dbWipeout = new AcDbWipeout();
+      this.processImage(wipeout, dbWipeout);
+      return dbWipeout;
+    };
+    AcDbEntityConverter2.prototype.convertOleFrame = function(entity) {
+      var _a5;
+      var dbEntity = new AcDbOleFrame();
+      dbEntity.oleVersion = (_a5 = entity.flag) !== null && _a5 !== void 0 ? _a5 : 0;
+      if (entity.binaryData) {
+        var bytes = acdbHexStringsToBytes([entity.binaryData]);
+        dbEntity.loadOleObjectFromDxf(entity.dataSize, bytes);
+      }
+      return dbEntity;
+    };
+    AcDbEntityConverter2.prototype.convertOle2Frame = function(entity) {
+      var _a5, _b3, _c3, _d3, _e3;
+      var dbEntity = new AcDbOle2Frame();
+      dbEntity.oleVersion = (_a5 = entity.oleVersion) !== null && _a5 !== void 0 ? _a5 : 0;
+      dbEntity.userType = (_b3 = entity.oleClient) !== null && _b3 !== void 0 ? _b3 : "";
+      if (entity.leftUpPoint) {
+        dbEntity.upperLeftCorner.copy(entity.leftUpPoint);
+      }
+      if (entity.rightDownPoint) {
+        dbEntity.lowerRightCorner.copy(entity.rightDownPoint);
+      }
+      dbEntity.setLockAspect((_c3 = entity.lockAspect) !== null && _c3 !== void 0 ? _c3 : 0);
+      dbEntity.oleObjectType = (_d3 = entity.oleObjectType) !== null && _d3 !== void 0 ? _d3 : AcDbOleObjectType.Embedded;
+      dbEntity.tileMode = (_e3 = entity.tileModeDescriptor) !== null && _e3 !== void 0 ? _e3 : AcDbOleTileMode.ModelSpace;
+      if (entity.binaryData) {
+        var bytes = acdbHexStringsToBytes([entity.binaryData]);
+        dbEntity.loadOleObjectFromDxf(entity.dataSize, bytes);
+      }
+      return dbEntity;
+    };
+    AcDbEntityConverter2.prototype.convertViewport = function(viewport) {
+      var dbViewport = new AcDbViewport();
+      dbViewport.number = viewport.viewportId;
+      dbViewport.centerPoint.copy(viewport.viewportCenter);
+      dbViewport.height = viewport.height;
+      dbViewport.width = viewport.width;
+      dbViewport.viewCenter.copy(viewport.displayCenter);
+      dbViewport.viewHeight = viewport.viewHeight;
+      if (viewport.targetPoint) {
+        dbViewport.viewTarget.copy(viewport.targetPoint);
+      }
+      if (viewport.viewTwistAngle != null) {
+        dbViewport.viewTwistAngle = viewport.viewTwistAngle;
+      }
+      var eps = 1e-6;
+      var centerAtOrigin = Math.abs(dbViewport.centerPoint.x) < eps && Math.abs(dbViewport.centerPoint.y) < eps;
+      var target = dbViewport.viewTarget;
+      var targetAtOrigin = Math.abs(target.x) < eps && Math.abs(target.y) < eps;
+      var oneToOne = Number.isFinite(dbViewport.height) && Number.isFinite(dbViewport.viewHeight) && Math.abs(dbViewport.viewHeight - dbViewport.height) < eps;
+      if (centerAtOrigin && targetAtOrigin && oneToOne) {
+        dbViewport.centerPoint.copy(dbViewport.viewCenter);
+      }
+      return dbViewport;
+    };
+    AcDbEntityConverter2.prototype.convertRay = function(ray) {
+      var dbRay = new AcDbRay();
+      dbRay.basePoint.copy(ray.firstPoint);
+      dbRay.unitDir.copy(ray.unitDirection);
+      return dbRay;
+    };
+    AcDbEntityConverter2.prototype.convertXline = function(xline) {
+      var dbXline = new AcDbXline();
+      dbXline.basePoint.copy(xline.firstPoint);
+      dbXline.unitDir.copy(xline.unitDirection);
+      return dbXline;
+    };
+    AcDbEntityConverter2.prototype.convertAttributeCommon = function(attrib, dbAttrib) {
+      var _a5, _b3, _c3, _d3;
+      var text = attrib.text;
+      dbAttrib.textString = text.text;
+      dbAttrib.styleName = text.styleName;
+      dbAttrib.height = text.textHeight;
+      dbAttrib.position.copy(text.startPoint);
+      var alignmentPoint = (_a5 = attrib.alignmentPoint) !== null && _a5 !== void 0 ? _a5 : text.endPoint;
+      var isAlignmentPointZero = !alignmentPoint || alignmentPoint.x === 0 && alignmentPoint.y === 0 && ((_b3 = alignmentPoint.z) !== null && _b3 !== void 0 ? _b3 : 0) === 0;
+      if (alignmentPoint && !isAlignmentPointZero) {
+        dbAttrib.alignmentPoint.copy(alignmentPoint);
+        dbAttrib.hasAlignmentPoint = true;
+      } else {
+        dbAttrib.alignmentPoint.copy(text.startPoint);
+        dbAttrib.hasAlignmentPoint = false;
+      }
+      dbAttrib.rotation = text.rotation;
+      dbAttrib.oblique = (_c3 = text.obliqueAngle) !== null && _c3 !== void 0 ? _c3 : 0;
+      dbAttrib.thickness = text.thickness;
+      dbAttrib.horizontalMode = text.halign;
+      dbAttrib.verticalMode = text.valign;
+      dbAttrib.widthFactor = (_d3 = text.xScale) !== null && _d3 !== void 0 ? _d3 : 1;
+      dbAttrib.tag = attrib.tag;
+      dbAttrib.fieldLength = attrib.fieldLength;
+      dbAttrib.isInvisible = (attrib.flags & AcDbAttributeFlags.Invisible) !== 0;
+      dbAttrib.isConst = (attrib.flags & AcDbAttributeFlags.Const) !== 0;
+      dbAttrib.isVerifiable = (attrib.flags & AcDbAttributeFlags.Verifiable) !== 0;
+      dbAttrib.isPreset = (attrib.flags & AcDbAttributeFlags.Preset) !== 0;
+      dbAttrib.lockPositionInBlock = attrib.lockPositionFlag;
+      dbAttrib.isReallyLocked = attrib.isReallyLocked;
+      dbAttrib.isMTextAttribute = (attrib.mtextFlag & AcDbAttributeMTextFlag.MultiLine) !== 0;
+      dbAttrib.isConstMTextAttribute = (attrib.mtextFlag & AcDbAttributeMTextFlag.ConstMultiLine) !== 0;
+    };
+    AcDbEntityConverter2.prototype.convertAttribute = function(attrib) {
+      var dbAttrib = new AcDbAttribute();
+      this.convertAttributeCommon(attrib, dbAttrib);
+      return dbAttrib;
+    };
+    AcDbEntityConverter2.prototype.convertAttributeDefinition = function(attrib) {
+      var dbAttDef = new AcDbAttributeDefinition();
+      this.convertAttributeCommon(attrib, dbAttDef);
+      dbAttDef.prompt = attrib.prompt;
+      return dbAttDef;
+    };
+    AcDbEntityConverter2.prototype.convertBlockReference = function(blockReference) {
+      var _this = this;
+      var dbBlockReference = new AcDbBlockReference(blockReference.name);
+      if (blockReference.insertionPoint)
+        dbBlockReference.position.copy(blockReference.insertionPoint);
+      dbBlockReference.scaleFactors.x = blockReference.xScale;
+      dbBlockReference.scaleFactors.y = blockReference.yScale;
+      dbBlockReference.scaleFactors.z = blockReference.zScale;
+      dbBlockReference.rotation = blockReference.rotation;
+      dbBlockReference.normal.copy(blockReference.extrusionDirection);
+      if (blockReference.columnCount != null) {
+        dbBlockReference.columnCount = blockReference.columnCount;
+      }
+      if (blockReference.rowCount != null) {
+        dbBlockReference.rowCount = blockReference.rowCount;
+      }
+      if (blockReference.columnSpacing != null) {
+        dbBlockReference.columnSpacing = blockReference.columnSpacing;
+      }
+      if (blockReference.rowSpacing != null) {
+        dbBlockReference.rowSpacing = blockReference.rowSpacing;
+      }
+      if (blockReference.handle != null) {
+        dbBlockReference.objectId = blockReference.handle;
+      }
+      if (blockReference.attribs) {
+        blockReference.attribs.forEach(function(attrib) {
+          var dbAttrib = _this.convert(attrib);
+          if (dbAttrib instanceof AcDbAttribute) {
+            dbBlockReference.appendAttributes(dbAttrib);
+          }
+        });
+      }
+      return dbBlockReference;
+    };
+    AcDbEntityConverter2.prototype.processDimensionCommonAttrs = function(entity, dbEntity) {
+      dbEntity.dimBlockId = entity.name;
+      dbEntity.textPosition.copy(entity.textPoint);
+      dbEntity.textRotation = entity.textRotation || 0;
+      if (entity.textLineSpacingFactor) {
+        dbEntity.textLineSpacingFactor = entity.textLineSpacingFactor;
+      }
+      if (entity.textLineSpacingStyle) {
+        dbEntity.textLineSpacingStyle = entity.textLineSpacingStyle;
+      }
+      dbEntity.dimensionStyleName = entity.styleName;
+      dbEntity.dimensionText = entity.text || "";
+      dbEntity.measurement = entity.measurement;
+      if (entity.dimensionType != null) {
+        dbEntity.dimensionType = entity.dimensionType;
+      }
+    };
+    AcDbEntityConverter2.prototype.processCommonAttrs = function(entity, dbEntity) {
+      var _a5, _b3;
+      dbEntity.layer = entity.layer || "0";
+      dbEntity.objectId = entity.handle;
+      if (entity.ownerBlockRecordSoftId != null) {
+        dbEntity.ownerId = entity.ownerBlockRecordSoftId;
+      }
+      var xdict = acdbNormalizeExtensionDictionaryId((_b3 = (_a5 = entity.extensionDictionary) !== null && _a5 !== void 0 ? _a5 : entity.ownerDictionaryHardId) !== null && _b3 !== void 0 ? _b3 : entity.ownerDictionarySoftId);
+      if (xdict) {
+        dbEntity.extensionDictionary = xdict;
+      }
+      this.applyExtendedData(entity, dbEntity);
+      if (entity.lineType != null) {
+        dbEntity.lineType = entity.lineType;
+      }
+      if (entity.lineweight != null) {
+        dbEntity.lineWeight = entity.lineweight;
+      }
+      if (entity.lineTypeScale != null) {
+        dbEntity.linetypeScale = entity.lineTypeScale;
+      }
+      if (entity.color != null || entity.colorIndex != null || entity.colorName) {
+        var color = new AcCmColor();
+        if (entity.color != null) {
+          color.setRGBValue(entity.color);
+        }
+        if (entity.colorIndex != null) {
+          if (entity.color == null || entity.colorIndex === 7) {
+            color.colorIndex = entity.colorIndex;
+          }
+        }
+        if (entity.colorName) {
+          color.colorName = entity.colorName;
+        }
+        dbEntity.color = color;
+      }
+      if (entity.isVisible != null) {
+        dbEntity.visibility = entity.isVisible;
+      }
+      if (entity.transparency != null) {
+        var transparency = new AcCmTransparency();
+        transparency.method = entity.transparencyType;
+        if (transparency.isByBlock || transparency.isByBlock) {
+          transparency.alpha = entity.transparency;
+        }
+        dbEntity.transparency = transparency;
+      }
+    };
+    AcDbEntityConverter2.prototype.applyExtendedData = function(entity, dbEntity) {
+      var e_1, _a5, e_2, _b3;
+      var _c3;
+      var xdataList = entity.xdata;
+      if (!xdataList)
+        return;
+      var blocks = Array.isArray(xdataList) ? xdataList : [xdataList];
+      try {
+        for (var blocks_1 = __values84(blocks), blocks_1_1 = blocks_1.next(); !blocks_1_1.done; blocks_1_1 = blocks_1.next()) {
+          var block = blocks_1_1.value;
+          if (!(block === null || block === void 0 ? void 0 : block.appName))
+            continue;
+          var values = [
+            {
+              code: AcDbDxfCode.ExtendedDataRegAppName,
+              value: block.appName
+            }
+          ];
+          try {
+            for (var _d3 = (e_2 = void 0, __values84((_c3 = block.value) !== null && _c3 !== void 0 ? _c3 : [])), _e3 = _d3.next(); !_e3.done; _e3 = _d3.next()) {
+              var entry = _e3.value;
+              if (entry == null)
+                continue;
+              if (typeof entry === "object" && "code" in entry && "value" in entry) {
+                var code = Number(entry.code);
+                var value = entry.value;
+                if (code === AcDbDxfCode.ExtendedDataHandle || code >= 1e3 && code <= 1071) {
+                  var normalized = this.normalizeXDataValue(code, value);
+                  if (normalized !== void 0) {
+                    values.push({ code, value: normalized });
+                  }
+                }
+              }
+            }
+          } catch (e_2_1) {
+            e_2 = { error: e_2_1 };
+          } finally {
+            try {
+              if (_e3 && !_e3.done && (_b3 = _d3.return)) _b3.call(_d3);
+            } finally {
+              if (e_2) throw e_2.error;
+            }
+          }
+          dbEntity.setImportedXData(values);
+        }
+      } catch (e_1_1) {
+        e_1 = { error: e_1_1 };
+      } finally {
+        try {
+          if (blocks_1_1 && !blocks_1_1.done && (_a5 = blocks_1.return)) _a5.call(blocks_1);
+        } finally {
+          if (e_1) throw e_1.error;
+        }
+      }
+    };
+    AcDbEntityConverter2.prototype.normalizeXDataValue = function(code, value) {
+      if (code >= 1010 && code <= 1013) {
+        if (this.isPointLike(value)) {
+          return {
+            x: value.x,
+            y: value.y,
+            z: typeof value.z === "number" ? value.z : 0
+          };
+        }
+        if (Array.isArray(value) && typeof value[0] === "number" && typeof value[1] === "number") {
+          return {
+            x: value[0],
+            y: value[1],
+            z: typeof value[2] === "number" ? value[2] : 0
+          };
+        }
+        if (typeof value === "number" && Number.isFinite(value))
+          return value;
+      }
+      if (code === AcDbDxfCode.ExtendedDataBinaryChunk) {
+        if (value instanceof Uint8Array)
+          return value;
+        if (value instanceof ArrayBuffer)
+          return new Uint8Array(value);
+        if (typeof value === "string")
+          return value;
+        if (Array.isArray(value) && value.every(function(n) {
+          return typeof n === "number" && Number.isFinite(n) && n >= 0 && n <= 255;
+        })) {
+          return Uint8Array.from(value);
+        }
+        return void 0;
+      }
+      if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+        return value;
+      }
+      if (value instanceof Uint8Array)
+        return value;
+      if (this.isPointLike(value)) {
+        return {
+          x: value.x,
+          y: value.y,
+          z: typeof value.z === "number" ? value.z : 0
+        };
+      }
+      return void 0;
+    };
+    AcDbEntityConverter2.prototype.convertMLeaderEntityColor = function(color) {
+      return acdbDecodeMLeaderStyleRawColor(color);
+    };
+    AcDbEntityConverter2.prototype.readMLeaderEntityColor = function(source, names) {
+      var e_3, _a5;
+      try {
+        for (var names_1 = __values84(names), names_1_1 = names_1.next(); !names_1_1.done; names_1_1 = names_1.next()) {
+          var name_1 = names_1_1.value;
+          var value = source[name_1];
+          if (typeof value === "number" && Number.isFinite(value)) {
+            return acdbDecodeMLeaderStyleRawColor(value);
+          }
+        }
+      } catch (e_3_1) {
+        e_3 = { error: e_3_1 };
+      } finally {
+        try {
+          if (names_1_1 && !names_1_1.done && (_a5 = names_1.return)) _a5.call(names_1);
+        } finally {
+          if (e_3) throw e_3.error;
+        }
+      }
+      return void 0;
+    };
+    AcDbEntityConverter2.prototype.isValidHandleId = function(id2) {
+      return id2 != null && id2 !== "" && id2 !== "0";
+    };
+    AcDbEntityConverter2.prototype.readNumber = function(source, names) {
+      var e_4, _a5;
+      try {
+        for (var names_2 = __values84(names), names_2_1 = names_2.next(); !names_2_1.done; names_2_1 = names_2.next()) {
+          var name_2 = names_2_1.value;
+          var value = source[name_2];
+          if (typeof value === "number" && Number.isFinite(value))
+            return value;
+        }
+      } catch (e_4_1) {
+        e_4 = { error: e_4_1 };
+      } finally {
+        try {
+          if (names_2_1 && !names_2_1.done && (_a5 = names_2.return)) _a5.call(names_2);
+        } finally {
+          if (e_4) throw e_4.error;
+        }
+      }
+      return void 0;
+    };
+    AcDbEntityConverter2.prototype.readPositiveNumber = function(source, names) {
+      var value = this.readNumber(source, names);
+      return value != null && value > 0 ? value : void 0;
+    };
+    AcDbEntityConverter2.prototype.readString = function(source, names) {
+      var e_5, _a5;
+      try {
+        for (var names_3 = __values84(names), names_3_1 = names_3.next(); !names_3_1.done; names_3_1 = names_3.next()) {
+          var name_3 = names_3_1.value;
+          var value = source[name_3];
+          if (typeof value === "string")
+            return value;
+        }
+      } catch (e_5_1) {
+        e_5 = { error: e_5_1 };
+      } finally {
+        try {
+          if (names_3_1 && !names_3_1.done && (_a5 = names_3.return)) _a5.call(names_3);
+        } finally {
+          if (e_5) throw e_5.error;
+        }
+      }
+      return void 0;
+    };
+    AcDbEntityConverter2.prototype.readBoolean = function(source, names) {
+      var e_6, _a5;
+      try {
+        for (var names_4 = __values84(names), names_4_1 = names_4.next(); !names_4_1.done; names_4_1 = names_4.next()) {
+          var name_4 = names_4_1.value;
+          var value = source[name_4];
+          if (typeof value === "boolean")
+            return value;
+          if (typeof value === "number")
+            return value !== 0;
+        }
+      } catch (e_6_1) {
+        e_6 = { error: e_6_1 };
+      } finally {
+        try {
+          if (names_4_1 && !names_4_1.done && (_a5 = names_4.return)) _a5.call(names_4);
+        } finally {
+          if (e_6) throw e_6.error;
+        }
+      }
+      return void 0;
+    };
+    AcDbEntityConverter2.prototype.readPoint = function(source, names) {
+      var e_7, _a5;
+      var _b3;
+      try {
+        for (var names_5 = __values84(names), names_5_1 = names_5.next(); !names_5_1.done; names_5_1 = names_5.next()) {
+          var name_5 = names_5_1.value;
+          var value = source[name_5];
+          if (this.isPointLike(value))
+            return value;
+          if (Array.isArray(value) && typeof value[0] === "number" && typeof value[1] === "number") {
+            return { x: value[0], y: value[1], z: (_b3 = value[2]) !== null && _b3 !== void 0 ? _b3 : 0 };
+          }
+        }
+      } catch (e_7_1) {
+        e_7 = { error: e_7_1 };
+      } finally {
+        try {
+          if (names_5_1 && !names_5_1.done && (_a5 = names_5.return)) _a5.call(names_5);
+        } finally {
+          if (e_7) throw e_7.error;
+        }
+      }
+      return void 0;
+    };
+    AcDbEntityConverter2.prototype.readLeaderLineArray = function(source) {
+      var _this = this;
+      var leaderLines = source.leaderLines;
+      if (Array.isArray(leaderLines)) {
+        return leaderLines.map(function(line2) {
+          if (!line2 || typeof line2 !== "object")
+            return void 0;
+          var vertices2 = line2.vertices;
+          return Array.isArray(vertices2) ? vertices2.filter(function(point) {
+            return _this.isPointLike(point);
+          }) : void 0;
+        }).filter(function(line2) {
+          return !!line2 && line2.length > 0;
+        });
+      }
+      var vertices = source.vertices;
+      if (Array.isArray(vertices)) {
+        var line = vertices.filter(function(point) {
+          return _this.isPointLike(point);
+        });
+        return line.length > 0 ? [line] : void 0;
+      }
+      return void 0;
+    };
+    AcDbEntityConverter2.prototype.readMLeaderLeaders = function(source) {
+      var _this = this;
+      var leaders = source.leaderSections;
+      if (!Array.isArray(leaders))
+        return void 0;
+      var dbLeaders = [];
+      leaders.forEach(function(leader) {
+        if (!leader || typeof leader !== "object")
+          return;
+        var leaderRecord = leader;
+        var leaderLines = leaderRecord.leaderLines;
+        var lines = Array.isArray(leaderLines) ? leaderLines.reduce(function(result, line) {
+          var dbLine = _this.readMLeaderLine(line);
+          if (dbLine)
+            result.push(dbLine);
+          return result;
+        }, []) : void 0;
+        var dbLeader = {};
+        var lastLeaderLinePoint = _this.readPoint(leaderRecord, [
+          "lastLeaderLinePoint"
+        ]);
+        var doglegVector = _this.readPoint(leaderRecord, ["doglegVector"]);
+        var doglegLength = _this.readNumber(leaderRecord, ["doglegLength"]);
+        var leaderBreaks = _this.readMLeaderBreaks(leaderRecord.breaks);
+        var leaderBranchIndex = _this.readNumber(leaderRecord, [
+          "leaderBranchIndex"
+        ]);
+        if (lastLeaderLinePoint)
+          dbLeader.lastLeaderLinePoint = lastLeaderLinePoint;
+        if (leaderRecord.lastLeaderLinePointSet != null) {
+          dbLeader.lastLeaderLinePointSet = _this.readBoolean(leaderRecord, [
+            "lastLeaderLinePointSet"
+          ]);
+        }
+        if (doglegVector)
+          dbLeader.doglegVector = doglegVector;
+        if (leaderRecord.doglegVectorSet != null) {
+          dbLeader.doglegVectorSet = _this.readBoolean(leaderRecord, [
+            "doglegVectorSet"
+          ]);
+        }
+        if (doglegLength != null)
+          dbLeader.doglegLength = doglegLength;
+        if (leaderBreaks)
+          dbLeader.breaks = leaderBreaks;
+        if (leaderBranchIndex != null) {
+          dbLeader.leaderBranchIndex = leaderBranchIndex;
+        }
+        if (lines)
+          dbLeader.leaderLines = lines;
+        dbLeaders.push(dbLeader);
+      });
+      return dbLeaders;
+    };
+    AcDbEntityConverter2.prototype.readMLeaderLine = function(value) {
+      var _this = this;
+      if (!value || typeof value !== "object")
+        return void 0;
+      var lineRecord = value;
+      var vertices = lineRecord.vertices;
+      var dbVertices = Array.isArray(vertices) ? vertices.filter(function(point) {
+        return _this.isPointLike(point);
+      }) : [];
+      var dbBreaks = this.readMLeaderBreaks(lineRecord.breaks);
+      var breakPointIndexes = Array.isArray(lineRecord.breakPointIndexes) ? lineRecord.breakPointIndexes.filter(function(item) {
+        return typeof item === "number";
+      }) : void 0;
+      var leaderLineIndex = this.readNumber(lineRecord, ["leaderLineIndex"]);
+      return dbVertices.length > 0 || dbBreaks && dbBreaks.length > 0 ? {
+        vertices: dbVertices,
+        breakPointIndexes,
+        leaderLineIndex,
+        breaks: dbBreaks
+      } : void 0;
+    };
+    AcDbEntityConverter2.prototype.readMLeaderBreaks = function(value) {
+      var _this = this;
+      if (!Array.isArray(value))
+        return void 0;
+      var breaks = value.map(function(item) {
+        if (!item || typeof item !== "object")
+          return void 0;
+        var breakRecord = item;
+        var start = _this.readPoint(breakRecord, ["start"]);
+        var end = _this.readPoint(breakRecord, ["end"]);
+        var index = _this.readNumber(breakRecord, ["index"]);
+        if (!start || !end)
+          return void 0;
+        var parsed = { start, end };
+        if (index != null)
+          parsed.index = index;
+        return parsed;
+      }).filter(function(item) {
+        return !!item;
+      });
+      return breaks.length > 0 ? breaks : void 0;
+    };
+    AcDbEntityConverter2.prototype.isPointLike = function(value) {
+      return !!value && typeof value === "object" && typeof value.x === "number" && typeof value.y === "number";
+    };
+    return AcDbEntityConverter2;
+  })()
+);
+
+// node_modules/@mlightcad/libredwg-converter/lib/AcDbObjectConverter.js
+init_lib4();
+var AcDbObjectConverter = (
+  /** @class */
+  (function() {
+    function AcDbObjectConverter2() {
+    }
+    AcDbObjectConverter2.prototype.convertMLeaderStyle = function(style) {
+      var _a5;
+      var dbObject = new AcDbMLeaderStyle();
+      dbObject.unknown1 = style.unknown1;
+      if (style.contentType != null)
+        dbObject.contentType = style.contentType;
+      if (style.drawMLeaderOrderType != null) {
+        dbObject.drawMLeaderOrderType = style.drawMLeaderOrderType;
+      }
+      if (style.drawLeaderOrderType != null) {
+        dbObject.drawLeaderOrderType = style.drawLeaderOrderType;
+      }
+      if (style.maxLeaderSegmentPoints != null) {
+        dbObject.maxLeaderSegmentPoints = style.maxLeaderSegmentPoints;
+      }
+      if (style.firstSegmentAngleConstraint != null) {
+        dbObject.firstSegmentAngleConstraint = style.firstSegmentAngleConstraint;
+      }
+      if (style.secondSegmentAngleConstraint != null) {
+        dbObject.secondSegmentAngleConstraint = style.secondSegmentAngleConstraint;
+      }
+      if (style.leaderLineType != null) {
+        dbObject.leaderLineType = style.leaderLineType;
+      }
+      if (style.leaderLineColor != null) {
+        dbObject.leaderLineColor = acdbDecodeMLeaderStyleRawColor(style.leaderLineColor);
+      }
+      dbObject.leaderLineTypeId = style.leaderLineTypeId;
+      if (style.leaderLineWeight != null) {
+        dbObject.leaderLineWeight = style.leaderLineWeight;
+      }
+      if (style.landingEnabled != null) {
+        dbObject.landingEnabled = style.landingEnabled;
+      }
+      if (style.landingGap != null)
+        dbObject.landingGap = style.landingGap;
+      if (style.doglegEnabled != null)
+        dbObject.doglegEnabled = style.doglegEnabled;
+      if (style.doglegLength != null)
+        dbObject.doglegLength = style.doglegLength;
+      if (style.description != null)
+        dbObject.description = style.description;
+      dbObject.arrowheadId = style.arrowheadId;
+      if (style.arrowheadSize != null)
+        dbObject.arrowheadSize = style.arrowheadSize;
+      if (style.defaultMTextContents != null) {
+        dbObject.defaultMTextContents = style.defaultMTextContents;
+      }
+      dbObject.textStyleId = style.textStyleId;
+      if (style.textLeftAttachmentType != null) {
+        dbObject.textLeftAttachmentType = style.textLeftAttachmentType;
+      }
+      if (style.textAngleType != null)
+        dbObject.textAngleType = style.textAngleType;
+      if (style.textAlignmentType != null) {
+        dbObject.textAlignmentType = style.textAlignmentType;
+      }
+      if (style.textRightAttachmentType != null) {
+        dbObject.textRightAttachmentType = style.textRightAttachmentType;
+      }
+      if (style.textColor != null) {
+        dbObject.textColor = acdbDecodeMLeaderStyleRawColor(style.textColor);
+      }
+      if (style.textHeight != null)
+        dbObject.textHeight = style.textHeight;
+      if (style.textFrameEnabled != null) {
+        dbObject.textFrameEnabled = style.textFrameEnabled;
+      }
+      if (style.textAlignAlwaysLeft != null) {
+        dbObject.textAlignAlwaysLeft = style.textAlignAlwaysLeft;
+      }
+      if (style.alignSpace != null)
+        dbObject.alignSpace = style.alignSpace;
+      dbObject.blockContentId = style.blockContentId;
+      if (style.blockContentColor != null) {
+        dbObject.blockContentColor = acdbDecodeMLeaderStyleRawColor(style.blockContentColor);
+      }
+      if (style.blockContentScale) {
+        dbObject.blockContentScale = {
+          x: style.blockContentScale.x,
+          y: style.blockContentScale.y,
+          z: (_a5 = style.blockContentScale.z) !== null && _a5 !== void 0 ? _a5 : 1
+        };
+      }
+      if (style.blockContentScaleEnabled != null) {
+        dbObject.blockContentScaleEnabled = style.blockContentScaleEnabled;
+      }
+      if (style.blockContentRotation != null) {
+        dbObject.blockContentRotation = style.blockContentRotation;
+      }
+      if (style.blockContentRotationEnabled != null) {
+        dbObject.blockContentRotationEnabled = style.blockContentRotationEnabled;
+      }
+      if (style.blockContentConnectionType != null) {
+        dbObject.blockContentConnectionType = style.blockContentConnectionType;
+      }
+      if (style.scale != null)
+        dbObject.scale = style.scale;
+      if (style.overwritePropertyValue != null) {
+        dbObject.overwritePropertyValue = style.overwritePropertyValue;
+      }
+      if (style.annotative != null)
+        dbObject.annotative = style.annotative;
+      if (style.breakGapSize != null)
+        dbObject.breakGapSize = style.breakGapSize;
+      if (style.textAttachmentDirection != null) {
+        dbObject.textAttachmentDirection = style.textAttachmentDirection;
+      }
+      if (style.bottomTextAttachmentDirection != null) {
+        dbObject.bottomTextAttachmentDirection = style.bottomTextAttachmentDirection;
+      }
+      if (style.topTextAttachmentDirection != null) {
+        dbObject.topTextAttachmentDirection = style.topTextAttachmentDirection;
+      }
+      dbObject.unknown2 = style.unknown2;
+      this.processCommonAttrs(style, dbObject);
+      return dbObject;
+    };
+    AcDbObjectConverter2.prototype.convertLayerFilter = function(filter) {
+      var _a5;
+      var dbObject = new AcDbLayerFilter();
+      if ((_a5 = filter.layerNames) === null || _a5 === void 0 ? void 0 : _a5.length) {
+        dbObject.layerNames = filter.layerNames;
+      }
+      this.processCommonAttrs(filter, dbObject);
+      return dbObject;
+    };
+    AcDbObjectConverter2.prototype.convertLayerIndex = function(index) {
+      var _a5, _b3, _c3;
+      var dbObject = new AcDbLayerIndex();
+      if (index.timeStamp != null) {
+        dbObject.lastUpdatedAt = index.timeStamp;
+        dbObject.lastUpdatedAtU = index.timeStamp;
+      }
+      if ((_a5 = index.layerNames) === null || _a5 === void 0 ? void 0 : _a5.length) {
+        dbObject.layerNames = index.layerNames;
+      }
+      if ((_b3 = index.idBufferIds) === null || _b3 === void 0 ? void 0 : _b3.length) {
+        dbObject.idBufferIds = index.idBufferIds;
+      }
+      if ((_c3 = index.idBufferEntryCounts) === null || _c3 === void 0 ? void 0 : _c3.length) {
+        dbObject.idBufferEntryCounts = index.idBufferEntryCounts;
+      }
+      dbObject.isUptoDate = true;
+      this.processCommonAttrs(index, dbObject);
+      return dbObject;
+    };
+    AcDbObjectConverter2.prototype.convertScale = function(scale) {
+      var _a5, _b3, _c3;
+      var dbObject = new AcDbScale();
+      if (scale.flag != null)
+        dbObject.classVersion = scale.flag;
+      dbObject.scaleName = (_a5 = scale.name) !== null && _a5 !== void 0 ? _a5 : "";
+      dbObject.paperUnits = (_b3 = scale.paperUnits) !== null && _b3 !== void 0 ? _b3 : 1;
+      dbObject.drawingUnits = (_c3 = scale.drawingUnits) !== null && _c3 !== void 0 ? _c3 : 1;
+      dbObject.isUnitScale = !!scale.isUnitScale;
+      this.processCommonAttrs(scale, dbObject);
+      return dbObject;
+    };
+    AcDbObjectConverter2.prototype.convertDictionaryVar = function(dictVar) {
+      var _a5, _b3;
+      var dbObject = new AcDbDictionaryVar();
+      if (dictVar.schema != null)
+        dbObject.schema = dictVar.schema;
+      dbObject.value = (_b3 = (_a5 = dictVar.value) !== null && _a5 !== void 0 ? _a5 : dictVar.strvalue) !== null && _b3 !== void 0 ? _b3 : "";
+      this.processCommonAttrs(dictVar, dbObject);
+      return dbObject;
+    };
+    AcDbObjectConverter2.prototype.convertMTextObjectContextData = function(context) {
+      var _a5, _b3, _c3, _d3;
+      var dbObject = new AcDbMTextObjectContextData();
+      if (context.classVersion != null)
+        dbObject.classVersion = context.classVersion;
+      dbObject.isDefault = !!context.isDefault;
+      dbObject.scaleId = (_b3 = (_a5 = context.scaleId) !== null && _a5 !== void 0 ? _a5 : context.scaleHandle) !== null && _b3 !== void 0 ? _b3 : "";
+      if (context.attachment != null)
+        dbObject.attachmentPoint = context.attachment;
+      if (context.xAxisDir) {
+        dbObject.direction = new AcGeVector3d(context.xAxisDir.x, context.xAxisDir.y, (_c3 = context.xAxisDir.z) !== null && _c3 !== void 0 ? _c3 : 0);
+      }
+      if (context.insertionPoint) {
+        dbObject.insertionPoint = new AcGePoint3d(context.insertionPoint.x, context.insertionPoint.y, (_d3 = context.insertionPoint.z) !== null && _d3 !== void 0 ? _d3 : 0);
+      }
+      if (context.definedWidth != null)
+        dbObject.definedWidth = context.definedWidth;
+      if (context.definedHeight != null) {
+        dbObject.definedHeight = context.definedHeight;
+      }
+      if (context.extentsWidth != null)
+        dbObject.extentsWidth = context.extentsWidth;
+      if (context.extentsHeight != null) {
+        dbObject.extentsHeight = context.extentsHeight;
+      }
+      if (context.columnType != null)
+        dbObject.columnType = context.columnType;
+      this.processCommonAttrs(context, dbObject);
+      return dbObject;
+    };
+    AcDbObjectConverter2.prototype.convertDimensionObjectContextData = function(context) {
+      var _a5, _b3, _c3, _d3, _e3, _f3, _g2, _h2;
+      var dbObject = new AcDbDimensionObjectContextData();
+      if (context.classVersion != null) {
+        dbObject.classVersion = context.classVersion;
+      }
+      dbObject.isDefault = !!context.isDefault;
+      dbObject.scaleId = (_b3 = (_a5 = context.scaleId) !== null && _a5 !== void 0 ? _a5 : context.scaleHandle) !== null && _b3 !== void 0 ? _b3 : "";
+      dbObject.blockName = (_d3 = (_c3 = context.blockName) !== null && _c3 !== void 0 ? _c3 : context.name) !== null && _d3 !== void 0 ? _d3 : "";
+      var def = (_e3 = context.definitionPoint) !== null && _e3 !== void 0 ? _e3 : context.defPt;
+      if (def) {
+        dbObject.definitionPoint = new AcGePoint3d(def.x, def.y, (_f3 = def.z) !== null && _f3 !== void 0 ? _f3 : 0);
+      }
+      var dimLine = (_g2 = context.dimLinePoint) !== null && _g2 !== void 0 ? _g2 : context._11pt;
+      if (dimLine) {
+        dbObject.dimLinePoint = new AcGePoint3d(dimLine.x, dimLine.y, (_h2 = dimLine.z) !== null && _h2 !== void 0 ? _h2 : 0);
+      }
+      this.processCommonAttrs(context, dbObject);
+      return dbObject;
+    };
+    AcDbObjectConverter2.prototype.convertTextObjectContextData = function(context) {
+      var _a5, _b3;
+      var dbObject = new AcDbTextObjectContextData();
+      this.applyAnnotScaleContextBase(context, dbObject);
+      if (context.horizontalMode != null) {
+        dbObject.horizontalMode = context.horizontalMode;
+      }
+      if (context.rotation != null)
+        dbObject.rotation = context.rotation;
+      if (context.alignmentPoint) {
+        dbObject.alignmentPoint = new AcGePoint3d(context.alignmentPoint.x, context.alignmentPoint.y, (_a5 = context.alignmentPoint.z) !== null && _a5 !== void 0 ? _a5 : 0);
+      }
+      if (context.position) {
+        dbObject.position = new AcGePoint3d(context.position.x, context.position.y, (_b3 = context.position.z) !== null && _b3 !== void 0 ? _b3 : 0);
+      }
+      this.processCommonAttrs(context, dbObject);
+      return dbObject;
+    };
+    AcDbObjectConverter2.prototype.convertHatchScaleContextData = function(context) {
+      var _a5;
+      var dbObject = new AcDbHatchScaleContextData();
+      this.applyAnnotScaleContextBase(context, dbObject);
+      var patternScale = (_a5 = context.patternScale) !== null && _a5 !== void 0 ? _a5 : context.scale;
+      if (patternScale != null && patternScale > 0) {
+        dbObject.patternScale = patternScale;
+      }
+      this.processCommonAttrs(context, dbObject);
+      return dbObject;
+    };
+    AcDbObjectConverter2.prototype.convertBlkRefObjectContextData = function(context) {
+      var _a5, _b3, _c3, _d3, _e3;
+      var dbObject = new AcDbBlkRefObjectContextData();
+      this.applyAnnotScaleContextBase(context, dbObject);
+      var pos = (_a5 = context.position) !== null && _a5 !== void 0 ? _a5 : context.insertionPoint;
+      if (pos) {
+        dbObject.position = new AcGePoint3d(pos.x, pos.y, (_b3 = pos.z) !== null && _b3 !== void 0 ? _b3 : 0);
+      }
+      if (context.rotation != null)
+        dbObject.rotation = context.rotation;
+      var sx2 = (_c3 = context.scaleX) !== null && _c3 !== void 0 ? _c3 : context.xScale;
+      var sy = (_d3 = context.scaleY) !== null && _d3 !== void 0 ? _d3 : context.yScale;
+      var sz = (_e3 = context.scaleZ) !== null && _e3 !== void 0 ? _e3 : context.zScale;
+      if (sx2 != null)
+        dbObject.scaleX = sx2;
+      if (sy != null)
+        dbObject.scaleY = sy;
+      if (sz != null)
+        dbObject.scaleZ = sz;
+      this.processCommonAttrs(context, dbObject);
+      return dbObject;
+    };
+    AcDbObjectConverter2.prototype.convertLeaderObjectContextData = function(context) {
+      var dbObject = new AcDbLeaderObjectContextData();
+      this.applyAnnotScaleContextBase(context, dbObject);
+      this.processCommonAttrs(context, dbObject);
+      return dbObject;
+    };
+    AcDbObjectConverter2.prototype.convertMLeaderObjectContextData = function(context) {
+      var _a5, _b3, _c3;
+      var dbObject = new AcDbMLeaderObjectContextData();
+      this.applyAnnotScaleContextBase(context, dbObject);
+      if (context.contentScale != null && context.contentScale > 0) {
+        dbObject.contentScale = context.contentScale;
+      }
+      if (context.textHeight != null && context.textHeight > 0) {
+        dbObject.textHeight = context.textHeight;
+      }
+      var arrow = (_a5 = context.arrowheadSize) !== null && _a5 !== void 0 ? _a5 : context.arrowSize;
+      if (arrow != null && arrow > 0)
+        dbObject.arrowheadSize = arrow;
+      var anchor = (_b3 = context.textAnchor) !== null && _b3 !== void 0 ? _b3 : context.landingPoint;
+      if (anchor) {
+        dbObject.textAnchor = new AcGePoint3d(anchor.x, anchor.y, (_c3 = anchor.z) !== null && _c3 !== void 0 ? _c3 : 0);
+      }
+      this.processCommonAttrs(context, dbObject);
+      return dbObject;
+    };
+    AcDbObjectConverter2.prototype.convertMTextAttributeObjectContextData = function(context) {
+      var _a5, _b3, _c3, _d3;
+      var dbObject = new AcDbMTextAttributeObjectContextData();
+      if (context.classVersion != null)
+        dbObject.classVersion = context.classVersion;
+      dbObject.isDefault = !!context.isDefault;
+      dbObject.scaleId = (_b3 = (_a5 = context.scaleId) !== null && _a5 !== void 0 ? _a5 : context.scaleHandle) !== null && _b3 !== void 0 ? _b3 : "";
+      if (context.attachment != null)
+        dbObject.attachmentPoint = context.attachment;
+      if (context.xAxisDir) {
+        dbObject.direction = new AcGeVector3d(context.xAxisDir.x, context.xAxisDir.y, (_c3 = context.xAxisDir.z) !== null && _c3 !== void 0 ? _c3 : 0);
+      }
+      if (context.insertionPoint) {
+        dbObject.insertionPoint = new AcGePoint3d(context.insertionPoint.x, context.insertionPoint.y, (_d3 = context.insertionPoint.z) !== null && _d3 !== void 0 ? _d3 : 0);
+      }
+      if (context.definedWidth != null)
+        dbObject.definedWidth = context.definedWidth;
+      if (context.definedHeight != null) {
+        dbObject.definedHeight = context.definedHeight;
+      }
+      if (context.extentsWidth != null)
+        dbObject.extentsWidth = context.extentsWidth;
+      if (context.extentsHeight != null) {
+        dbObject.extentsHeight = context.extentsHeight;
+      }
+      if (context.columnType != null)
+        dbObject.columnType = context.columnType;
+      this.processCommonAttrs(context, dbObject);
+      return dbObject;
+    };
+    AcDbObjectConverter2.prototype.convertXRecord = function(xrecord) {
+      var _a5;
+      var dbObject = new AcDbXrecord();
+      this.processCommonAttrs(xrecord, dbObject);
+      if (xrecord.extensionDictionary) {
+        dbObject.extensionDictionary = xrecord.extensionDictionary;
+      }
+      dbObject.data = new AcDbResultBuffer(((_a5 = xrecord.data) !== null && _a5 !== void 0 ? _a5 : []).map(function(group) {
+        return {
+          code: Number(group.code),
+          value: group.value
+        };
+      }));
+      return dbObject;
+    };
+    AcDbObjectConverter2.prototype.applyAnnotScaleContextBase = function(context, dbObject) {
+      var _a5, _b3;
+      if (context.classVersion != null) {
+        dbObject.classVersion = context.classVersion;
+      }
+      dbObject.isDefault = !!context.isDefault;
+      dbObject.scaleId = (_b3 = (_a5 = context.scaleId) !== null && _a5 !== void 0 ? _a5 : context.scaleHandle) !== null && _b3 !== void 0 ? _b3 : "";
+    };
+    AcDbObjectConverter2.prototype.processCommonAttrs = function(object, dbObject) {
+      dbObject.objectId = object.handle;
+      if (object.ownerHandle != null) {
+        dbObject.ownerId = object.ownerHandle;
+      }
+    };
+    return AcDbObjectConverter2;
+  })()
+);
+
+// node_modules/@mlightcad/libredwg-converter/lib/AcDbLibreDwgConverter.js
+var __extends123 = /* @__PURE__ */ (function() {
+  var extendStatics = function(d, b) {
+    extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b2) {
+      d2.__proto__ = b2;
+    } || function(d2, b2) {
+      for (var p in b2) if (Object.prototype.hasOwnProperty.call(b2, p)) d2[p] = b2[p];
+    };
+    return extendStatics(d, b);
+  };
+  return function(d, b) {
+    if (typeof b !== "function" && b !== null)
+      throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+    extendStatics(d, b);
+    function __2() {
+      this.constructor = d;
+    }
+    d.prototype = b === null ? Object.create(b) : (__2.prototype = b.prototype, new __2());
+  };
+})();
+var __awaiter13 = function(thisArg, _arguments, P2, generator) {
+  function adopt(value) {
+    return value instanceof P2 ? value : new P2(function(resolve) {
+      resolve(value);
+    });
+  }
+  return new (P2 || (P2 = Promise))(function(resolve, reject) {
+    function fulfilled(value) {
+      try {
+        step(generator.next(value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function rejected(value) {
+      try {
+        step(generator["throw"](value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function step(result) {
+      result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+    }
+    step((generator = generator.apply(thisArg, _arguments || [])).next());
+  });
+};
+var __generator18 = function(thisArg, body) {
+  var _ = { label: 0, sent: function() {
+    if (t[0] & 1) throw t[1];
+    return t[1];
+  }, trys: [], ops: [] }, f, y, t, g;
+  return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() {
+    return this;
+  }), g;
+  function verb(n) {
+    return function(v2) {
+      return step([n, v2]);
+    };
+  }
+  function step(op3) {
+    if (f) throw new TypeError("Generator is already executing.");
+    while (g && (g = 0, op3[0] && (_ = 0)), _) try {
+      if (f = 1, y && (t = op3[0] & 2 ? y["return"] : op3[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op3[1])).done) return t;
+      if (y = 0, t) op3 = [op3[0] & 2, t.value];
+      switch (op3[0]) {
+        case 0:
+        case 1:
+          t = op3;
+          break;
+        case 4:
+          _.label++;
+          return { value: op3[1], done: false };
+        case 5:
+          _.label++;
+          y = op3[1];
+          op3 = [0];
+          continue;
+        case 7:
+          op3 = _.ops.pop();
+          _.trys.pop();
+          continue;
+        default:
+          if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op3[0] === 6 || op3[0] === 2)) {
+            _ = 0;
+            continue;
+          }
+          if (op3[0] === 3 && (!t || op3[1] > t[0] && op3[1] < t[3])) {
+            _.label = op3[1];
+            break;
+          }
+          if (op3[0] === 6 && _.label < t[1]) {
+            _.label = t[1];
+            t = op3;
+            break;
+          }
+          if (t && _.label < t[2]) {
+            _.label = t[2];
+            _.ops.push(op3);
+            break;
+          }
+          if (t[2]) _.ops.pop();
+          _.trys.pop();
+          continue;
+      }
+      op3 = body.call(thisArg, _);
+    } catch (e) {
+      op3 = [6, e];
+      y = 0;
+    } finally {
+      f = t = 0;
+    }
+    if (op3[0] & 5) throw op3[1];
+    return { value: op3[0] ? op3[1] : void 0, done: true };
+  }
+};
+var __values85 = function(o) {
+  var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+  if (m) return m.call(o);
+  if (o && typeof o.length === "number") return {
+    next: function() {
+      if (o && i >= o.length) o = void 0;
+      return { value: o && o[i++], done: !o };
+    }
+  };
+  throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
+var __read88 = function(o, n) {
+  var m = typeof Symbol === "function" && o[Symbol.iterator];
+  if (!m) return o;
+  var i = m.call(o), r, ar4 = [], e;
+  try {
+    while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar4.push(r.value);
+  } catch (error) {
+    e = { error };
+  } finally {
+    try {
+      if (r && !r.done && (m = i["return"])) m.call(i);
+    } finally {
+      if (e) throw e.error;
+    }
+  }
+  return ar4;
+};
+var MODEL_SPACE = "*MODEL_SPACE";
+var AcDbLibreDwgConverter = (
+  /** @class */
+  (function(_super) {
+    __extends123(AcDbLibreDwgConverter2, _super);
+    function AcDbLibreDwgConverter2(config) {
+      if (config === void 0) {
+        config = {};
+      }
+      var _this = _super.call(this, config) || this;
+      _this.config.useWorker = true;
+      if (!_this.config.parserWorkerUrl) {
+        _this.config.parserWorkerUrl = "/assets/libredwg-parser-worker.js";
+      }
+      return _this;
+    }
+    AcDbLibreDwgConverter2.prototype.parse = function(data, timeout) {
+      return __awaiter13(this, void 0, void 0, function() {
+        var effectiveConfig, resolvedTimeout, api, result;
+        return __generator18(this, function(_a5) {
+          switch (_a5.label) {
+            case 0:
+              effectiveConfig = this.config;
+              resolvedTimeout = this.getParserWorkerTimeout(data, timeout);
+              if (!(effectiveConfig.useWorker && effectiveConfig.parserWorkerUrl)) return [3, 2];
+              api = acdbCreateWorkerApi({
+                workerUrl: effectiveConfig.parserWorkerUrl,
+                timeout: resolvedTimeout,
+                // One concurrent worker needed for parser
+                maxConcurrentWorkers: 1
+              });
+              return [
+                4,
+                api.execute(data)
+                // Release worker
+              ];
+            case 1:
+              result = _a5.sent();
+              api.destroy();
+              AcDbOpenDatabaseError.throwOnWorkerParseFailure(result);
+              return [2, result.data];
+            case 2:
+              throw new Error("dwg converter can run in web worker only!");
+          }
+        });
+      });
+    };
+    AcDbLibreDwgConverter2.prototype.processLineTypes = function(model, db2) {
+      var _this = this;
+      var lineTypes = model.tables.LTYPE.entries;
+      lineTypes.forEach(function(item) {
+        var attrs = {
+          name: item.name,
+          description: item.description,
+          standardFlag: item.standardFlag,
+          totalPatternLength: item.totalPatternLength,
+          pattern: item.pattern
+        };
+        var record = new AcDbLinetypeTableRecord(attrs);
+        _this.processCommonTableEntryAttrs(item, record);
+        db2.tables.linetypeTable.add(record);
+      });
+    };
+    AcDbLibreDwgConverter2.prototype.processTextStyles = function(model, db2) {
+      var _this = this;
+      var textStyles = model.tables.STYLE.entries;
+      textStyles.forEach(function(item) {
+        var attrs = {
+          name: item.name,
+          standardFlag: item.standardFlag,
+          fixedTextHeight: item.fixedTextHeight,
+          widthFactor: item.widthFactor,
+          obliqueAngle: item.obliqueAngle,
+          textGenerationFlag: item.textGenerationFlag,
+          lastHeight: item.lastHeight,
+          font: item.font,
+          bigFont: item.bigFont,
+          extendedFont: item.extendedFont
+        };
+        var record = new AcDbTextStyleTableRecord(attrs);
+        _this.processCommonTableEntryAttrs(item, record);
+        db2.tables.textStyleTable.add(record);
+      });
+      db2.ensureTextStyleDefaults();
+    };
+    AcDbLibreDwgConverter2.prototype.processDimStyles = function(model, db2) {
+      var e_1, _a5;
+      var _this = this;
+      var dimStyles = model.tables.DIMSTYLE.entries;
+      dimStyles.forEach(function(item) {
+        var attrs = {
+          name: item.name,
+          ownerId: item.ownerHandle,
+          dimpost: item.DIMPOST || "",
+          dimapost: item.DIMAPOST || "",
+          dimscale: item.DIMSCALE,
+          dimasz: item.DIMASZ,
+          dimexo: item.DIMEXO,
+          dimdli: item.DIMDLI,
+          dimexe: item.DIMEXE,
+          dimrnd: item.DIMRND,
+          dimdle: item.DIMDLE,
+          dimtp: item.DIMTP,
+          dimtm: item.DIMTM,
+          dimtxt: item.DIMTXT,
+          dimcen: item.DIMCEN,
+          dimtsz: item.DIMTSZ,
+          dimaltf: item.DIMALTF,
+          dimlfac: item.DIMLFAC,
+          dimtvp: item.DIMTVP,
+          dimtfac: item.DIMTFAC,
+          dimgap: item.DIMGAP,
+          dimtfill: item.DIMTFILL === 1 || item.DIMTFILL === 2 ? item.DIMTFILL : 0,
+          dimtfillclr: acdbNormalizeDimStyleColorNumber(item.DIMTFILLCLR),
+          dimtxtdirection: item.DIMTXTDIRECTION === 1 ? 1 : 0,
+          dimaltrnd: item.DIMALTRND,
+          dimtol: item.DIMTOL == null || item.DIMTOL == 0 ? 0 : 1,
+          dimlim: item.DIMLIM == null || item.DIMLIM == 0 ? 0 : 1,
+          dimtih: item.DIMTIH == null || item.DIMTIH == 0 ? 0 : 1,
+          dimtoh: item.DIMTOH == null || item.DIMTOH == 0 ? 0 : 1,
+          dimse1: item.DIMSE1 == null || item.DIMSE1 == 0 ? 0 : 1,
+          dimse2: item.DIMSE2 == null || item.DIMSE2 == 0 ? 0 : 1,
+          dimtad: item.DIMTAD,
+          dimzin: item.DIMZIN,
+          dimazin: item.DIMAZIN,
+          dimalt: item.DIMALT,
+          dimaltd: item.DIMALTD,
+          dimtofl: item.DIMTOFL,
+          dimsah: item.DIMSAH,
+          dimtix: item.DIMTIX,
+          dimsoxd: item.DIMSOXD,
+          // LibreDWG returns CMC objects / packed ints for these — normalize to
+          // plain ACI (0/1..255/256) or packed RGB so dim block builders never
+          // see NaN colorIndex when constructing MTEXT.
+          dimclrd: acdbNormalizeDimStyleColorNumber(item.DIMCLRD),
+          dimclre: acdbNormalizeDimStyleColorNumber(item.DIMCLRE),
+          dimclrt: acdbNormalizeDimStyleColorNumber(item.DIMCLRT),
+          dimadec: item.DIMADEC || 0,
+          dimunit: item.DIMUNIT || 2,
+          dimdec: item.DIMDEC,
+          dimtdec: item.DIMTDEC,
+          dimaltu: item.DIMALTU,
+          dimalttd: item.DIMALTTD,
+          dimaunit: item.DIMAUNIT,
+          dimfrac: item.DIMFRAC,
+          dimlunit: item.DIMLUNIT,
+          dimdsep: item.DIMDSEP || ".",
+          dimtmove: item.DIMTMOVE || 0,
+          dimjust: item.DIMJUST,
+          dimsd1: item.DIMSD1,
+          dimsd2: item.DIMSD2,
+          dimtolj: item.DIMTOLJ,
+          dimtzin: item.DIMTZIN,
+          dimaltz: item.DIMALTZ,
+          dimalttz: item.DIMALTTZ,
+          dimfit: item.DIMFIT || 0,
+          dimupt: item.DIMUPT,
+          dimatfit: item.DIMATFIT,
+          dimtxsty: _this.resolveDimTextStyleName(model, item.DIMTXSTY),
+          dimldrblk: "",
+          // TODO: Set correct value
+          dimblk: item.DIMBLK || "",
+          // TODO: Set correct value
+          dimblk1: item.DIMBLK1 || "",
+          // TODO: Set correct value
+          dimblk2: item.DIMBLK2 || "",
+          // TODO: Set correct value
+          dimlwd: item.DIMLWD,
+          dimlwe: item.DIMLWE
+        };
+        var record = new AcDbDimStyleTableRecord(attrs);
+        _this.processCommonTableEntryAttrs(item, record);
+        db2.tables.dimStyleTable.add(record);
+      });
+      var scales = model.dimStyleAnnotationScales;
+      if (scales) {
+        try {
+          for (var _b3 = __values85(Object.entries(scales)), _c3 = _b3.next(); !_c3.done; _c3 = _b3.next()) {
+            var _d3 = __read88(_c3.value, 2), name_1 = _d3[0], factor = _d3[1];
+            db2.setDimStyleAnnotationScale(name_1, factor);
+          }
+        } catch (e_1_1) {
+          e_1 = { error: e_1_1 };
+        } finally {
+          try {
+            if (_c3 && !_c3.done && (_a5 = _b3.return)) _a5.call(_b3);
+          } finally {
+            if (e_1) throw e_1.error;
+          }
+        }
+      }
+    };
+    AcDbLibreDwgConverter2.prototype.resolveDimTextStyleName = function(model, dimTxsty) {
+      if (typeof dimTxsty === "string") {
+        var text_1 = dimTxsty.trim();
+        if (text_1 && !/^[0-9]+$/.test(text_1) && !/^[0-9A-F]+$/i.test(text_1)) {
+          return text_1;
+        }
+        if (text_1 && /[A-Z]/i.test(text_1)) {
+          var byHex = model.tables.STYLE.entries.find(function(entry) {
+            return String(entry.handle).toUpperCase() === text_1.toUpperCase();
+          });
+          if (byHex === null || byHex === void 0 ? void 0 : byHex.name)
+            return byHex.name;
+        }
+      }
+      var numeric = typeof dimTxsty === "number" ? dimTxsty : Number(dimTxsty);
+      if (Number.isFinite(numeric) && numeric > 0) {
+        var hex_1 = Math.trunc(numeric).toString(16).toUpperCase();
+        var match = model.tables.STYLE.entries.find(function(entry) {
+          return String(entry.handle).toUpperCase() === hex_1;
+        });
+        if (match === null || match === void 0 ? void 0 : match.name)
+          return match.name;
+      }
+      return DEFAULT_TEXT_STYLE;
+    };
+    AcDbLibreDwgConverter2.prototype.processLayers = function(model, db2) {
+      var _this = this;
+      var layers = model.tables.LAYER.entries;
+      layers.forEach(function(item) {
+        var color = new AcCmColor();
+        _this.applyLibreLayerColor(color, item);
+        var record = new AcDbLayerTableRecord({
+          name: item.name,
+          standardFlags: item.standardFlag,
+          linetype: item.lineType,
+          lineWeight: item.lineweight,
+          isOff: item.off,
+          color,
+          isPlottable: item.plotFlag != 0
+        });
+        _this.processCommonTableEntryAttrs(item, record);
+        db2.tables.layerTable.add(record);
+      });
+    };
+    AcDbLibreDwgConverter2.prototype.applyLibreLayerColor = function(target, item) {
+      var aci = item.colorIndex;
+      var rgb = item.color;
+      if (aci != null && aci >= 1 && aci <= 255) {
+        target.colorIndex = aci;
+      } else if (aci === 0) {
+        target.colorIndex = 0;
+      } else if (rgb != null && Number.isFinite(rgb)) {
+        target.setRGBValue(rgb & 16777215);
+      } else {
+        target.colorIndex = 256;
+      }
+      if (item.colorName) {
+        target.colorName = item.colorName;
+      }
+    };
+    AcDbLibreDwgConverter2.prototype.processViewports = function(model, db2) {
+      var _this = this;
+      var viewports = model.tables.VPORT.entries;
+      viewports.forEach(function(item) {
+        var _a5, _b3, _c3, _d3, _e3, _f3;
+        var record = new AcDbViewportTableRecord();
+        if (item.circleSides) {
+          record.circleSides = item.circleSides;
+        }
+        record.standardFlag = item.standardFlag;
+        record.center.copy((_a5 = item.center) !== null && _a5 !== void 0 ? _a5 : VPORT_FALLBACK_CENTER_2D);
+        record.lowerLeftCorner.copy((_b3 = item.lowerLeftCorner) !== null && _b3 !== void 0 ? _b3 : VPORT_FALLBACK_LLC);
+        record.upperRightCorner.copy((_c3 = item.upperRightCorner) !== null && _c3 !== void 0 ? _c3 : VPORT_FALLBACK_URC);
+        if (item.snapBasePoint) {
+          record.snapBase.copy(item.snapBasePoint);
+        }
+        if (item.snapRotationAngle) {
+          record.snapAngle = item.snapRotationAngle;
+        }
+        if (item.snapSpacing) {
+          record.snapIncrements.copy(item.snapSpacing);
+        }
+        if (item.majorGridLines) {
+          record.gridMajor = item.majorGridLines;
+        }
+        if (item.gridSpacing) {
+          record.gridIncrements.copy(item.gridSpacing);
+        }
+        if (item.backgroundObjectId) {
+          record.backgroundObjectId = item.backgroundObjectId;
+        }
+        record.gsView.center.copy((_d3 = item.center) !== null && _d3 !== void 0 ? _d3 : VPORT_FALLBACK_CENTER_2D);
+        record.gsView.viewDirectionFromTarget.copy((_e3 = item.viewDirectionFromTarget) !== null && _e3 !== void 0 ? _e3 : VPORT_FALLBACK_VIEW_DIR);
+        record.gsView.viewTarget.copy((_f3 = item.viewTarget) !== null && _f3 !== void 0 ? _f3 : VPORT_FALLBACK_VIEW_TARGET);
+        if (item.lensLength) {
+          record.gsView.lensLength = item.lensLength;
+        }
+        if (item.frontClippingPlane) {
+          record.gsView.frontClippingPlane = item.frontClippingPlane;
+        }
+        if (item.backClippingPlane) {
+          record.gsView.backClippingPlane = item.backClippingPlane;
+        }
+        if (item.viewHeight) {
+          record.gsView.viewHeight = item.viewHeight;
+        }
+        var aspectRatio = item.aspectRatio;
+        if (aspectRatio != null && Number.isFinite(aspectRatio) && aspectRatio > 0) {
+          record.gsView.aspectRatio = aspectRatio;
+        }
+        if (item.viewTwistAngle) {
+          record.gsView.viewTwistAngle = item.viewTwistAngle;
+        }
+        if (item.frozenLayers) {
+          record.gsView.frozenLayers = item.frozenLayers;
+        }
+        if (item.styleSheet) {
+          record.gsView.styleSheet = item.styleSheet;
+        }
+        if (item.renderMode) {
+          record.gsView.renderMode = item.renderMode;
+        }
+        if (item.viewMode) {
+          record.gsView.viewMode = item.viewMode;
+        }
+        if (item.ucsIconSetting) {
+          record.gsView.ucsIconSetting = item.ucsIconSetting;
+        }
+        if (item.ucsOrigin) {
+          record.gsView.ucsOrigin.copy(item.ucsOrigin);
+        }
+        if (item.ucsXAxis) {
+          record.gsView.ucsXAxis.copy(item.ucsXAxis);
+        }
+        if (item.ucsYAxis) {
+          record.gsView.ucsYAxis.copy(item.ucsYAxis);
+        }
+        if (item.orthographicType) {
+          record.gsView.orthographicType = item.orthographicType;
+        }
+        if (item.shadePlotSetting) {
+          record.gsView.shadePlotSetting = item.shadePlotSetting;
+        }
+        if (item.shadePlotObjectId) {
+          record.gsView.shadePlotObjectId = item.shadePlotObjectId;
+        }
+        if (item.visualStyleObjectId) {
+          record.gsView.visualStyleObjectId = item.visualStyleObjectId;
+        }
+        if (item.isDefaultLightingOn) {
+          record.gsView.isDefaultLightingOn = item.isDefaultLightingOn;
+        }
+        if (item.defaultLightingType) {
+          record.gsView.defaultLightingType = item.defaultLightingType;
+        }
+        if (item.brightness) {
+          record.gsView.brightness = item.brightness;
+        }
+        if (item.contrast) {
+          record.gsView.contrast = item.contrast;
+        }
+        if (item.ambientColor) {
+          record.gsView.ambientColor = item.ambientColor;
+        }
+        _this.processCommonTableEntryAttrs(item, record);
+        db2.tables.viewportTable.add(record);
+      });
+    };
+    AcDbLibreDwgConverter2.prototype.processBlockTables = function(model, db2) {
+      var _this = this;
+      var btrs = model.tables.BLOCK_RECORD.entries;
+      btrs.forEach(function(btr) {
+        var _a5;
+        var dbBlock = db2.tables.blockTable.getAt(btr.name);
+        if (!dbBlock) {
+          dbBlock = new AcDbBlockTableRecord();
+          dbBlock.name = btr.name;
+          dbBlock.ownerId = btr.ownerHandle;
+          dbBlock.layoutId = btr.layout;
+          dbBlock.flags = AcDbBlockTableRecord.sanitizeImportedFlags((_a5 = btr.flags) !== null && _a5 !== void 0 ? _a5 : 0);
+          dbBlock.blockInsertUnits = btr.insertionUnits;
+          dbBlock.explodability = btr.explodability;
+          dbBlock.blockScaling = btr.scalability;
+          dbBlock.objectId = btr.handle;
+          db2.tables.blockTable.add(dbBlock);
+        }
+        if (btr.bmpPreview) {
+          dbBlock.previewIcon = acdbHexStringsToBytes([btr.bmpPreview]);
+        }
+        dbBlock.origin.copy(btr.basePoint);
+        if (!dbBlock.isModelSapce && btr.entities && btr.entities.length > 0) {
+          _this.processEntitiesInBlock(btr.entities, dbBlock);
+        }
+      });
+    };
+    AcDbLibreDwgConverter2.prototype.processBlocks = function(_model, _db) {
+    };
+    AcDbLibreDwgConverter2.prototype.processEntitiesInBlock = function(entities, blockTableRecord) {
+      return __awaiter13(this, void 0, void 0, function() {
+        var converter, entityCount, dbEntities, i, entity, dbEntity;
+        return __generator18(this, function(_a5) {
+          converter = new AcDbEntityConverter();
+          entityCount = entities.length;
+          dbEntities = [];
+          for (i = 0; i < entityCount; i++) {
+            entity = entities[i];
+            dbEntity = converter.convert(entity);
+            if (dbEntity) {
+              dbEntities.push(dbEntity);
+            }
+          }
+          blockTableRecord.appendEntity(dbEntities);
+          return [
+            2
+            /*return*/
+          ];
+        });
+      });
+    };
+    AcDbLibreDwgConverter2.prototype.processEntities = function(model, db2, minimumChunkSize, startPercentage, progress) {
+      return __awaiter13(this, void 0, void 0, function() {
+        var converter, entities, entityCount, batchProcessor, blockTableRecord;
+        var _this = this;
+        return __generator18(this, function(_a5) {
+          switch (_a5.label) {
+            case 0:
+              converter = new AcDbEntityConverter();
+              entities = [];
+              model.tables.BLOCK_RECORD.entries.forEach(function(btr) {
+                if (_this.isModelSpace(btr.name))
+                  entities = btr.entities;
+              });
+              entityCount = entities.length;
+              batchProcessor = new AcDbBatchProcessing(entityCount, 100 - startPercentage.value, minimumChunkSize);
+              if (this.config.convertByEntityType) {
+                entities = this.groupAndFlattenByType(entities);
+              }
+              blockTableRecord = db2.tables.blockTable.modelSpace;
+              return [4, batchProcessor.processChunk(function(start, end) {
+                return __awaiter13(_this, void 0, void 0, function() {
+                  var dbEntities, i, entity, dbEntity, percentage;
+                  return __generator18(this, function(_a6) {
+                    switch (_a6.label) {
+                      case 0:
+                        dbEntities = [];
+                        for (i = start; i < end; i++) {
+                          entity = entities[i];
+                          dbEntity = converter.convert(entity);
+                          if (dbEntity) {
+                            dbEntities.push(dbEntity);
+                          }
+                        }
+                        blockTableRecord.appendEntity(dbEntities);
+                        if (!progress) return [3, 2];
+                        percentage = startPercentage.value + end / entityCount * (100 - startPercentage.value);
+                        if (percentage > 100)
+                          percentage = 100;
+                        return [4, progress(percentage, "ENTITY", "IN-PROGRESS")];
+                      case 1:
+                        _a6.sent();
+                        _a6.label = 2;
+                      case 2:
+                        return [
+                          2
+                          /*return*/
+                        ];
+                    }
+                  });
+                });
+              })];
+            case 1:
+              _a5.sent();
+              return [
+                2
+                /*return*/
+              ];
+          }
+        });
+      });
+    };
+    AcDbLibreDwgConverter2.prototype.processClasses = function(model, db2) {
+      var _a5;
+      if (!((_a5 = model.classes) === null || _a5 === void 0 ? void 0 : _a5.length)) {
+        return;
+      }
+      db2.classes = model.classes.map(function(entry) {
+        return {
+          name: entry.dxfName,
+          cppClassName: entry.cppName,
+          appName: entry.appName,
+          proxyFlag: entry.capabilitiesFlag,
+          instanceCount: entry.instanceCount,
+          wasProxy: entry.wasAProxyFlag,
+          isEntity: entry.isAnEntityFlag
+        };
+      });
+    };
+    AcDbLibreDwgConverter2.prototype.processHeader = function(model, db2) {
+      var _a5, _b3, _c3, _d3, _e3, _f3, _g2, _h2, _j, _k2, _l3, _m2, _o3;
+      var thumbnail = model.thumbnailImage;
+      if (thumbnail === null || thumbnail === void 0 ? void 0 : thumbnail.length) {
+        db2.thumbnailImage = thumbnail;
+      }
+      var header = model.header;
+      if (header.CECOLOR) {
+        if (header.CECOLOR.index >= 0 && header.CECOLOR.index <= 256) {
+          db2.cecolor.colorIndex = header.CECOLOR.index;
+        } else {
+          db2.cecolor.setRGBValue(header.CECOLOR.rgb);
+        }
+      }
+      db2.angbase = (_a5 = header.ANGBASE) !== null && _a5 !== void 0 ? _a5 : 0;
+      db2.angdir = (_b3 = header.ANGDIR) !== null && _b3 !== void 0 ? _b3 : 0;
+      db2.aunits = (_c3 = header.AUNITS) !== null && _c3 !== void 0 ? _c3 : 0;
+      if (header.AUPREC != null)
+        db2.auprec = header.AUPREC;
+      if (header.LUNITS != null)
+        db2.lunits = header.LUNITS;
+      if (header.LUPREC != null)
+        db2.luprec = header.LUPREC;
+      if (header.UNITMODE != null)
+        db2.unitmode = header.UNITMODE;
+      if (header.MEASUREMENT != null)
+        db2.measurement = header.MEASUREMENT;
+      db2.celtype = (_d3 = header.CELTYPE) !== null && _d3 !== void 0 ? _d3 : ByLayer;
+      db2.celtscale = (_e3 = header.CELTSCALE) !== null && _e3 !== void 0 ? _e3 : 1;
+      db2.ltscale = (_f3 = header.LTSCALE) !== null && _f3 !== void 0 ? _f3 : 1;
+      db2.tilemode = (_g2 = header.TILEMODE) !== null && _g2 !== void 0 ? _g2 : 1;
+      if (header.EXTMAX)
+        db2.extmax = header.EXTMAX;
+      if (header.EXTMIN)
+        db2.extmin = header.EXTMIN;
+      db2.insunits = (_h2 = header.INSUNITS) !== null && _h2 !== void 0 ? _h2 : 1;
+      db2.pdmode = (_j = header.PDMODE) !== null && _j !== void 0 ? _j : 0;
+      db2.pdsize = (_k2 = header.PDSIZE) !== null && _k2 !== void 0 ? _k2 : 0;
+      db2.textstyle = (_l3 = header.TEXTSTYLE) !== null && _l3 !== void 0 ? _l3 : DEFAULT_TEXT_STYLE;
+      db2.dimstyle = (_m2 = this.normalizeHeaderStringValue(header.DIMSTYLE)) !== null && _m2 !== void 0 ? _m2 : DEFAULT_TEXT_STYLE;
+      var cmleaderStyle = (_o3 = this.normalizeHeaderStringValue(header.CMLEADERSTYLE)) !== null && _o3 !== void 0 ? _o3 : DEFAULT_MLEADER_STYLE;
+      db2.cmleaderstyle = cmleaderStyle;
+    };
+    AcDbLibreDwgConverter2.prototype.processCommonTableEntryAttrs = function(entry, dbEntry) {
+      dbEntry.name = entry.name;
+      dbEntry.objectId = entry.handle;
+      if (entry.ownerHandle != null) {
+        dbEntry.ownerId = entry.ownerHandle;
+      }
+    };
+    AcDbLibreDwgConverter2.prototype.processObjects = function(model, db2) {
+      this.processScales(model, db2);
+      this.processDictionaryVars(model, db2);
+      this.processMTextObjectContextData(model, db2);
+      this.processTextObjectContextData(model, db2);
+      this.processDimensionObjectContextData(model, db2);
+      this.processHatchScaleContextData(model, db2);
+      this.processBlkRefObjectContextData(model, db2);
+      this.processLeaderObjectContextData(model, db2);
+      this.processMLeaderObjectContextData(model, db2);
+      this.processMTextAttributeObjectContextData(model, db2);
+      this.processXRecords(model, db2);
+      this.processLayouts(model, db2);
+      this.processImageDefs(model, db2);
+      this.processLayerFilters(model, db2);
+      this.processLayerIndexes(model, db2);
+      this.processLayerFilterTree(model, db2);
+      this.processMLeaderStyles(model, db2);
+      this.processDynBlockMetadata(model, db2);
+      this.finishCannoscale(model, db2);
+      this.finishAnnoallvisible(model, db2);
+    };
+    AcDbLibreDwgConverter2.prototype.processDynBlockMetadata = function(model, db2) {
+      var e_2, _a5;
+      var _b3, _c3;
+      var normalize2 = function(handle) {
+        return handle == null || handle === "" || handle === 0 ? "" : String(handle).trim().toUpperCase();
+      };
+      try {
+        for (var _d3 = __values85(model.tables.BLOCK_RECORD.entries), _e3 = _d3.next(); !_e3.done; _e3 = _d3.next()) {
+          var btr = _e3.value;
+          var dbBlock = db2.tables.blockTable.getAt(btr.name);
+          if (!dbBlock)
+            continue;
+          var raw = btr;
+          var xdict = acdbNormalizeExtensionDictionaryId((_c3 = (_b3 = raw.extensionDictionary) !== null && _b3 !== void 0 ? _b3 : raw.ownerDictionaryHardId) !== null && _c3 !== void 0 ? _c3 : raw.ownerDictionarySoftId);
+          if (xdict) {
+            dbBlock.extensionDictionary = xdict;
+          }
+        }
+      } catch (e_2_1) {
+        e_2 = { error: e_2_1 };
+      } finally {
+        try {
+          if (_e3 && !_e3.done && (_a5 = _d3.return)) _a5.call(_d3);
+        } finally {
+          if (e_2) throw e_2.error;
+        }
+      }
+      var dictObjects = model.objects.DICTIONARY;
+      if (!(dictObjects === null || dictObjects === void 0 ? void 0 : dictObjects.length))
+        return;
+      var dictionaries = dictObjects.map(function(dict) {
+        var _a6;
+        var entries = [];
+        var src = (_a6 = dict.entries) !== null && _a6 !== void 0 ? _a6 : {};
+        for (var name_2 in src) {
+          var target = src[name_2];
+          if (name_2 && target) {
+            entries.push({ name: name_2, handle: normalize2(String(target)) });
+          }
+        }
+        return {
+          handle: normalize2(dict.handle),
+          ownerHandle: normalize2(dict.ownerHandle) || void 0,
+          entries
+        };
+      });
+      acdbImportDynBlockMetadata(db2, { dictionaries, representationData: [] });
+    };
+    AcDbLibreDwgConverter2.prototype.processLayerFilterTree = function(model, db2) {
+      var dictObjects = model.objects.DICTIONARY;
+      var xrecordObjects = model.objects.XRECORD;
+      if (!(dictObjects === null || dictObjects === void 0 ? void 0 : dictObjects.length) || !(xrecordObjects === null || xrecordObjects === void 0 ? void 0 : xrecordObjects.length)) {
+        return;
+      }
+      var normalize2 = function(handle) {
+        return handle ? String(handle).trim().toUpperCase() : "";
+      };
+      var dictionaries = /* @__PURE__ */ new Map();
+      dictObjects.forEach(function(dict) {
+        var _a5;
+        var entries = {};
+        var src = (_a5 = dict.entries) !== null && _a5 !== void 0 ? _a5 : {};
+        for (var name_3 in src) {
+          var target = src[name_3];
+          if (name_3 && target) {
+            entries[name_3] = normalize2(String(target));
+          }
+        }
+        dictionaries.set(normalize2(dict.handle), {
+          handle: normalize2(dict.handle),
+          ownerObjectId: normalize2(dict.ownerHandle),
+          entries
+        });
+      });
+      var xrecords = /* @__PURE__ */ new Map();
+      xrecordObjects.forEach(function(xrecord) {
+        var _a5;
+        xrecords.set(normalize2(xrecord.handle), {
+          handle: normalize2(xrecord.handle),
+          ownerObjectId: normalize2(xrecord.ownerHandle),
+          extensionDictionaryId: normalize2(xrecord.extensionDictionary),
+          data: ((_a5 = xrecord.data) !== null && _a5 !== void 0 ? _a5 : []).map(function(group) {
+            return {
+              code: Number(group.code),
+              value: group.value
+            };
+          })
+        });
+      });
+      var tree = acdbReadLayerFilterTree({ dictionaries, xrecords });
+      if (tree.root.getNestedFilters().length > 0) {
+        db2.layerFilters = tree;
+      }
+    };
+    AcDbLibreDwgConverter2.prototype.processLayouts = function(model, db2) {
+      var _this = this;
+      var layoutDict = db2.objects.layout;
+      var layouts = model.objects.LAYOUT;
+      layouts.forEach(function(layout) {
+        var e_3, _a5;
+        var dbLayout = new AcDbLayout();
+        dbLayout.layoutName = layout.layoutName;
+        dbLayout.tabOrder = layout.tabOrder;
+        var btrs = db2.tables.blockTable.newIterator();
+        dbLayout.objectId = layout.handle;
+        try {
+          for (var btrs_1 = __values85(btrs), btrs_1_1 = btrs_1.next(); !btrs_1_1.done; btrs_1_1 = btrs_1.next()) {
+            var btr = btrs_1_1.value;
+            if (btr.layoutId === dbLayout.objectId) {
+              dbLayout.blockTableRecordId = btr.objectId;
+              break;
+            }
+          }
+        } catch (e_3_1) {
+          e_3 = { error: e_3_1 };
+        } finally {
+          try {
+            if (btrs_1_1 && !btrs_1_1.done && (_a5 = btrs_1.return)) _a5.call(btrs_1);
+          } finally {
+            if (e_3) throw e_3.error;
+          }
+        }
+        if (!dbLayout.blockTableRecordId) {
+          if (layout.layoutName === "Model") {
+            dbLayout.blockTableRecordId = db2.tables.blockTable.modelSpace.objectId;
+          }
+        }
+        dbLayout.limits.min.copy(layout.minLimit);
+        dbLayout.limits.max.copy(layout.maxLimit);
+        dbLayout.extents.min.copy(layout.minExtent);
+        dbLayout.extents.max.copy(layout.maxExtent);
+        if (layout.viewportId) {
+          dbLayout.viewportArray.push(layout.viewportId);
+        }
+        _this.processCommonObjectAttrs(layout, dbLayout);
+        layoutDict.setAt(dbLayout.layoutName, dbLayout);
+      });
+    };
+    AcDbLibreDwgConverter2.prototype.processImageDefs = function(model, db2) {
+      var _this = this;
+      var imageDefDict = db2.objects.imageDefinition;
+      var imageDefs = model.objects.IMAGEDEF;
+      imageDefs.forEach(function(imageDef) {
+        var dbImageDef = new AcDbRasterImageDef();
+        dbImageDef.sourceFileName = imageDef.fileName;
+        _this.processCommonObjectAttrs(imageDef, dbImageDef);
+        imageDefDict.setAt(dbImageDef.objectId, dbImageDef);
+      });
+    };
+    AcDbLibreDwgConverter2.prototype.processLayerFilters = function(model, db2) {
+      var layerFilters = model.objects.LAYER_FILTER;
+      if (!(layerFilters === null || layerFilters === void 0 ? void 0 : layerFilters.length))
+        return;
+      var layerFilterDict = db2.objects.layerFilter;
+      var objectConverter = new AcDbObjectConverter();
+      layerFilters.forEach(function(filter) {
+        var dbFilter = objectConverter.convertLayerFilter(filter);
+        layerFilterDict.setAt(dbFilter.objectId, dbFilter);
+      });
+    };
+    AcDbLibreDwgConverter2.prototype.processLayerIndexes = function(model, db2) {
+      var layerIndexes = model.objects.LAYER_INDEX;
+      if (!(layerIndexes === null || layerIndexes === void 0 ? void 0 : layerIndexes.length))
+        return;
+      var layerIndexDict = db2.objects.layerIndex;
+      var objectConverter = new AcDbObjectConverter();
+      layerIndexes.forEach(function(index) {
+        var dbIndex = objectConverter.convertLayerIndex(index);
+        layerIndexDict.setAt(dbIndex.objectId, dbIndex);
+      });
+    };
+    AcDbLibreDwgConverter2.prototype.processMLeaderStyles = function(model, db2) {
+      var mleaderStyles = model.objects.MLEADERSTYLE;
+      if (!(mleaderStyles === null || mleaderStyles === void 0 ? void 0 : mleaderStyles.length))
+        return;
+      var mleaderStyleDict = db2.objects.mleaderStyle;
+      var objectConverter = new AcDbObjectConverter();
+      mleaderStyles.forEach(function(style) {
+        var dbStyle = objectConverter.convertMLeaderStyle(style);
+        mleaderStyleDict.setAt(dbStyle.objectId, dbStyle);
+      });
+    };
+    AcDbLibreDwgConverter2.prototype.processScales = function(model, db2) {
+      var e_4, _a5;
+      var scales = this.optionalObjectArray(model, "SCALE");
+      if (!(scales === null || scales === void 0 ? void 0 : scales.length))
+        return;
+      var scaleDict = db2.objects.scale;
+      var objectConverter = new AcDbObjectConverter();
+      try {
+        for (var scales_1 = __values85(scales), scales_1_1 = scales_1.next(); !scales_1_1.done; scales_1_1 = scales_1.next()) {
+          var scale = scales_1_1.value;
+          var dbScale = objectConverter.convertScale(scale);
+          var key = dbScale.scaleName || dbScale.objectId;
+          if (key)
+            scaleDict.setAt(key, dbScale);
+        }
+      } catch (e_4_1) {
+        e_4 = { error: e_4_1 };
+      } finally {
+        try {
+          if (scales_1_1 && !scales_1_1.done && (_a5 = scales_1.return)) _a5.call(scales_1);
+        } finally {
+          if (e_4) throw e_4.error;
+        }
+      }
+    };
+    AcDbLibreDwgConverter2.prototype.processDictionaryVars = function(model, db2) {
+      var e_5, _a5;
+      var dictVars = this.optionalObjectArray(model, "DICTIONARYVAR");
+      if (!(dictVars === null || dictVars === void 0 ? void 0 : dictVars.length))
+        return;
+      var dictVarDict = db2.objects.dictionaryVar;
+      var objectConverter = new AcDbObjectConverter();
+      try {
+        for (var dictVars_1 = __values85(dictVars), dictVars_1_1 = dictVars_1.next(); !dictVars_1_1.done; dictVars_1_1 = dictVars_1.next()) {
+          var dictVar = dictVars_1_1.value;
+          var dbVar = objectConverter.convertDictionaryVar(dictVar);
+          if (dbVar.objectId)
+            dictVarDict.setAt(dbVar.objectId, dbVar);
+        }
+      } catch (e_5_1) {
+        e_5 = { error: e_5_1 };
+      } finally {
+        try {
+          if (dictVars_1_1 && !dictVars_1_1.done && (_a5 = dictVars_1.return)) _a5.call(dictVars_1);
+        } finally {
+          if (e_5) throw e_5.error;
+        }
+      }
+    };
+    AcDbLibreDwgConverter2.prototype.processMTextObjectContextData = function(model, db2) {
+      var e_6, _a5;
+      var _b3;
+      var contexts = (_b3 = this.optionalObjectArray(model, "MTEXTOBJECTCONTEXTDATA")) !== null && _b3 !== void 0 ? _b3 : this.optionalObjectArray(model, "ACDB_MTEXTOBJECTCONTEXTDATA_CLASS");
+      if (!(contexts === null || contexts === void 0 ? void 0 : contexts.length))
+        return;
+      var contextDict = db2.objects.objectContextData;
+      var objectConverter = new AcDbObjectConverter();
+      try {
+        for (var contexts_1 = __values85(contexts), contexts_1_1 = contexts_1.next(); !contexts_1_1.done; contexts_1_1 = contexts_1.next()) {
+          var context = contexts_1_1.value;
+          var dbContext = objectConverter.convertMTextObjectContextData(context);
+          if (dbContext.objectId)
+            contextDict.setAt(dbContext.objectId, dbContext);
+        }
+      } catch (e_6_1) {
+        e_6 = { error: e_6_1 };
+      } finally {
+        try {
+          if (contexts_1_1 && !contexts_1_1.done && (_a5 = contexts_1.return)) _a5.call(contexts_1);
+        } finally {
+          if (e_6) throw e_6.error;
+        }
+      }
+    };
+    AcDbLibreDwgConverter2.prototype.processDimensionObjectContextData = function(model, db2) {
+      var e_7, _a5, e_8, _b3;
+      var keys = [
+        "ALDIMOBJECTCONTEXTDATA",
+        "ACDB_ALDIMOBJECTCONTEXTDATA_CLASS",
+        "ANGDIMOBJECTCONTEXTDATA",
+        "ACDB_ANGDIMOBJECTCONTEXTDATA_CLASS",
+        "ARCDIMOBJECTCONTEXTDATA",
+        "ACDB_ARCDIMOBJECTCONTEXTDATA_CLASS",
+        "DMDIMOBJECTCONTEXTDATA",
+        "ACDB_DMDIMOBJECTCONTEXTDATA_CLASS",
+        "ORDDIMOBJECTCONTEXTDATA",
+        "ACDB_ORDDIMOBJECTCONTEXTDATA_CLASS",
+        "RADDIMOBJECTCONTEXTDATA",
+        "ACDB_RADDIMOBJECTCONTEXTDATA_CLASS",
+        "RADIMOBJECTCONTEXTDATA",
+        "ACDB_RADIMOBJECTCONTEXTDATA_CLASS",
+        "RADDIMLGCOBJECTCONTEXTDATA",
+        "ACDB_RADDIMLGCOBJECTCONTEXTDATA_CLASS"
+      ];
+      var objectConverter = new AcDbObjectConverter();
+      var contextDict = db2.objects.objectContextData;
+      try {
+        for (var keys_1 = __values85(keys), keys_1_1 = keys_1.next(); !keys_1_1.done; keys_1_1 = keys_1.next()) {
+          var key = keys_1_1.value;
+          var contexts = this.optionalObjectArray(model, key);
+          if (!(contexts === null || contexts === void 0 ? void 0 : contexts.length))
+            continue;
+          try {
+            for (var contexts_2 = (e_8 = void 0, __values85(contexts)), contexts_2_1 = contexts_2.next(); !contexts_2_1.done; contexts_2_1 = contexts_2.next()) {
+              var context = contexts_2_1.value;
+              var dbContext = objectConverter.convertDimensionObjectContextData(context);
+              if (dbContext.objectId) {
+                contextDict.setAt(dbContext.objectId, dbContext);
+              }
+            }
+          } catch (e_8_1) {
+            e_8 = { error: e_8_1 };
+          } finally {
+            try {
+              if (contexts_2_1 && !contexts_2_1.done && (_b3 = contexts_2.return)) _b3.call(contexts_2);
+            } finally {
+              if (e_8) throw e_8.error;
+            }
+          }
+        }
+      } catch (e_7_1) {
+        e_7 = { error: e_7_1 };
+      } finally {
+        try {
+          if (keys_1_1 && !keys_1_1.done && (_a5 = keys_1.return)) _a5.call(keys_1);
+        } finally {
+          if (e_7) throw e_7.error;
+        }
+      }
+    };
+    AcDbLibreDwgConverter2.prototype.processTextObjectContextData = function(model, db2) {
+      var e_9, _a5;
+      var _b3;
+      var contexts = (_b3 = this.optionalObjectArray(model, "TEXTOBJECTCONTEXTDATA")) !== null && _b3 !== void 0 ? _b3 : this.optionalObjectArray(model, "ACDB_TEXTOBJECTCONTEXTDATA_CLASS");
+      if (!(contexts === null || contexts === void 0 ? void 0 : contexts.length))
+        return;
+      var contextDict = db2.objects.objectContextData;
+      var objectConverter = new AcDbObjectConverter();
+      try {
+        for (var contexts_3 = __values85(contexts), contexts_3_1 = contexts_3.next(); !contexts_3_1.done; contexts_3_1 = contexts_3.next()) {
+          var context = contexts_3_1.value;
+          var dbContext = objectConverter.convertTextObjectContextData(context);
+          if (dbContext.objectId)
+            contextDict.setAt(dbContext.objectId, dbContext);
+        }
+      } catch (e_9_1) {
+        e_9 = { error: e_9_1 };
+      } finally {
+        try {
+          if (contexts_3_1 && !contexts_3_1.done && (_a5 = contexts_3.return)) _a5.call(contexts_3);
+        } finally {
+          if (e_9) throw e_9.error;
+        }
+      }
+    };
+    AcDbLibreDwgConverter2.prototype.processHatchScaleContextData = function(model, db2) {
+      var e_10, _a5;
+      var _b3;
+      var contexts = (_b3 = this.optionalObjectArray(model, "HATCHSCALECONTEXTDATA")) !== null && _b3 !== void 0 ? _b3 : this.optionalObjectArray(model, "ACDB_HATCHSCALECONTEXTDATA_CLASS");
+      if (!(contexts === null || contexts === void 0 ? void 0 : contexts.length))
+        return;
+      var contextDict = db2.objects.objectContextData;
+      var objectConverter = new AcDbObjectConverter();
+      try {
+        for (var contexts_4 = __values85(contexts), contexts_4_1 = contexts_4.next(); !contexts_4_1.done; contexts_4_1 = contexts_4.next()) {
+          var context = contexts_4_1.value;
+          var dbContext = objectConverter.convertHatchScaleContextData(context);
+          if (dbContext.objectId)
+            contextDict.setAt(dbContext.objectId, dbContext);
+        }
+      } catch (e_10_1) {
+        e_10 = { error: e_10_1 };
+      } finally {
+        try {
+          if (contexts_4_1 && !contexts_4_1.done && (_a5 = contexts_4.return)) _a5.call(contexts_4);
+        } finally {
+          if (e_10) throw e_10.error;
+        }
+      }
+    };
+    AcDbLibreDwgConverter2.prototype.processBlkRefObjectContextData = function(model, db2) {
+      var e_11, _a5;
+      var _b3;
+      var contexts = (_b3 = this.optionalObjectArray(model, "BLKREFOBJECTCONTEXTDATA")) !== null && _b3 !== void 0 ? _b3 : this.optionalObjectArray(model, "ACDB_BLKREFOBJECTCONTEXTDATA_CLASS");
+      if (!(contexts === null || contexts === void 0 ? void 0 : contexts.length))
+        return;
+      var contextDict = db2.objects.objectContextData;
+      var objectConverter = new AcDbObjectConverter();
+      try {
+        for (var contexts_5 = __values85(contexts), contexts_5_1 = contexts_5.next(); !contexts_5_1.done; contexts_5_1 = contexts_5.next()) {
+          var context = contexts_5_1.value;
+          var dbContext = objectConverter.convertBlkRefObjectContextData(context);
+          if (dbContext.objectId)
+            contextDict.setAt(dbContext.objectId, dbContext);
+        }
+      } catch (e_11_1) {
+        e_11 = { error: e_11_1 };
+      } finally {
+        try {
+          if (contexts_5_1 && !contexts_5_1.done && (_a5 = contexts_5.return)) _a5.call(contexts_5);
+        } finally {
+          if (e_11) throw e_11.error;
+        }
+      }
+    };
+    AcDbLibreDwgConverter2.prototype.processLeaderObjectContextData = function(model, db2) {
+      var e_12, _a5;
+      var _b3;
+      var contexts = (_b3 = this.optionalObjectArray(model, "LEADEROBJECTCONTEXTDATA")) !== null && _b3 !== void 0 ? _b3 : this.optionalObjectArray(model, "ACDB_LEADEROBJECTCONTEXTDATA_CLASS");
+      if (!(contexts === null || contexts === void 0 ? void 0 : contexts.length))
+        return;
+      var contextDict = db2.objects.objectContextData;
+      var objectConverter = new AcDbObjectConverter();
+      try {
+        for (var contexts_6 = __values85(contexts), contexts_6_1 = contexts_6.next(); !contexts_6_1.done; contexts_6_1 = contexts_6.next()) {
+          var context = contexts_6_1.value;
+          var dbContext = objectConverter.convertLeaderObjectContextData(context);
+          if (dbContext.objectId)
+            contextDict.setAt(dbContext.objectId, dbContext);
+        }
+      } catch (e_12_1) {
+        e_12 = { error: e_12_1 };
+      } finally {
+        try {
+          if (contexts_6_1 && !contexts_6_1.done && (_a5 = contexts_6.return)) _a5.call(contexts_6);
+        } finally {
+          if (e_12) throw e_12.error;
+        }
+      }
+    };
+    AcDbLibreDwgConverter2.prototype.processMLeaderObjectContextData = function(model, db2) {
+      var e_13, _a5;
+      var _b3;
+      var contexts = (_b3 = this.optionalObjectArray(model, "MLEADEROBJECTCONTEXTDATA")) !== null && _b3 !== void 0 ? _b3 : this.optionalObjectArray(model, "ACDB_MLEADEROBJECTCONTEXTDATA_CLASS");
+      if (!(contexts === null || contexts === void 0 ? void 0 : contexts.length))
+        return;
+      var contextDict = db2.objects.objectContextData;
+      var objectConverter = new AcDbObjectConverter();
+      try {
+        for (var contexts_7 = __values85(contexts), contexts_7_1 = contexts_7.next(); !contexts_7_1.done; contexts_7_1 = contexts_7.next()) {
+          var context = contexts_7_1.value;
+          var dbContext = objectConverter.convertMLeaderObjectContextData(context);
+          if (dbContext.objectId)
+            contextDict.setAt(dbContext.objectId, dbContext);
+        }
+      } catch (e_13_1) {
+        e_13 = { error: e_13_1 };
+      } finally {
+        try {
+          if (contexts_7_1 && !contexts_7_1.done && (_a5 = contexts_7.return)) _a5.call(contexts_7);
+        } finally {
+          if (e_13) throw e_13.error;
+        }
+      }
+    };
+    AcDbLibreDwgConverter2.prototype.processMTextAttributeObjectContextData = function(model, db2) {
+      var e_14, _a5;
+      var _b3;
+      var contexts = (_b3 = this.optionalObjectArray(model, "MTEXTATTRIBUTEOBJECTCONTEXTDATA")) !== null && _b3 !== void 0 ? _b3 : this.optionalObjectArray(model, "ACDB_MTEXTATTRIBUTEOBJECTCONTEXTDATA_CLASS");
+      if (!(contexts === null || contexts === void 0 ? void 0 : contexts.length))
+        return;
+      var contextDict = db2.objects.objectContextData;
+      var objectConverter = new AcDbObjectConverter();
+      try {
+        for (var contexts_8 = __values85(contexts), contexts_8_1 = contexts_8.next(); !contexts_8_1.done; contexts_8_1 = contexts_8.next()) {
+          var context = contexts_8_1.value;
+          var dbContext = objectConverter.convertMTextAttributeObjectContextData(context);
+          if (dbContext.objectId)
+            contextDict.setAt(dbContext.objectId, dbContext);
+        }
+      } catch (e_14_1) {
+        e_14 = { error: e_14_1 };
+      } finally {
+        try {
+          if (contexts_8_1 && !contexts_8_1.done && (_a5 = contexts_8.return)) _a5.call(contexts_8);
+        } finally {
+          if (e_14) throw e_14.error;
+        }
+      }
+    };
+    AcDbLibreDwgConverter2.prototype.processXRecords = function(model, db2) {
+      var e_15, _a5;
+      var xrecords = model.objects.XRECORD;
+      if (!(xrecords === null || xrecords === void 0 ? void 0 : xrecords.length))
+        return;
+      var xrecordDict = db2.objects.xrecord;
+      var objectConverter = new AcDbObjectConverter();
+      try {
+        for (var xrecords_1 = __values85(xrecords), xrecords_1_1 = xrecords_1.next(); !xrecords_1_1.done; xrecords_1_1 = xrecords_1.next()) {
+          var xrecord = xrecords_1_1.value;
+          var dbXrecord = objectConverter.convertXRecord(xrecord);
+          if (dbXrecord.objectId)
+            xrecordDict.setAt(dbXrecord.objectId, dbXrecord);
+        }
+      } catch (e_15_1) {
+        e_15 = { error: e_15_1 };
+      } finally {
+        try {
+          if (xrecords_1_1 && !xrecords_1_1.done && (_a5 = xrecords_1.return)) _a5.call(xrecords_1);
+        } finally {
+          if (e_15) throw e_15.error;
+        }
+      }
+    };
+    AcDbLibreDwgConverter2.prototype.finishCannoscale = function(model, db2) {
+      var e_16, _a5;
+      var _b3, _c3;
+      var tryRead = function(variableDict2) {
+        var cannoscaleVar = variableDict2.getAt("CANNOSCALE");
+        if (cannoscaleVar instanceof AcDbDictionaryVar && cannoscaleVar.value) {
+          db2.cannoscale = cannoscaleVar.value;
+          return true;
+        }
+        return false;
+      };
+      var fromRoot = db2.objects.dictionary.getAt("AcDbVariableDictionary");
+      if (fromRoot instanceof AcDbDictionary && tryRead(fromRoot))
+        return;
+      var normalize2 = function(handle) {
+        return handle == null || handle === "" || handle === 0 ? "" : String(handle).trim().toUpperCase();
+      };
+      try {
+        for (var _d3 = __values85((_b3 = model.objects.DICTIONARY) !== null && _b3 !== void 0 ? _b3 : []), _e3 = _d3.next(); !_e3.done; _e3 = _d3.next()) {
+          var dict = _e3.value;
+          var entries = (_c3 = dict.entries) !== null && _c3 !== void 0 ? _c3 : {};
+          var childHandle = entries["AcDbVariableDictionary"];
+          if (!childHandle)
+            continue;
+          var variableDict = db2.getObjectById(normalize2(childHandle));
+          if (!(variableDict instanceof AcDbDictionary))
+            continue;
+          if (!tryRead(variableDict))
+            continue;
+          try {
+            if (!db2.objects.dictionary.getAt("AcDbVariableDictionary")) {
+              db2.objects.dictionary.setAt("AcDbVariableDictionary", variableDict);
+            }
+          } catch (_f3) {
+          }
+          return;
+        }
+      } catch (e_16_1) {
+        e_16 = { error: e_16_1 };
+      } finally {
+        try {
+          if (_e3 && !_e3.done && (_a5 = _d3.return)) _a5.call(_d3);
+        } finally {
+          if (e_16) throw e_16.error;
+        }
+      }
+    };
+    AcDbLibreDwgConverter2.prototype.finishAnnoallvisible = function(model, db2) {
+      var e_17, _a5;
+      var _b3, _c3;
+      var tryRead = function(variableDict2) {
+        var annoVar = variableDict2.getAt("ANNOALLVISIBLE");
+        if (!(annoVar instanceof AcDbDictionaryVar) || annoVar.value == null) {
+          return false;
+        }
+        var raw = String(annoVar.value).trim();
+        db2.annoallvisible = raw !== "0" && raw.toLowerCase() !== "false";
+        return true;
+      };
+      var fromRoot = db2.objects.dictionary.getAt("AcDbVariableDictionary");
+      if (fromRoot instanceof AcDbDictionary && tryRead(fromRoot))
+        return;
+      var normalize2 = function(handle) {
+        return handle == null || handle === "" || handle === 0 ? "" : String(handle).trim().toUpperCase();
+      };
+      try {
+        for (var _d3 = __values85((_b3 = model.objects.DICTIONARY) !== null && _b3 !== void 0 ? _b3 : []), _e3 = _d3.next(); !_e3.done; _e3 = _d3.next()) {
+          var dict = _e3.value;
+          var entries = (_c3 = dict.entries) !== null && _c3 !== void 0 ? _c3 : {};
+          var childHandle = entries["AcDbVariableDictionary"];
+          if (!childHandle)
+            continue;
+          var variableDict = db2.getObjectById(normalize2(childHandle));
+          if (!(variableDict instanceof AcDbDictionary))
+            continue;
+          if (tryRead(variableDict))
+            return;
+        }
+      } catch (e_17_1) {
+        e_17 = { error: e_17_1 };
+      } finally {
+        try {
+          if (_e3 && !_e3.done && (_a5 = _d3.return)) _a5.call(_d3);
+        } finally {
+          if (e_17) throw e_17.error;
+        }
+      }
+    };
+    AcDbLibreDwgConverter2.prototype.optionalObjectArray = function(model, key) {
+      var objects = model.objects;
+      var value = objects[key];
+      return Array.isArray(value) ? value : void 0;
+    };
+    AcDbLibreDwgConverter2.prototype.processCommonObjectAttrs = function(object, dbObject) {
+      dbObject.objectId = object.handle;
+      if (object.ownerHandle != null) {
+        dbObject.ownerId = object.ownerHandle;
+      }
+    };
+    AcDbLibreDwgConverter2.prototype.groupAndFlattenByType = function(entities) {
+      var e_18, _a5, e_19, _b3;
+      var groups = {};
+      var order = [];
+      try {
+        for (var entities_1 = __values85(entities), entities_1_1 = entities_1.next(); !entities_1_1.done; entities_1_1 = entities_1.next()) {
+          var entity = entities_1_1.value;
+          if (!groups[entity.type]) {
+            groups[entity.type] = [];
+            order.push(entity.type);
+          }
+          groups[entity.type].push(entity);
+        }
+      } catch (e_18_1) {
+        e_18 = { error: e_18_1 };
+      } finally {
+        try {
+          if (entities_1_1 && !entities_1_1.done && (_a5 = entities_1.return)) _a5.call(entities_1);
+        } finally {
+          if (e_18) throw e_18.error;
+        }
+      }
+      var result = [];
+      try {
+        for (var order_1 = __values85(order), order_1_1 = order_1.next(); !order_1_1.done; order_1_1 = order_1.next()) {
+          var type = order_1_1.value;
+          var group = groups[type];
+          for (var i = 0; i < group.length; i++) {
+            result.push(group[i]);
+          }
+        }
+      } catch (e_19_1) {
+        e_19 = { error: e_19_1 };
+      } finally {
+        try {
+          if (order_1_1 && !order_1_1.done && (_b3 = order_1.return)) _b3.call(order_1);
+        } finally {
+          if (e_19) throw e_19.error;
+        }
+      }
+      return result;
+    };
+    AcDbLibreDwgConverter2.prototype.isModelSpace = function(name) {
+      return name && name.toUpperCase() == MODEL_SPACE;
+    };
+    AcDbLibreDwgConverter2.prototype.normalizeHeaderStringValue = function(value) {
+      if (typeof value !== "string")
+        return void 0;
+      var trimmed = value.trim();
+      return trimmed.length > 0 ? trimmed : void 0;
+    };
+    return AcDbLibreDwgConverter2;
+  })(AcDbDatabaseConverter)
+);
+
+// tools/vendor/cad-viewer-entry.js
+init_lib4();
 export {
-  dE as ACAP_DEFAULT_COMPARE_COLORS,
-  jl2 as ACAP_DEFAULT_DOCS_BASE_URL,
-  xy as ACAP_DOCS_PATH_MAGNIFIER,
-  PP as ACAP_DWG_PARSER_PRODUCT_URL,
-  df2 as ACAP_FIND_MAX_RESULTS,
-  yP as ACAP_GROUPABLE_NOTIFICATION_SOURCES,
-  Fc2 as ACAP_LOCAL_DATA_SOURCE_ID,
-  tL as ACAP_MEASURE_ANGLE_BADGE_REF_ARM_FRACTION,
-  nf2 as ACAP_MEASURE_BADGE_BORDER_PX,
-  LA as ACAP_MEASURE_BADGE_H_CHROME_PX,
-  eL as ACAP_MEASURE_BADGE_MAX_LINE_FRACTION,
-  tf2 as ACAP_MEASURE_BADGE_PAD_X_PX,
-  ef2 as ACAP_MEASURE_BADGE_REF_FONT_PX,
-  Yt3 as ACAP_OVERLAY_ARROW_SIZE_PX,
-  xo3 as ACAP_OVERLAY_ARROW_WCS,
-  Ul2 as ACAP_OVERLAY_CLOUD_DIAMETER_PX,
-  Ta2 as ACAP_OVERLAY_CLOUD_WCS,
-  Ii3 as ACAP_OVERLAY_STROKE_WCS,
-  Rh2 as ACAP_READING_MODE_BACKGROUND,
-  _y3 as ACAP_READING_MODE_COLOR,
-  ga2 as ACAP_UNTITLED_DOC_TITLE,
-  Xm as ACAP_URL_DATA_SOURCE_ID,
-  Ln3 as ACED_DRAW_STYLE_SESSION_PROVIDER_ID,
-  al2 as ACED_SHORTCUT_TOOLBAR_PROVIDER_ID,
-  kx as ACED_SIMULATED_MOUSE_OFFSET_Y_PX,
-  VM as ACED_SNAP_LOUPE_GAP_BELOW_PROMPT_PX,
-  au2 as ACED_SNAP_LOUPE_INSET_PX,
-  ks3 as ACED_SNAP_LOUPE_SIZE_PX,
-  Qp2 as ACED_SNAP_LOUPE_ZOOM,
-  Xp2 as ACED_TOUCH_MOUSE_GUARD_MS,
-  Gp2 as ACED_TOUCH_POINT_LONG_PRESS_MS,
-  qv as ACED_TOUCH_POINT_MOVE_CANCEL_PX,
-  ACGI_DARK_THEME_FOREGROUND,
-  ACGI_LIGHT_THEME_FOREGROUND,
-  ACGI_MODEL_SPACE_BACKGROUND,
-  ACGI_PAPER_SPACE_BACKGROUND,
-  om as ACI_GRAY_PALETTE_INDICES,
-  sm as ACI_LARGE_PALETTE_INDICES,
-  nm as ACI_SMALL_PALETTE_INDICES,
-  b02 as ACUI_SHORTCUT_TOOLBAR_DEFAULT_TOP_PX,
-  S1 as AcApAboutCmd,
-  Qk as AcApArcCmd,
-  yl2 as AcApBlockInsertSession,
-  Pu2 as AcApBlockPreviewConvertor,
-  Qo3 as AcApCacheFontCmd,
-  tS as AcApCircleCmd,
-  Nu2 as AcApCircleJig,
-  B_ as AcApClearMarkupsCmd,
-  jC as AcApClearMeasurementsCmd,
-  O1 as AcApCloseCmd,
-  ka3 as AcApContext,
-  Lk as AcApConvertToBmpCmd,
-  Mk as AcApConvertToDxfCmd,
-  Ak as AcApConvertToJpgCmd,
-  Ik as AcApConvertToPngCmd,
-  kc2 as AcApConvertToRasterImageCmd,
-  Sl2 as AcApCopyCmd,
-  dP as AcApDataSourceManager,
-  iS as AcApDimJig,
-  nS as AcApDimLinearCmd,
   x as AcApDocManager,
-  ya2 as AcApDocSession,
-  ba2 as AcApDocument,
-  cm as AcApDrawStyleDrawCmd,
-  Ek as AcApDxfConvertor,
-  uS as AcApEllipseCmd,
-  Ok as AcApEntityPreviewCmd,
-  Tk as AcApEntityPreviewConvertor,
-  vm as AcApEntityService,
-  g1 as AcApEraseCmd,
-  TA as AcApExamplePlugin,
-  Y1 as AcApFontLoader,
-  oi3 as AcApFontUtil,
-  fl2 as AcApHatchCmd,
-  b1 as AcApHideObjectsCmd,
-  h as AcApI18n,
-  wS as AcApImageAttachCmd,
-  kS as AcApInsertCmd,
-  Yk as AcApLayerCloseCmd,
-  Zk as AcApLayerCmd,
-  Bk as AcApLayerCurCmd,
-  Fk as AcApLayerDelCmd,
-  dl2 as AcApLayerFreezeCmd,
-  ul2 as AcApLayerIsoCmd,
-  Vk as AcApLayerLockCmd,
-  Hk as AcApLayerOnCmd,
-  Uk as AcApLayerPCmd,
-  Me4 as AcApLayerService,
-  Dk as AcApLayerStore,
-  Gk as AcApLayerThawCmd,
-  $k as AcApLayerUnisoCmd,
-  Kk as AcApLayerUnlockCmd,
-  hl2 as AcApLayoffCmd,
-  rn3 as AcApLineCmd,
-  pl2 as AcApLineJig,
-  Q1 as AcApLocalDataSource,
-  _1 as AcApLogCmd,
-  CS as AcApMLineCmd,
-  SS as AcApMLineJig,
-  IS as AcApMTextCmd,
-  j_ as AcApMarkupArrowCmd,
-  H_ as AcApMarkupCalloutCmd,
-  X02 as AcApMarkupCalloutEntity,
-  U_ as AcApMarkupCircleCmd,
-  K_ as AcApMarkupCloudCmd,
-  mi3 as AcApMarkupDrawCmd,
-  Rn3 as AcApMarkupEntity,
-  r1 as AcApMarkupExportCmd,
-  Z_ as AcApMarkupHighlightCmd,
-  q02 as AcApMarkupHighlightEntity,
-  ag as AcApMarkupHistory,
-  a1 as AcApMarkupImportCmd,
-  c1 as AcApMarkupLineCmd,
-  ik as AcApMarkupPresenter,
-  u1 as AcApMarkupRectCmd,
-  J02 as AcApMarkupSegmentEntity,
-  Q02 as AcApMarkupShapeEntity,
-  h1 as AcApMarkupStampCmd,
-  ek as AcApMarkupStampEntity,
-  Oy as AcApMarkupStore,
-  p1 as AcApMarkupTextCmd,
-  tk as AcApMarkupTextEntity,
-  f1 as AcApMarkupVisibilityCmd,
-  a_ as AcApMeasureAngleCmd,
-  Er3 as AcApMeasureAngleEntity,
-  E_ as AcApMeasureArcCmd,
-  Mr3 as AcApMeasureArcEntity,
-  p_ as AcApMeasureAreaCmd,
-  Ar3 as AcApMeasureAreaEntity,
-  D_ as AcApMeasureContinuousCmd,
-  O_ as AcApMeasureContinuousJig,
-  I_ as AcApMeasureDistanceCmd,
-  Ir3 as AcApMeasureDistanceEntity,
-  A_ as AcApMeasureDistanceJig,
-  jn3 as AcApMeasureDrawCmd,
-  js3 as AcApMeasureEntity,
-  N_ as AcApMeasurePointCmd,
-  Tr3 as AcApMeasurePointEntity,
-  QC as AcApMeasurementExportCmd,
-  dg as AcApMeasurementHistory,
-  e_ as AcApMeasurementImportCmd,
-  VC as AcApMeasurementVisibilityCmd,
-  rA as AcApMemoryProfiler,
-  w1 as AcApMoveCmd,
-  NP as AcApNotificationEventBridge,
-  wa2 as AcApNotificationStore,
-  Jo3 as AcApOffsetCmd,
-  T1 as AcApOpenCmd,
-  Pl2 as AcApOpenFileProfiler,
   Mo3 as AcApOpenViewMode,
-  hm as AcApOverlayEntity,
-  H1 as AcApPanCmd,
-  W1 as AcApPluginManager,
-  TS as AcApPointCmd,
-  bl2 as AcApPolygonCmd,
-  jS as AcApPolylineCmd,
-  BS as AcApPolylineJig,
-  Es3 as AcApProgress,
-  D1 as AcApQNewCmd,
-  Pk as AcApRasterImageConvertor,
-  HS as AcApRayCmd,
-  R1 as AcApReadingModeCmd,
-  Py as AcApReadingModeState,
-  wl2 as AcApRectCmd,
-  XS as AcApRectJig,
-  V1 as AcApRedoCmd,
-  z1 as AcApRegenCmd,
-  vl2 as AcApRevCloudCmd,
-  fC as AcApRevCloudJig,
-  Cl2 as AcApRotateCmd,
-  N1 as AcApSelectCmd,
-  lg as AcApSessionUndo,
-  he as AcApSettingManager,
-  xl2 as AcApSketchCmd,
-  kC as AcApSketchJig,
-  _C as AcApSplineCmd,
-  CC as AcApSplineJig,
-  B1 as AcApSwitchBgCmd,
-  F1 as AcApSysVarCmd,
-  j1 as AcApUndoCmd,
-  k1 as AcApUnisolateObjectsCmd,
-  uP as AcApUrlDataSource,
-  FC as AcApXAttachCmd,
-  BC as AcApXLineCmd,
-  Ni3 as AcApXrefManager,
-  Di3 as AcApZoomCmd,
-  qx as AcEdBaseView,
-  em as AcEdBatchedPreview,
-  G2 as AcEdCommand,
-  Lv as AcEdCommandLine,
-  Ge3 as AcEdCommandStack,
-  Xr3 as AcEdConditionWaiter,
-  Nn3 as AcEdCorsorType,
-  Hw as AcEdCursorManager,
-  Gw as AcEdDesktopInteractionStrategy,
-  Ya2 as AcEdDesktopSessionAccessoryChrome,
-  Xv as AcEdEntityPickCancelChrome,
-  Fw as AcEdGripEditSession,
-  Bw as AcEdGripHandle,
-  Vw as AcEdGripManager,
-  Nw as AcEdGripPreviewJig,
-  Zx as AcEdHoverController,
-  sl2 as AcEdInputManager,
-  Kd2 as AcEdKeyword,
-  cv as AcEdKeywordCollection,
-  Sx as AcEdLoupeTouchPickStrategy,
-  ri3 as AcEdMTextEditor,
-  vr3 as AcEdMarker,
-  xr3 as AcEdMarkerManager,
-  Fx as AcEdMobileCommandChrome,
-  $w as AcEdMobileInteractionStrategy,
+  AcDbDatabaseConverterManager,
+  AcDbFileType,
+  AcDbLibreDwgConverter,
   W2 as AcEdOpenMode,
-  $e3 as AcEdOsnapResolver,
-  Z3 as AcEdPreviewJig,
-  _t4 as AcEdPromptAngleOptions,
-  tc2 as AcEdPromptBoxOptions,
-  Li3 as AcEdPromptBoxResult,
-  pt3 as AcEdPromptDistanceOptions,
-  Pe3 as AcEdPromptDoubleOptions,
-  wt3 as AcEdPromptDoubleResult,
-  ci3 as AcEdPromptEntityOptions,
-  $a2 as AcEdPromptEntityResult,
-  Dp2 as AcEdPromptIntegerOptions,
-  ea3 as AcEdPromptIntegerResult,
-  Ae2 as AcEdPromptKeywordOptions,
-  ic2 as AcEdPromptNumericalOptions,
-  Op2 as AcEdPromptNumericalResult,
-  ui3 as AcEdPromptOptions,
-  F2 as AcEdPromptPointOptions,
-  Ka2 as AcEdPromptPointResult,
-  Ut3 as AcEdPromptResult,
-  Fn3 as AcEdPromptSelectionOptions,
-  Uo2 as AcEdPromptSelectionResult,
-  hi3 as AcEdPromptStateMachine,
-  w as AcEdPromptStatus,
-  Ne4 as AcEdPromptStringOptions,
-  HM as AcEdSelectionFilter,
-  ec2 as AcEdSelectionSet,
-  Yx as AcEdSelectionStaticPreviewJig,
-  Bs3 as AcEdSelectionTransformPreviewJig,
-  jx as AcEdSessionAccessoryController,
-  Co3 as AcEdSessionAccessoryMountSkippedError,
-  Zb as AcEdSessionProviderRegistry,
-  Cx as AcEdSimulatedMouseTouchPickStrategy,
-  ol2 as AcEdSnapLoupe,
-  Jp2 as AcEdTouchPointSession,
-  Na3 as AcEdViewKeyHandler,
-  mt3 as AcEdViewMode,
-  Kx as AcEditor,
-  MTextParagraphAlignment as AcGiTextParagraphAlignment,
-  uh2 as AcTrGeometryUtil,
-  Sb as AcTrInheritedLayerMaterialMapper,
-  zd2 as AcTrLayerAppearanceController,
-  $b as AcTrScene,
+  AcGeBox2d,
   Ms3 as AcTrView2d,
-  _l2 as AcUiAboutDialog,
-  xc2 as AcUiAciColorDialog,
-  BP as AcUiDefaultNotificationUi,
-  ji3 as AcUiDialog,
-  wk as AcUiDrawStyleSessionAccessory,
-  Pa3 as AcUiDropdownMenu,
-  vh2 as AcUiFileOpenPanel,
-  il2 as AcUiFullscreenPanel,
-  nl2 as AcUiHelpPanel,
-  rc2 as AcUiMobileSessionPanel,
-  x02 as AcUiShortCutToolbar,
-  g02 as AcUiSimpleToolbar,
-  kh2 as AcUiSubToolbar,
-  cl2 as AcUiTextHeightDialog,
-  Sh2 as AcUiToolbar,
-  qa2 as AcUiTouchPointTutorial,
-  hx as AcUiTouchPointTutorialDialog,
-  IE as DEFAULT_GRIP_COLOR_CSS,
-  TE as DEFAULT_GRIP_HOT_COLOR_CSS,
-  hw as DEFAULT_GRIP_SIZE_PX,
-  mh2 as DEFAULT_VIEW_2D_OPTIONS,
-  mA as DWG_CONVERTER_PACKAGE,
-  uA as DWG_PARSER_MAIN_FILE,
-  dA as DWG_PARSER_WORKER_FILE,
-  Ob as ENTITY_EDIT_LABEL,
-  pw as GRIP_APPEARANCE_SYSVARS,
-  qE as ICON_ANNOTATION,
-  jv as ICON_ANNOTATION_HIDE,
-  Rv as ICON_ANNOTATION_SHOW,
-  Hv as ICON_CHEVRON_DOWN,
-  Wp2 as ICON_CHEVRON_LEFT,
-  Hp2 as ICON_CHEVRON_RIGHT,
-  Vv as ICON_CHEVRON_UP,
-  jp2 as ICON_CLEAR,
-  aM as ICON_CLEAR_MARKUPS,
-  YE as ICON_CLEAR_MEASUREMENTS,
-  Kv as ICON_CLOSE,
-  IM as ICON_COLOR,
-  vM as ICON_DOCK_CLOSE,
-  xM as ICON_DOCK_SIDE_MENU,
-  Gv as ICON_ERASE,
-  uM as ICON_EXPORT,
-  hM as ICON_EXPORT_HTML,
-  pM as ICON_EXPORT_PDF,
-  mM as ICON_EXPORT_SVG,
-  lM as ICON_LANGUAGE,
-  RE as ICON_LAYER,
-  LM as ICON_LAYER_OFF,
-  PM as ICON_LAYER_ON,
-  jE as ICON_LAYOUT,
-  iM as ICON_MARKUP_ARROW,
-  JE as ICON_MARKUP_CALLOUT,
-  NM as ICON_MARKUP_CIRCLE,
-  DM as ICON_MARKUP_CLOUD,
-  Bv as ICON_MARKUP_EXPORT,
-  BM as ICON_MARKUP_HIDE,
-  tM as ICON_MARKUP_HIGHLIGHT,
-  oM as ICON_MARKUP_IMPORT,
-  eM as ICON_MARKUP_LINE,
-  Fv as ICON_MARKUP_PANEL,
-  zM as ICON_MARKUP_RECT,
-  FM as ICON_MARKUP_SHOW,
-  nM as ICON_MARKUP_STAMP,
-  QE as ICON_MARKUP_TEXT,
-  VE as ICON_MEASURE,
-  sM as ICON_MEASUREMENT_PANEL,
-  UE as ICON_MEASURE_ANGLE,
-  $E as ICON_MEASURE_ARC,
-  GE as ICON_MEASURE_AREA,
-  WE as ICON_MEASURE_CONTINUOUS,
-  OM as ICON_MEASURE_COORDINATE,
-  HE as ICON_MEASURE_DISTANCE,
-  Tv as ICON_MEASURE_POINT,
-  KE as ICON_MEASURE_RADIUS,
-  Up2 as ICON_MORE,
-  rM as ICON_OPEN,
-  MM as ICON_ORTHO_MODE,
-  EM as ICON_OSNAP,
-  FE as ICON_PAN,
-  gM as ICON_PLACEMENT_BOTTOM,
-  bM as ICON_PLACEMENT_LEFT,
-  wM as ICON_PLACEMENT_RIGHT,
-  yM as ICON_PLACEMENT_TOP,
-  AM as ICON_POLAR_TRACKING,
-  XE as ICON_READING_MODE,
-  Uv as ICON_REDO,
-  Nv as ICON_REV_CIRCLE,
-  Dv as ICON_REV_CLOUD,
-  zv as ICON_REV_RECT,
-  NE as ICON_SELECT,
-  CM as ICON_SETTINGS,
-  _M as ICON_SIMULATED_MOUSE,
-  ZE as ICON_SWITCH_BG,
-  $v as ICON_TEXT_HEIGHT,
-  dM as ICON_THEME_DARK,
-  cM as ICON_THEME_LIGHT,
-  fM as ICON_TOOLBAR_PLACEMENT,
-  Wv as ICON_UNDO,
-  TM as ICON_ZOOM_BOX,
-  BE as ICON_ZOOM_EXTENT,
-  kM as ICON_ZOOM_ORIGINAL,
-  SM as ICON_ZOOM_SMART,
-  Av as ICON_ZOOM_WINDOW,
-  re2 as LAYER_EDIT_LABEL,
-  Od2 as LAYER_FROZEN_FLAG,
-  ss3 as LAYER_LOCKED_FLAG,
-  hA as LIBREDWG_CONVERTER_PACKAGE,
-  cA as LIBREDWG_PARSER_WASM_FILE,
-  lA as LIBREDWG_PARSER_WORKER_FILE,
-  En2 as MARKUP_FONT_SIZE,
-  _02 as MARKUP_HAIRLINE_LINE_WEIGHT,
-  Vl2 as MARKUP_LAYER,
-  He3 as MARKUP_LINE_WEIGHT,
-  je3 as MARKUP_LIVE_LAYER,
-  H02 as MARKUP_OPEN_MODE,
-  zy as MARKUP_STATUSES,
-  dd2 as MEASUREMENT_ANGLE_FORMAT_OPTIONS,
-  Sn3 as MEASUREMENT_FONT_SIZE,
-  oe3 as MEASUREMENT_LAYER,
-  Hl2 as MEASUREMENT_LENGTH_FORMAT_OPTIONS,
-  Xh2 as MEASUREMENT_LENGTH_UNIT_FOLLOW_DRAWING,
-  Ve3 as MEASUREMENT_LINE_WEIGHT,
-  Ee3 as MEASUREMENT_LIVE_LAYER,
-  Ny as MEASURE_ANGLE_ARC_RADIUS_FRACTION,
-  Ma2 as MLIGHTCAD_BRAND_NAME,
-  zh2 as MLIGHTCAD_DOCS_URL,
-  gy as MLIGHTCAD_ICON_SVG,
-  wy as MLIGHTCAD_REPO_URL,
-  by as MLIGHTCAD_WEBSITE_URL,
-  ok as ML_ACI_STACKS_FILL_CLASS,
-  ow as ML_UI_COARSE_POINTER_MEDIA_QUERY,
-  nw as ML_UI_COMPACT_MAX_WIDTH,
-  Lp2 as ML_UI_COMPACT_MEDIA_QUERY,
-  uw as ML_UI_GRIP_HOT_VAR,
-  dw as ML_UI_GRIP_NORMAL_VAR,
-  cw as ML_UI_GRIP_SIZE_VAR,
-  Jl2 as ML_UI_MOBILE_MAX_WIDTH,
-  _p2 as ML_UI_MOBILE_MEDIA_QUERY,
-  Pp2 as ML_UI_SESSION_PANEL_INSET,
-  Ha3 as ML_UI_SESSION_PANEL_MAX_WIDTH,
-  os3 as ML_UI_SESSION_PANEL_WIDTH,
-  Jb as ML_UI_Z_CANVAS_HTML_OVERLAY,
-  AE as ML_UI_Z_CANVAS_HTML_STROKE,
-  Qb as ML_UI_Z_DRAW_STYLE_TOOLBAR,
-  tw as ML_UI_Z_ENTITY_PICK_CANCEL,
-  iw as ML_UI_Z_NOTIFICATION,
-  ew as ML_UI_Z_SHORTCUT_TOOLBAR,
-  pA as MTEXT_RENDERER_PACKAGE,
-  oP as MTEXT_RENDERER_WORKER_FILE,
-  MTextColor,
-  MTextParagraphAlignment,
-  Xy as OVERLAY_HAIRLINE_LINE_WEIGHT,
-  Jw as POLARMODE_ADDITIONAL_ANGLES,
-  rs3 as POLARMODE_POLAR_TRACKING,
-  Bu2 as REVCLOUD_BULGE,
-  Og as REVIEW_OVERLAY_HIT_THRESHOLD_PX,
-  gc as ShxParserFont,
-  np2 as acCmColorToCssHex,
-  uE as acapActiveMarkupSessionId,
-  Ft3 as acapAdaptiveMeasureBadgeFontSize,
-  sh2 as acapAnalyzeUnsupportedDrawing,
-  EP as acapAppendLinkedText,
-  kP as acapApplyTemplateParams,
-  sg as acapBaseZoomFromWcsSize,
-  Kb as acapBindCommandServices,
-  Us3 as acapBindMarkupSession,
-  pc2 as acapBindOverlayCalloutGrips,
-  tt3 as acapBindOverlayPointerDrag,
-  vk as acapBindShortCutToolbarDocState,
-  aA as acapBindToolbarDocState,
-  mP as acapBuildDataSourceMenu,
-  sL as acapClampMeasureBadgeFontSize,
-  Ts3 as acapCloneMeasurementStyle,
-  sp2 as acapColorToCssAlpha,
-  qs3 as acapCommandServices,
-  vy as acapCreateMlightcadBrandMark,
-  Nh2 as acapCreateMlightcadIcon,
-  Pt3 as acapCssColor,
-  op2 as acapCssToMeasurementColor,
-  ld2 as acapDisposeMarkupSession,
-  UP as acapDisposeNotificationService,
-  Cy as acapDocsUrl,
-  ai3 as acapDrawOverlayArrowHead,
-  cp2 as acapDrawOverlayHighlight,
-  lp2 as acapDrawOverlayLeader,
-  cc2 as acapDrawStyleKindForCommand,
-  fo3 as acapEscapeHtml,
-  nL as acapEstimateMeasureBadgeWidthPx,
-  MA as acapFindExcerpt,
-  FL as acapFindHitBox,
-  AA as acapFindText,
-  zL as acapFindTextInLayout,
-  Dn3 as acapFitOverlayCanvas,
-  og as acapFitOverlayCanvasToView,
-  wA as acapFormatFontMissedReplacement,
-  oh2 as acapFormatFontsMissedReplacement,
-  vA as acapFormatMessageHtml,
   DP as acapFormatOpenFileErrorMessage,
   zP as acapFormatOpenFileErrorTitle,
-  kA as acapFormatOpenFileErrorToastMessage,
-  CP as acapFormatUnsupportedEntitiesMessage,
   tg as acapGetCameraZoom,
-  Le2 as acapGetCurrentMeasurementStyle,
-  ky as acapGetDocsBaseUrl,
-  xk as acapGetDrawStyleSessionAccessory,
-  Mt3 as acapGetMeasurementColor,
-  Qy as acapGetMeasurementCustomTextHeightWcs,
-  On3 as acapGetMeasurementFontSize,
-  Jy as acapGetMeasurementTextHeightMode,
-  _A as acapGetNotificationUiPlacement,
-  gP as acapGroupNotifications,
-  be2 as acapI18nTranslate,
-  bm as acapInstallDrawStyleSessionAccessory,
-  WP as acapInstallNotificationService,
-  tP as acapInstallOpenFileDialog,
-  fP as acapInvokeDataSourceMenuAction,
-  fA as acapIsSingleLocalOpen,
-  wP as acapIsTianzhengClass,
-  tr2 as acapIsTianzhengClassName,
-  NL as acapListFindLayouts,
-  yo3 as acapMTextToPlainText,
-  LP as acapMarkdownLink,
-  rf2 as acapMeasureBadgeChromePx,
-  De3 as acapMeasurementCanvasLineWidth,
-  IA as acapNavigateToFindHit,
-  ir2 as acapNormalizeFindText,
-  SA as acapNotificationCenter,
-  Vn3 as acapNotificationService,
-  Ui3 as acapNotifyUndoStackChanged,
-  yA as acapOpenCenteredPopup,
-  Km as acapOpenDataSourceResult,
-  xA as acapOpenUrl,
-  rp2 as acapOverlayArrowSize,
-  Kl2 as acapOverlayDash,
-  $m as acapPickLocalCadFile,
-  Os3 as acapPixelsPerWorldUnit,
-  fe3 as acapPlaceOverlayHtml,
-  Yo3 as acapPointerEventToOverlayWorld,
-  gE as acapResetMeasurementDrawStyle,
-  qm as acapResolveFontMissedReplacement,
-  _P as acapResolveFontsMissedReplacement,
-  TP as acapResolveOpenFileErrorMessage,
-  OP as acapResolveOpenFileErrorTitle,
-  IP as acapResolveOpenFileErrorToastMessage,
-  SP as acapResolveUnsupportedEntitiesMessage,
-  gA as acapRunDataSourceMenuAction,
-  Bi3 as acapRunDatabaseEdit,
-  ne3 as acapRunServiceEdit,
-  Rc2 as acapScaleMeasureOverlayPx,
-  ap2 as acapScaleWcsWithFont,
-  $l2 as acapScaledOverlayArrowSize,
-  yt3 as acapScaledOverlayLineWidth,
-  af2 as acapScreenAngleBadgeRefLengthPx,
-  jc2 as acapScreenArcLengthPx,
-  lf2 as acapScreenAreaBadgeRefLengthPx,
-  Oe3 as acapScreenPxToWcs,
-  Wi3 as acapScreenSegmentLengthPx,
-  ng as acapSeedOverlayArrowWcs,
-  di3 as acapSeedOverlaySizesFromWcs,
-  ig as acapSeedOverlayStrokeWcs,
-  Sy as acapSetDocsBaseUrl,
-  Ty as acapSetMarkupBagFactory,
-  qy as acapSetMeasurementDrawColor,
-  yE as acapSetMeasurementDrawFontSize,
-  eg as acapSetMeasurementTextHeight,
-  CA as acapSetNotificationCenter,
-  PA as acapSetNotificationUiPlacement,
-  ve3 as acapSyncLiveOverlayTextHeight,
-  nP as acapUninstallOpenFileDialog,
-  iP as acapUpdateOpenFileDialogOptions,
-  Gl2 as acapWcsToScreenPx,
-  bA as acapWithDataSourceBusy,
-  Bm as acapWithSecondaryDatabase,
-  vC as accumulateSketchPoint,
-  ME as acedAlert,
-  dv as acedApplyCanvasTouchCalloutStyles,
-  kt3 as acedApplyUiTheme,
-  $o3 as acedArmTouchMouseGuard,
-  tl2 as acedAttachMobileBoxGesture,
-  zp2 as acedClearDomSelection,
-  Qa2 as acedClearFollowingClickSink,
-  Rx as acedComputeSessionMetrics,
-  $x as acedDisposeMobileSnapLoupe,
-  RM as acedDisposeSimulatedMouseCursor,
-  e02 as acedEntityIntersectsSelectionBox,
-  Ho3 as acedGetUiLayout,
-  uv as acedGuardCanvasTouchCallout,
-  Gx as acedHideMobileSnapLoupe,
-  iu2 as acedHideSimulatedMouseCursor,
-  qe3 as acedInteractionStrategy,
-  sw as acedIsCompactUiLayout,
-  Zw as acedIsDynamicInputEnabled,
-  ia3 as acedIsGhostClientOrigin,
-  aw as acedIsHandheldDevice,
-  _i2 as acedIsMobileOrPadUi,
-  br3 as acedIsMobileUiLayout,
-  Dt3 as acedIsTouchDerivedMouseEvent,
-  qp2 as acedIsTouchLongPressContextMenu,
-  Jx as acedLineSegmentIntersectsBox2d,
-  Hx as acedLoupeLocalFromCanvasDelta,
-  Wx as acedLoupeViewBoxFromCanvasSample,
-  t02 as acedNeedsCrossingGeometryRefine,
-  Qx as acedPrimitiveIntersectsSelectionBox,
-  Ux as acedRefreshMobileSnapLoupe,
-  xx as acedRefreshSimulatedMouseCursor,
-  jM as acedResetTouchMouseGuard,
-  Vx as acedResolveLoupePlacement,
-  lw as acedShouldHideDesktopCommandLine,
-  Je2 as acedShouldIgnoreCompatMouse,
-  Ja2 as acedSinkFollowingClick,
-  wr3 as acedSubscribeUiLayout,
-  ql2 as acedSubscribeUiTheme,
-  nu2 as acedTouchPickStrategy,
-  acgiContrastingForegroundColor,
-  acgiForegroundColorForBackground,
-  acgiIsLightBackground,
-  vc2 as acuiAciCssColor,
-  lm as acuiBindDrawStyleSessionAccessory,
-  QM as acuiClearAciPanelViewportPin,
-  JL as acuiComputeWrapPackSlot,
-  UL as acuiCopyDynamicToolbarChildren,
-  uk as acuiCreateAciIndexPicker,
-  dk as acuiCreateAciPaletteStacks,
-  OA as acuiCreateToolbarSeparator,
-  wc2 as acuiEnsureAciPaletteStyles,
-  ff2 as acuiEnsureToolbarStyles,
-  YL as acuiExpandToolbarItemConfigs,
-  Ol2 as acuiFilterVisibleToolbarItems,
-  KL as acuiIndexToolbarItems,
-  $t3 as acuiIsDynamicToolbarChildren,
-  xh2 as acuiIsToolbarChildrenStrip,
-  mf2 as acuiIsToolbarItemDisabled,
-  XL as acuiIsToolbarItemVisible,
-  WL as acuiIsToolbarPresetRef,
-  _e2 as acuiIsToolbarSeparatorItem,
-  pf2 as acuiItemRequiresDocument,
-  Zp2 as acuiLocalIsoDate,
-  mk as acuiOpenTextHeightDialog,
-  ck as acuiParseAciManualInput,
-  JM as acuiPinAciPanelToViewportWidth,
-  GL as acuiPreserveDynamicToolbarChildren,
-  zA as acuiRemoveToolbarStylesIfUnused,
-  k02 as acuiResolveDrawStyleKind,
-  Tn3 as acuiResolveEffectiveToolbarItem,
-  Qn2 as acuiResolveParentToolbarDisplay,
-  qL as acuiResolveSelectedChildItem,
-  fk as acuiResolveTextHeightDialogInitials,
-  yk as acuiResolveTextHeightPatch,
-  _a4 as acuiResolveToolbarChildrenUi,
-  HL as acuiResolveToolbarChrome,
-  am as acuiShouldShowDrawStyleToolbar,
-  ux as acuiShouldShowTouchPointTutorial,
-  ox as acuiShouldShowTouchPointTutorialFromPrefs,
-  $L as acuiToolbarItemsIncludeItem,
-  DA as acuiToolbarPreset,
-  Ep2 as applyGripAppearanceToHost,
-  yu2 as applyMarkupStyleToSelection,
-  mp2 as applyMeasurementStyle,
-  bd2 as applyMeasurementStyleToSelection,
-  EA as applySessionHiddenObjectState,
-  sk as attachCalloutToMarkup,
-  sA as bindMarkupCalloutGrips,
-  Pr3 as bindMarkupCenterMove,
-  lc2 as bindMarkupInlineTextEdit,
-  nA as bindMarkupPointerDrag,
-  hg as bindMeasurementOverlayHistory,
-  rg as bindOverlayHistory,
-  h02 as box3dToBox2d,
-  KM as buildMarkupCloud,
-  YM as buildMarkupRect,
-  rC as buildRevCloud,
-  fb as canvasBackgroundFromColor,
-  RC as clearLayoutMeasurements,
-  Fp2 as cmdDescription,
-  fp2 as collectMeasurementRecords,
-  I1 as collectMemorySnapshot,
-  Fg as collectReviewOverlayIdsByBox,
-  JP as collectTextStyleFontNames,
-  Jt3 as commitMarkup,
-  Ag as commitMeasurementGroup,
-  EE as computeIntelligentExtents,
-  Lb as computeIntelligentExtentsAsync,
-  Ps3 as computeLeaderTipOnShape,
-  mm as configureMarkupCommand,
-  GM as configureMarkupDrawCommand,
-  qw as constrainToOrtho,
-  lv as constrainToTracking,
-  Wy as convertAreaValue,
-  qh2 as convertLengthValue,
-  C02 as createDefaultMarkupColor,
-  zt3 as createIconElement,
-  qM as createMarkupEntity,
-  ym as createMarkupEntityFromRecord,
-  T02 as createMarkupId,
-  qt3 as createMarkupMeta,
-  Rm as createMeasureEntityFromRecord,
-  Cs3 as createRotationMatrix,
-  um as cssToMarkupColor,
-  Kr3 as cursorColorForBackground,
-  Ao3 as dedupeFontNames,
-  Se3 as defaultMarkupColor,
-  ft3 as defaultMarkupStyle,
-  eC as defaultRevCloudArcLength,
-  bg as deserializeMeasurementStyle,
-  od2 as distPointToArcPx,
-  Vh2 as distPointToCirclePx,
-  jh2 as distPointToPolylinePx,
-  Aa3 as distPointToRectOutlinePx,
-  pn3 as distPointToSegmentPx,
-  In3 as distance2d,
-  UC as drawMeasureAngleArcOnCanvas,
-  $C as drawMeasureArcOnCanvas,
-  GC as drawMeasureAreaOnCanvas,
-  WC as drawMeasureSegmentOnCanvas,
-  im as editMarkupHtmlText,
-  iC as ensureCounterClockwise,
-  q2 as eventBus,
-  Ay as expandMarkupBoundsByClientRects,
-  xE as focusMeasurement,
-  CE as foregroundColorFromColorTheme,
-  zo3 as formatMeasurementAngle,
-  Do3 as formatMeasurementArea,
-  Ct3 as formatMeasurementLength,
-  No2 as formatMeasurementValue,
-  P1 as formatMemoryBytes,
-  dL as geBox2dToThreeBox2d,
-  hL as geBox2dToThreeBox3d,
-  aL as geBox3dToGeBox2d,
-  lL as geBox3dToThreeBox3d,
-  fr3 as getActiveMarkupBag,
-  gd2 as getActiveMeasurementStyle,
-  m02 as getDrawingExportBaseName,
-  Wl2 as getEffectiveMeasurementUnits,
-  $1 as getLastFontLoadStats,
-  Dd2 as getLayerIsoState,
-  D02 as getMarkupAuthor,
-  L02 as getMarkupCustomTextHeightWcs,
-  Nt2 as getMarkupFontSize,
-  dt3 as getMarkupHistory,
-  pi4 as getMarkupPresenter,
-  ee2 as getMarkupStore,
-  pE as getMarkupStoreForSession,
-  P02 as getMarkupTextHeightMode,
-  yp2 as getMeasurementGeometry,
-  vi3 as getMeasurementHistory,
-  Ri3 as getMeasurementSnapshot,
-  Zt3 as getMeasurementStyle,
-  mE as getMeasurementUnitOverride,
-  vE as getMeasurementValueText,
-  tv as getPolaraddang,
-  ev as getPolarang,
-  Ql2 as getPolarmode,
-  gr3 as getSelectedMeasurementId,
-  Ci3 as getSessionUndo,
-  ML as hideObjects,
-  Gh2 as hitTestMarkupGeometry,
-  Uh2 as hitTestMarkupShapeOutline,
-  Zh2 as hitTestMeasurementGeometry,
-  To3 as isAttachableShapeMarkup,
-  LE as isDirectBatchCandidate,
-  Vo3 as isEffectiveSpatialQueryHit,
-  mw as isGripAppearanceSysVar,
-  vS as isInsertableBlockName,
-  _E as isLightColorTheme,
-  a02 as isMarkupDoublePointer,
-  n02 as isMarkupHtmlTextEditing,
-  ZM as isMarkupShapeCalloutEnabled,
-  oA as isMarkupVisible,
-  up2 as isMeasurementVisible,
-  mb as isModelSpaceDatabase,
-  sP as isOpenFileProgressComplete,
-  Xw as isOrthoModeEnabled,
-  iv as isPolarTrackingEnabled,
-  zm as isRevCloudCloseToStart,
-  Tb as isSameLayerIsoState,
-  U1 as isScriptQuitCommand,
-  PE as layoutBackgroundColorFromRgb,
-  xp2 as layoutBackgroundSysVar,
-  wE as listLayoutMeasurements,
-  hE as listMarkupsForSession,
-  Et2 as markupCanvasLineWidth,
-  Sr3 as markupCloudVertices,
-  Mn3 as markupColorToCss,
-  j02 as markupDrawStyleFromRecord,
-  nk as markupFocusExtents,
-  Wh2 as markupGeometryBounds,
-  Ia2 as markupGeometryCenter,
-  O02 as markupNow,
-  W02 as markupRectCorners,
-  Iy as markupShapeOutlineFromGeometry,
-  n1 as markupSidecarFileName,
-  Hu2 as measureAngleBadgeWorld,
-  Vu2 as measureAngleDeg,
-  ma2 as measureCentroid,
-  ju2 as measureShoelaceArea,
-  jy as measurementFocusBox,
-  Yh2 as measurementGeometryBounds,
-  Jh2 as measurementLengthUnitSymbol,
-  kg as measurementSidecarFileName,
-  yw as migrateStoredSettings,
-  Ic2 as newMeasureOverlayId,
-  Bh2 as normalizeDocsBaseUrl,
-  nn3 as normalizeFontNameKey,
-  _g as notifyMeasurementLayoutChanged,
-  ip2 as parseCssToAcCmColor,
-  e12 as parseMarkupSidecar,
-  wg as parseMeasurementSidecar,
-  th2 as parseScriptLines,
-  I02 as patchMarkupStyleWcs,
-  Ng as pickAttachableShapeMarkupAt,
-  Ig as pickMeasurementAt,
-  s_ as placeAngleMeasurement,
-  $u2 as placeArcMeasurement,
-  h_ as placeAreaMeasurement,
-  Wm as placeDistanceMeasurement,
-  iA as placeMarkupHtml,
-  ZC as placeMeasurementRecord,
-  z_ as placePointMeasurement,
-  QP as planTextStyleFontPreload,
-  Ey as pointInPolygonPx,
-  Ly as pointInRectPx,
-  tA as pointerEventToMarkupWorld,
-  ud2 as preferExactAciColor,
-  Cr3 as promptAttachedCallout,
-  yc2 as promptMarkupCapsuleText,
-  mu2 as promptMarkupText,
-  bc2 as promptShapeFirstCorner,
-  Z02 as publishAttachedCallout,
-  Hd2 as readGripAppearance,
-  $r3 as readLayoutBackgroundColor,
-  Tm as rectanglePath,
-  SE as refreshMeasurementValueLabels,
-  y1 as registerMarkupCommands,
-  S02 as registerMarkupPublish,
-  F_ as registerMeasureCommands,
-  HC as registerMeasurementPublish,
-  kE as removeMeasurement,
-  kr3 as republishMarkup,
-  Rs3 as republishMeasurement,
-  WM as resetExportDownloadNamesForTests,
-  fu2 as resetMarkupSession,
-  fd2 as resetMeasurementSession,
-  Mg as resetMeasurementStyleState,
-  Gy as resetMeasurementUnitOverride,
-  Sg as resetMeasurementVisibility,
-  p02 as resolveDrawingExtents,
-  rm as resolveExportDownloadName,
-  Ko3 as resolveMarkupLineWeight,
-  Xx as resolvePointerSelectionAction,
-  Sc2 as resolveSelectedEntities,
-  zk as resolveSelectedIds,
-  tm as resolveSelectionActionFromEvent,
-  Ye3 as resolveUiTheme,
-  wd2 as restoreMeasurementGroupExtras,
-  et2 as runMarkupEdit,
-  gt3 as runMeasurementEdit,
-  pC as sampleEntityPath,
-  ac2 as scaleCopyDisplacement,
-  _r2 as selectMarkupGroup,
-  Vs3 as selectMeasurementGroup,
-  Yl2 as serializeMeasurementStyle,
-  E02 as setMarkupDrawColor,
-  UM as setMarkupDrawFontSize,
-  XM as setMarkupShapeCalloutEnabled,
-  M02 as setMarkupTextHeight,
-  m1 as setMarkupVisible,
-  fE as setMeasurementUnitOverride,
-  Cg as setMeasurementVisible,
-  wb as shouldExtendBboxForDirectEntity,
-  tC as signedArea,
-  xC as simplifySketchPoints,
-  Ro3 as splitDominantCluster,
-  i12 as stringifyMarkupSidecar,
-  xg as stringifyMeasurementSidecar,
-  G02 as strokeMarkupCloud,
-  Tc2 as strokeMeasureArcOnContext,
-  hc2 as subscribeMarkupDrawStyle,
-  pp2 as subscribeMeasurementSelection,
-  bE as subscribeMeasurements,
-  DE as sysCmdDescription,
-  gc2 as tessellateMarkupCloud,
-  cL as threeBox2dToGeBox2d,
-  uL as threeBox3dToGeBox2d,
-  rL as threeBox3dToGeBox3d,
-  yb as toggleBlackWhiteBackgroundColor,
-  OE as togglePolarTracking,
-  Rr3 as translateAttachedCallout,
-  Hh2 as translateMarkupGeometry,
-  Re3 as translateMarkupPoint,
-  bb as tryBuildDirectEntityMeta,
-  jg as trySelectReviewOverlay,
-  Vg as trySelectReviewOverlaysByBox,
-  xb as unionDominantCluster,
-  kb as unionDominantClusterAsync,
-  Ba2 as unionSpatialQueryItems,
-  Nd2 as uniquifySpatialItemIds,
-  AL as unisolateObjects,
-  zE as userCmdDescription,
-  QS as viewDiagonalLength,
-  $M as withMarkupInput,
-  A02 as withMarkupStyleWcs,
-  eA as withMeasureInput
+  q2 as eventBus
 };

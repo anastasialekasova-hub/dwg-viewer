@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DWG Viewer</title>
+<link rel="stylesheet" href="viewer.css">
+<script type="module" src="viewer.js"></script>
+</head>
+<body data-state="start" data-drag="off">
+
+<header class="top">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 10V2h8v8H2zM2 6h4V2M6 6v4" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+    </span>DWG Viewer
+  </div>
+  <span class="sep" aria-hidden="true"></span>
+  <div class="file" id="fileBox" hidden>
+    <span class="fname" id="fname"></span>
+    <span class="badge" id="fchip" hidden></span>
+  </div>
+  <span class="grow"></span>
+  <div class="group" id="zoomGroup" hidden>
+    <button class="btn icon" type="button" id="zoomOutBtn"></button>
+    <span class="zoom" id="zoomPct"></span>
+    <button class="btn icon" type="button" id="zoomInBtn"></button>
+    <button class="btn" type="button" id="fitBtn"></button>
+  </div>
+  <button class="btn icon" type="button" id="openBtn" title="Open file…"></button>
+</header>
+
+<div class="srcbar" id="srcbar" hidden>
+  <span class="src">
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><path d="M5.5 7.5a2.5 2.5 0 0 0 3.5 0l2-2a2.5 2.5 0 0 0-3.5-3.5l-.8.8M7.5 5.5a2.5 2.5 0 0 0-3.5 0l-2 2a2.5 2.5 0 0 0 3.5 3.5l.8-.8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+    <span id="srcLabel"></span>
+    <span class="path" id="srcPath"></span>
+  </span>
+  <span class="grow"></span>
+  <button class="btn sm" type="button" id="downloadBtn"></button>
+</div>
+
+<main class="body">
+  <section class="stage" id="stage">
+    <div class="cadhost" id="cad"></div>
+
+    <section class="empty" id="start" role="region">
+      <div class="drop">
+        <span class="ico" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M7 3.5h10l5 5v16H7z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M17 3.5v5h5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10.5 14h8M10.5 17.5h8M10.5 21h5M14.5 12v11" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        </span>
+        <p class="big" id="startDrop"></p>
+        <p class="or" id="startOr"></p>
+        <button class="btn primary" type="button" id="openBtn2"></button>
+        <p class="keys" id="keysRow">
+          <kbd id="keyMod"></kbd>+<kbd id="keyO"></kbd>
+        </p>
+      </div>
+      <div class="facts">
+        <p class="fact">
+          <svg width="13" height="13" viewBox="0 0 12 12" fill="none" aria-hidden="true"><rect x="2.5" y="5.5" width="7" height="5" rx="1.2" stroke="currentColor" stroke-width="1.2"/><path d="M4 5.5V4a2 2 0 0 1 4 0v1.5" stroke="currentColor" stroke-width="1.2"/></svg>
+          <span><b id="privacyLocal"></b> <span id="privacyNoUpload"></span></span>
+        </p>
+        <p class="fact">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.2"/><path d="M6.5 6v3.2M6.5 3.9v.1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          <span id="rangeLine"></span>
+        </p>
+        <p class="fact" id="tipRow">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><path d="M5.5 7.5a2.5 2.5 0 0 0 3.5 0l2-2a2.5 2.5 0 0 0-3.5-3.5l-.8.8M7.5 5.5a2.5 2.5 0 0 0-3.5 0l-2 2a2.5 2.5 0 0 0 3.5 3.5l.8-.8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          <span><span id="tipLink1"></span> <span id="tipLink2"></span></span>
+        </p>
+      </div>
+    </section>
+
+    <section class="stagecenter" id="loading" hidden>
+      <div class="card" aria-live="polite">
+        <div class="head">
+          <p class="title" id="loadTitle"></p>
+          <span class="size" id="loadSize"></span>
+        </div>
+        <ol class="steps">
+          <li class="step" id="stepFile"><span class="st" aria-hidden="true"></span><span class="lbl" id="stepFileLbl"></span></li>
+          <li class="step" id="stepParse"><span class="st" aria-hidden="true"></span><span class="lbl" id="stepParseLbl"></span></li>
+          <li class="step" id="stepDraw"><span class="st" aria-hidden="true"></span><span class="lbl" id="stepDrawLbl"></span></li>
+          <li class="bar" aria-hidden="true"><i id="loadBar"></i></li>
+        </ol>
+        <div class="foot">
+          <span class="cnt" id="loadCnt"></span>
+          <span class="grow"></span>
+          <button class="btn" type="button" id="cancelBtn"></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="stagecenter" id="error" hidden>
+      <div class="errcard" role="alert">
+        <span class="eico" aria-hidden="true" id="errIco"></span>
+        <h2 id="errTitle"></h2>
+        <p class="why" id="errWhy"></p>
+        <p class="next" id="errNext"></p>
+        <div class="acts">
+          <button class="btn primary" type="button" id="errOpenAnother"></button>
+          <button class="btn" type="button" id="errDownloadBtn" hidden></button>
+          <button class="btn" type="button" id="errTryAgain" hidden></button>
+        </div>
+      </div>
+    </section>
+
+    <div class="hint" id="stageHint" hidden>
+      <span id="hintPan"></span><span id="hintZoom"></span><span id="hintFit"></span>
+    </div>
+
+    <div class="dragover" id="dragOver" hidden><p id="dropToOpenLbl"></p></div>
+  </section>
+</main>
+
+<section class="warn" id="partial" hidden role="status">
+  <div class="wl">
+    <div class="row">
+      <svg class="wi" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2l6.5 11.5h-13z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6.5v3.2M8 11.6v.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <p class="msg"><span id="partialMsg"></span><span id="partialRest"></span></p>
+    </div>
+    <div class="acts">
+      <button class="link" type="button" id="partialDetailsBtn"></button>
+      <button class="link" type="button" id="partialDismissBtn"></button>
+    </div>
+  </div>
+  <div class="det" id="partialDet" hidden>
+    <table>
+      <thead><tr><th id="colType"></th><th id="colCount"></th><th id="colLayers"></th></tr></thead>
+      <tbody id="partialRows"></tbody>
+    </table>
+    <p class="foot" id="fontNote" hidden></p>
+  </div>
+</section>
+
+<footer class="status">
+  <div class="stabs" id="layoutTabs" role="tablist" hidden></div>
+  <span class="grow"></span>
+  <button class="pill acc" type="button" id="drawnPill" hidden></button>
+  <span class="pill" id="localPill">
+    <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true"><rect x="2.5" y="5.5" width="7" height="5" rx="1.2" stroke="currentColor" stroke-width="1.2"/><path d="M4 5.5V4a2 2 0 0 1 4 0v1.5" stroke="currentColor" stroke-width="1.2"/></svg>
+    <span id="renderedLbl"></span>
+  </span>
+</footer>
+
+<input type="file" id="fileInput" accept=".dwg,.dxf,application/acad,image/vnd.dwg" hidden>
+</body>
+</html>
