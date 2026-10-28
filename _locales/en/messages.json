@@ -1,0 +1,155 @@
+{
+  "extName": {
+    "message": "DWG Viewer"
+  },
+  "extDescription": {
+    "message": "View DWG and DXF drawings in a Chrome tab."
+  },
+  "actionTitle": {
+    "message": "DWG Viewer"
+  },
+  "commandDesc": {
+    "message": "Open DWG Viewer"
+  },
+  "menuOpen": {
+    "message": "Open in DWG Viewer"
+  },
+  "startDrop": {
+    "message": "Drop a DWG or DXF file here"
+  },
+  "startOr": {
+    "message": "or"
+  },
+  "hintCtrl": {
+    "message": "Ctrl"
+  },
+  "hintO": {
+    "message": "O"
+  },
+  "hintMacCtrl": {
+    "message": "⌘"
+  },
+  "openFile": {
+    "message": "Open file…"
+  },
+  "privacyLocal": {
+    "message": "Drawings are rendered on this computer."
+  },
+  "privacyNoUpload": {
+    "message": "Nothing is uploaded."
+  },
+  "rangeLine": {
+    "message": "Opens DWG files from AutoCAD $1 to $2, and DXF files."
+  },
+  "loadingOpening": {
+    "message": "Opening $1"
+  },
+  "sizeMB": {
+    "message": "$1 MB"
+  },
+  "sizeKB": {
+    "message": "$1 KB"
+  },
+  "stageRead": {
+    "message": "Reading file"
+  },
+  "stageReadDwg": {
+    "message": "Reading DWG"
+  },
+  "stageReadDxf": {
+    "message": "Reading DXF"
+  },
+  "stageDraw": {
+    "message": "Drawing objects"
+  },
+  "progressObjects": {
+    "message": "$1 of $2 objects"
+  },
+  "cancel": {
+    "message": "Cancel"
+  },
+  "statusFileTitle": {
+    "message": "$1 · DWG Viewer"
+  },
+  "chipDwg": {
+    "message": "DWG · AutoCAD $1"
+  },
+  "chipDxf": {
+    "message": "DXF · AutoCAD $1"
+  },
+  "chipDxfPlain": {
+    "message": "DXF"
+  },
+  "statusDrawn": {
+    "message": "$1 of $2 objects drawn"
+  },
+  "statusRendered": {
+    "message": "Rendered on this computer"
+  },
+  "errCantReadTitle": {
+    "message": "Can’t read this file"
+  },
+  "errCantReadBody": {
+    "message": "$1 is not a DWG or DXF drawing, or the file is damaged."
+  },
+  "errCantReadHint": {
+    "message": "If it opens in your CAD program, save it again and try here."
+  },
+  "errOpenAnother": {
+    "message": "Open another file"
+  },
+  "errTryAgain": {
+    "message": "Try again"
+  },
+  "errVersionTitle": {
+    "message": "This DWG version isn’t supported"
+  },
+  "errVersionKnownBody": {
+    "message": "$1 was saved in AutoCAD $2 ($3). DWG Viewer opens DWG files from AutoCAD $4 to $5."
+  },
+  "errVersionUnknownBody": {
+    "message": "$1 was saved in a DWG version DWG Viewer doesn’t know ($2). DWG Viewer opens DWG files from AutoCAD $3 to $4."
+  },
+  "errVersionHint": {
+    "message": "Open it in a CAD program, save it as DWG 2018 or DXF, and drop it here again."
+  },
+  "errTooLargeTitle": {
+    "message": "This drawing is too large to open here"
+  },
+  "errTooLargeBody": {
+    "message": "$1 ($2) didn’t finish drawing in $3 seconds."
+  },
+  "errTooLargeHint": {
+    "message": "Open it in a CAD program, or save only the part you need as a separate file."
+  },
+  "partialSummary": {
+    "message": "Some objects were not drawn: $1."
+  },
+  "partialItem": {
+    "message": "$1 $2"
+  },
+  "partialRest": {
+    "message": "The rest of the drawing is shown."
+  },
+  "partialDetails": {
+    "message": "Details"
+  },
+  "partialHideDetails": {
+    "message": "Hide details"
+  },
+  "partialDismiss": {
+    "message": "Dismiss"
+  },
+  "colType": {
+    "message": "Type"
+  },
+  "colCount": {
+    "message": "Count"
+  },
+  "colLayers": {
+    "message": "Layers"
+  },
+  "fontNote": {
+    "message": "Text is drawn with a system font and may look different from your CAD program."
+  }
+}

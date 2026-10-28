@@ -1,0 +1,8 @@
+{
+  "extName": {
+    "message": "DWG Viewer"
+  },
+  "extDescription": {
+    "message": "View DWG and DXF drawings in a Chrome tab."
+  }
+}
