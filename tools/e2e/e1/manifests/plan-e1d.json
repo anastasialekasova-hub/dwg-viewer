@@ -1,0 +1,5 @@
+[
+ ["tools/e2e/e1/open-corpus.js", "tools/e2e/e1/manifests/quick.json", "--tag", "quick2"],
+ ["tools/e2e/e1/open-corpus.js", "tools/e2e/e1/manifests/real.json", "--tag", "real2"],
+ ["tools/e2e/e1/open-corpus.js", "tools/e2e/e1/manifests/dxf.json", "--tag", "dxf2"]
+]

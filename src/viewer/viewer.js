@@ -40,7 +40,7 @@ for (const id of [
   'hintPan', 'hintZoom', 'hintFit', 'dragOver', 'dropToOpenLbl',
   'partial', 'partialMsg', 'partialDetailsBtn', 'partialDismissBtn', 'partialDet',
   'partialRows', 'fontNote', 'colType', 'colCount', 'colLayers',
-  'layoutTabs', 'drawnPill', 'renderedLbl', 'fileInput',
+  'layoutTabs', 'drawnPill', 'renderedLbl', 'fileInput', 'printShot',
 ]) els[id] = $(id);
 
 let state = 'start';
@@ -192,6 +192,21 @@ function refreshCounts() {
 }
 
 /* ---------- view ---------- */
+
+// Print: the sheet shows a snapshot of the current view, not the live canvas
+// (engine.snapshot). F-15 (button, light colours, sheet header) is E2.
+window.addEventListener('beforeprint', () => {
+  if (state !== 'view') return;
+  const src = engine.snapshot();
+  if (src) {
+    els.printShot.src = src;
+    els.printShot.hidden = false;
+  }
+});
+window.addEventListener('afterprint', () => {
+  els.printShot.hidden = true;
+  els.printShot.removeAttribute('src');
+});
 
 // Tab title = default PDF file name in Chrome's print dialog (ТЗ 4.2.13): "{file} · {layout}".
 function updateTitle() {

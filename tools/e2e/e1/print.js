@@ -76,8 +76,27 @@ try {
   };
   const pdfs = {};
   // With the viewer's CSS (@page margin 0) and Chrome honouring CSS page size/margins.
+  // Does page.pdf() fire beforeprint (window.print() does)? The viewer puts
+  // its canvas snapshot on the sheet from that event.
+  await page.evaluate(() => {
+    window.__bp = 0;
+    window.addEventListener('beforeprint', () => window.__bp++);
+  });
   pdfs.zero = path.join(dir, `print-zero_${safeName(name)}.pdf`);
   await page.pdf({ path: pdfs.zero, format: 'A4', landscape: true, preferCSSPageSize: true, printBackground: true, ...hf });
+  const beforeprintFired = await page.evaluate(() => window.__bp);
+  console.log('BEFOREPRINT fired during page.pdf: ' + beforeprintFired);
+  // The sheet as window.print() gets it: beforeprint dispatched, then printed.
+  await page.evaluate(() => window.dispatchEvent(new Event('beforeprint')));
+  await new Promise((r) => setTimeout(r, 600));
+  const shotState = await page.evaluate(() => {
+    const i = document.getElementById('printShot');
+    return { hidden: i.hidden, w: i.naturalWidth, h: i.naturalHeight };
+  });
+  console.log('PRINTSHOT ' + JSON.stringify(shotState));
+  pdfs.snap = path.join(dir, `print-snap_${safeName(name)}.pdf`);
+  await page.pdf({ path: pdfs.snap, format: 'A4', landscape: true, preferCSSPageSize: true, printBackground: true });
+  await page.evaluate(() => window.dispatchEvent(new Event('afterprint')));
   // Control: the same with Chrome's default 1 cm margins (no @page override).
   await page.addStyleTag({ content: '@page { margin: 1cm !important; }' });
   pdfs.margin = path.join(dir, `print-margin_${safeName(name)}.pdf`);
@@ -122,7 +141,7 @@ try {
   pdfs.pdb = path.join(dir, `print-pdb_${safeName(name)}.pdf`);
   await p2.pdf({ path: pdfs.pdb, format: 'A4', landscape: true, preferCSSPageSize: true, printBackground: true });
   const sizes = Object.fromEntries(Object.entries(pdfs).map(([k, p]) => [k, fs.statSync(p).size]));
-  const res = { file: name, commands, opened, title, paperTitle, gl, sizes, pdfs, shot, printShot, engineUi };
+  const res = { file: name, commands, opened, title, paperTitle, gl, sizes, pdfs, shot, printShot, engineUi, beforeprintFired, shotState };
   console.log('PRINT ' + JSON.stringify(res));
   await browser.close();
   finish([res], `print-${safeName(name)}.json`, {});

@@ -274,6 +274,16 @@ export async function open({ name, bytes, onProgress } = {}) {
 
 // Zoom to the drawing extents; zoomToSmartExtents falls back to batch
 // geometry when EXTMIN/EXTMAX are missing or stale.
+// Print snapshot (ТЗ 4.2.13 / F-15 mechanics): the WebGL buffer is kept
+// (vendor-patch-print: preserveDrawingBuffer), so the last frame is read as
+// is. The print layout resizes the canvas and the engine redraws on the next
+// animation frame, which never comes while Chrome lays out the sheet, so the
+// sheet prints this image instead of the live canvas.
+export function snapshot() {
+  const c = document.querySelector('#cad canvas');
+  return c && c.width > 0 ? c.toDataURL('image/png') : '';
+}
+
 export async function fit() {
   const v = view();
   try {
