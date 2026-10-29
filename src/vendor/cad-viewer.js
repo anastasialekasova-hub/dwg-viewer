@@ -2511,13 +2511,36 @@ var init_AcCmTransparency = __esm({
 });
 
 // node_modules/@mlightcad/common/lib/AcCmYieldToUi.js
+// DWG Viewer patch: hidden-tab yield
+function __dwvYieldFrames(frames, resolve) {
+  var d = globalThis.document;
+  var done = false;
+  var onVis = function() {
+    if (d.hidden) viaTask();
+  };
+  var fin = function() {
+    if (done) return;
+    done = true;
+    if (d) d.removeEventListener("visibilitychange", onVis);
+    resolve();
+  };
+  var viaTask = function() {
+    var ch = new MessageChannel();
+    ch.port1.onmessage = fin;
+    ch.port2.postMessage(0);
+  };
+  if (d && d.hidden) return viaTask();
+  if (d) d.addEventListener("visibilitychange", onVis);
+  var raf = globalThis.requestAnimationFrame;
+  if (frames === 2) raf(function() {
+    return raf(fin);
+  });
+  else raf(fin);
+}
 function accmYieldToUi() {
   return new Promise(function(resolve) {
     if (typeof globalThis !== "undefined" && typeof globalThis.requestAnimationFrame === "function") {
-      ;
-      globalThis.requestAnimationFrame(function() {
-        return resolve();
-      });
+      __dwvYieldFrames(1, resolve);
     } else {
       setTimeout(resolve, 0);
     }
@@ -2526,12 +2549,7 @@ function accmYieldToUi() {
 function accmYieldForPaint() {
   return new Promise(function(resolve) {
     if (typeof globalThis !== "undefined" && typeof globalThis.requestAnimationFrame === "function") {
-      var raf_1 = globalThis.requestAnimationFrame;
-      raf_1(function() {
-        return raf_1(function() {
-          return resolve();
-        });
-      });
+      __dwvYieldFrames(2, resolve);
     } else {
       setTimeout(resolve, 0);
     }

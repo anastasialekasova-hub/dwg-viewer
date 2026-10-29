@@ -16,6 +16,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { patchCspEval } from './vendor-patch-csp.js';
 import { patchSpline } from './vendor-patch-spline.js';
+import { patchYield } from './vendor-patch-yield.js';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const vendorDir = path.join(root, 'src', 'vendor');
@@ -122,6 +123,7 @@ await patchCspEval(path.join(vendorDir, 'libredwg-worker.js'));
 
 // Closed fit-point splines with < degree+1 points are dropped upstream (4.2.1).
 await patchSpline(path.join(vendorDir, 'cad-viewer.js'));
+await patchYield(path.join(vendorDir, 'cad-viewer.js'));
 
 // Zero network (4.2.6): the mtext worker bakes in the engine's CDN font
 // catalog default and fetches fonts.json with it during boot, before any

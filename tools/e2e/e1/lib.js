@@ -67,6 +67,8 @@ export async function viewerPage(browser, extId, capture) {
     waitUntil: 'load',
     timeout: 30000,
   });
+  // The welcome tab opened at install takes focus; the user looks at the viewer.
+  await page.bringToFront();
   return page;
 }
 
