@@ -217,7 +217,7 @@ function updateTitle() {
 }
 
 function renderTabs() {
-  const ls = engine.listLayouts().sort((a, b) => Number(b.isModel) - Number(a.isModel));
+  const ls = engine.listLayouts().sort((a, b) => Number(b.isModel) - Number(a.isModel) || a.tabOrder - b.tabOrder);
   const active = engine.activeLayoutBtrId();
   els.layoutTabs.hidden = ls.length < 2;
   els.layoutTabs.replaceChildren(

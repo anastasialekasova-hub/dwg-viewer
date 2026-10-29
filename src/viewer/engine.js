@@ -211,7 +211,20 @@ export function listLayouts() {
   for (const btr of doc.database.tables.blockTable._recordsByName.values()) {
     if (!btr) continue;
     if (btr.isModelSapce || btr.isPaperSapce) {
-      out.push({ name: btr.name, btrId: String(btr.objectId), isModel: btr.isModelSapce });
+      // Tab name = the layout's own name ("Layout1"), not its block record
+      // ("*Paper_Space0"): it is also the default PDF name (ТЗ 4.2.13).
+      let lay = null;
+      try {
+        lay = doc.database.objects.layout.getBtrIdAt(btr.objectId);
+      } catch {
+        // no layout dictionary (R12 DXF): fall back to the block name
+      }
+      out.push({
+        name: lay?.layoutName || btr.name,
+        btrId: String(btr.objectId),
+        isModel: btr.isModelSapce,
+        tabOrder: Number.isFinite(lay?.tabOrder) ? lay.tabOrder : 999,
+      });
     }
   }
   return out;
