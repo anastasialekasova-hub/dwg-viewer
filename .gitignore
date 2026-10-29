@@ -3,4 +3,7 @@ dist/
 tools/e2e/out/
 tools/e2e/fixtures-local/
 tools/.venv/
+tools/libredwg-0.14/
+tools/libredwg-0.14.tar.xz
+tools/bin/
 .DS_Store
