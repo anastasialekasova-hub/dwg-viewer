@@ -1,0 +1,23 @@
+[
+ {
+  "path": "tools/e2e/fixtures-local/real/autodesk/architectural_-_annotation_scaling_and_multileaders.dwg",
+  "name": "autodesk/architectural_-_annotation_scaling_and_multileaders.dwg",
+  "bytes": 188992,
+  "code": "AC1021",
+  "kind": "dwg"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/real/autodesk/blocks_and_tables_-_metric.dwg",
+  "name": "autodesk/blocks_and_tables_-_metric.dwg",
+  "bytes": 258848,
+  "code": "AC1021",
+  "kind": "dwg"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/real/gdal/text_mtext_attdef_r2000.dwg",
+  "name": "gdal/text_mtext_attdef_r2000.dwg",
+  "bytes": 179046,
+  "code": "AC1015",
+  "kind": "dwg"
+ }
+]

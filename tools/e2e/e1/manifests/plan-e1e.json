@@ -1,4 +1,36 @@
 [
- ["tools/e2e/e1/print.js", "tools/e2e/fixtures/acadsharp/sample_AC1032.dwg"],
- ["tools/e2e/e1/interactions.js", "tools/e2e/fixtures/acadsharp/sample_AC1032.dwg"]
+ [
+  "tools/e2e/e1/print.js",
+  "tools/e2e/fixtures/acadsharp/sample_AC1032.dwg"
+ ],
+ [
+  "tools/e2e/e1/interactions.js",
+  "tools/e2e/fixtures/acadsharp/sample_AC1032.dwg"
+ ],
+ [
+  "tools/e2e/e1/open-corpus.js",
+  "tools/e2e/e1/manifests/order.json",
+  "--tag",
+  "order"
+ ],
+ [
+  "tools/e2e/e1/fonts-toggle.js",
+  "off"
+ ],
+ [
+  "tools/e2e/e1/open-corpus.js",
+  "tools/e2e/e1/manifests/fonts-ab.json",
+  "--tag",
+  "nofont"
+ ],
+ [
+  "tools/e2e/e1/fonts-toggle.js",
+  "on"
+ ],
+ [
+  "tools/e2e/e1/open-corpus.js",
+  "tools/e2e/e1/manifests/fonts-ab.json",
+  "--tag",
+  "font"
+ ]
 ]

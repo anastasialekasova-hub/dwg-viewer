@@ -127,13 +127,16 @@ for (const f of files) {
   row.shot = path.relative(process.cwd(), shot);
   if (png) {
     row.px = await pixelMetric(browser, png).catch((e) => ({ err: String(e).slice(0, 120) }));
-    row.screen = screenWord(row.px);
+    row.screen = row.ok ? screenWord(row.px) : 'карточка';
   }
   // Fit button and double-click must give the same frame as the open (F-8).
   if (row.ok) {
-    let stage = 'fit-click';
+    let stage = 'ping';
     const tf = Date.now();
     try {
+      await page.evaluate(() => 1);
+      row.pingMs = Date.now() - tf;
+      stage = 'fit-click';
       await page.click('#fitBtn');
       stage = 'fit-shot';
       await new Promise((r) => setTimeout(r, 800));
