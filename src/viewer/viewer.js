@@ -147,27 +147,28 @@ function cancelOpen() {
 function showPartial() {
   if (!current) return;
   const { counts: c, missed: m } = current;
-  const items = [];
-  for (const x of [...m.xrefs, ...m.images, ...m.fonts]) {
-    items.push(msg('partialItem', String(x.count), x.name));
-  }
+  // F-10: the list is the undrawn object types by count; missing fonts are not
+  // objects (their text is drawn with the fallback font) and only get the
+  // font line in Details.
+  const typeName = (t) => (t === 'OTHER' ? msg('partialUnknownTypes') : t);
+  const groups = c.byType ?? [];
+  const items = groups.map((g) => msg('partialItem', fmtInt(g.count), typeName(g.type)));
+  for (const x of [...m.xrefs, ...m.images]) items.push(msg('partialItem', '1', x.name));
   const summary = items.length ? items.join(', ') : msg('partialUnknownTypes');
   els.partialMsg.textContent = msg('partialSummary', summary);
   els.fontNote.hidden = m.fonts.length === 0;
-  const total = (arr) => arr.reduce((s, x) => s + x.count, 0);
-  const rows = [];
-  if (m.xrefs.length) rows.push([msg('partialTypeXref'), total(m.xrefs)]);
-  if (m.images.length) rows.push([msg('partialTypeImage'), total(m.images)]);
-  if (m.fonts.length) rows.push([msg('partialTypeFont'), total(m.fonts)]);
+  const rows = groups.map((g) => [typeName(g.type), g.count, g.layers.join(', ') || '—']);
+  if (m.xrefs.length) rows.push([msg('partialTypeXref'), m.xrefs.length, '—']);
+  if (m.images.length) rows.push([msg('partialTypeImage'), m.images.length, '—']);
   els.partialRows.replaceChildren(
-    ...rows.map(([type, count]) => {
+    ...rows.map(([type, count, layers]) => {
       const tr = document.createElement('tr');
       const t1 = document.createElement('td');
       t1.textContent = type;
       const t2 = document.createElement('td');
       t2.textContent = fmtInt(count);
       const t3 = document.createElement('td');
-      t3.textContent = '—';
+      t3.textContent = layers;
       tr.append(t1, t2, t3);
       return tr;
     }),
@@ -177,13 +178,16 @@ function showPartial() {
   els.partial.hidden = false;
 }
 
+const hasGaps = () =>
+  current.counts?.undrawn > 0 || current.missed?.xrefs.length > 0 || current.missed?.images.length > 0;
+
 function refreshCounts() {
   const c = engine.counts();
   current.counts = c;
   current.missed = engine.missedData();
   els.drawnPill.textContent = msg('statusDrawn', fmtInt(c.drawn), fmtInt(c.total));
   els.drawnPill.classList.toggle('undrawn', c.undrawn > 0);
-  if (c.undrawn > 0 || !current.missed.empty) showPartial();
+  if (hasGaps()) showPartial();
   else els.partial.hidden = true;
 }
 
@@ -579,7 +583,7 @@ function wire() {
   });
   els.drawnPill.addEventListener('click', () => {
     if (state !== 'view' || !current) return;
-    if (current.counts?.undrawn > 0 || !current.missed?.empty) showPartial();
+    if (hasGaps()) showPartial();
   });
 
   // Ctrl+O / ⌘O — 4.2.11 verifies Chrome lets the page see it before its own
