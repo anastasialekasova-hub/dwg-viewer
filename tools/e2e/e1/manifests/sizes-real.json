@@ -1,0 +1,62 @@
+[
+{
+"name": "example_r13.dxf",
+"path": "tools/e2e/fixtures-local/libredwg-testdata/example_r13.dxf",
+"code": "DXF",
+"bytes": 1206223
+},
+{
+"name": "TS1_2000.dxf",
+"path": "tools/e2e/fixtures-local/libredwg-testdata/2000/TS1.dxf",
+"code": "DXF",
+"bytes": 1057584
+},
+{
+"name": "example_2000.dxf",
+"path": "tools/e2e/fixtures-local/libredwg-testdata/example_2000.dxf",
+"code": "DXF",
+"bytes": 1387952
+},
+{
+"name": "Dynblocks.dwg",
+"path": "tools/e2e/fixtures-local/libredwg-testdata/2018/Dynblocks.dwg",
+"code": "AC1032",
+"bytes": 2179277
+},
+{
+"name": "canteen.dwg",
+"path": "tools/e2e/fixtures-local/real/mlightcad/canteen.dwg",
+"code": "AC1021",
+"bytes": 2618816
+},
+{
+"name": "size_5mb.dwg",
+"path": "tools/e2e/fixtures-local/sizes/size_5mb.dwg",
+"code": "AC1015",
+"bytes": 2738388
+},
+{
+"name": "Dynblocks.dxf",
+"path": "tools/e2e/fixtures-local/libredwg-testdata/2018/Dynblocks.dxf",
+"code": "DXF",
+"bytes": 10308881
+},
+{
+"name": "size_20mb.dwg",
+"path": "tools/e2e/fixtures-local/sizes/size_20mb.dwg",
+"code": "AC1015",
+"bytes": 10900407
+},
+{
+"name": "size_20mb.dxf",
+"path": "tools/e2e/fixtures-local/sizes/size_20mb.dxf",
+"code": "DXF",
+"bytes": 21166290
+},
+{
+"name": "size_50mb.dxf",
+"path": "tools/e2e/fixtures-local/sizes/size_50mb.dxf",
+"code": "DXF",
+"bytes": 52698366
+}
+]

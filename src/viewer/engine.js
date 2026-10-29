@@ -118,14 +118,28 @@ function groupUndrawn(list) {
 // reports only a total, so those cannot be attributed to a type).
 export function counts() {
   const doc = manager.curDocument;
+  // drawn = converted entities found in the scene. stats.entityCount counts an
+  // INSERT once per layer its block touches (sample_AC1014: 172 "drawn" of 164),
+  // so it is not a per-object number. Layouts not opened yet are converted on
+  // first view; their converted entities count as drawn (ТЗ 4.2.3: types the
+  // renderer handles).
+  const v = view();
+  const scene = v._scene;
+  const inited = v._initializedLayouts;
   const converted = new Set();
+  let drawn = 0;
   for (const btr of doc.database.tables.blockTable._recordsByName.values()) {
     if (!btr || !(btr.isModelSapce || btr.isPaperSapce)) continue;
+    const btrId = String(btr.objectId);
+    const lay = scene?.layouts?.get(btrId);
+    const live = Boolean(lay) && (!inited || inited.has(btrId));
     for (const e of btr.newIterator()) {
-      if (e) converted.add(String(e.objectId));
+      if (!e) continue;
+      const id = String(e.objectId);
+      converted.add(id);
+      if (!live || lay.hasEntity(id)) drawn++;
     }
   }
-  const drawn = view().stats.summary.entityCount;
   const undrawnList = [];
   let total;
   if (rawEntities) {
