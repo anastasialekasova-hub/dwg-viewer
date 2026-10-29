@@ -1,0 +1,30 @@
+[
+ {
+  "path": "tools/e2e/fixtures/acadsharp/sample_AC1014.dwg",
+  "name": "acadsharp/sample_AC1014.dwg",
+  "bytes": 1312281,
+  "code": "AC1014",
+  "kind": "dwg"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/example_r14.dwg",
+  "name": "libredwg-testdata/example_r14.dwg",
+  "bytes": 439875,
+  "code": "AC1014",
+  "kind": "dwg"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/example_2000.dwg",
+  "name": "libredwg-testdata/example_2000.dwg",
+  "bytes": 582572,
+  "code": "AC1015",
+  "kind": "dwg"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/real/libredwg-written/example_2000_by_libredwg.dwg",
+  "name": "libredwg-written/example_2000_by_libredwg.dwg",
+  "bytes": 546657,
+  "code": "AC1015",
+  "kind": "dwg"
+ }
+]

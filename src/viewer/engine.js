@@ -197,6 +197,10 @@ export async function open({ name, bytes, onProgress } = {}) {
     openViewMode: AcApOpenViewMode.Extents,
     convertAllLayouts: true,
     skipSpatialIndex: false,
+    // AutoCAD shows no-plot layers on screen (they are only left out of
+    // plots). The engine default hides them, and libredwg reads every R14
+    // layer as no-plot, which left R14 drawings blank (ТЗ 4.2.1).
+    drawNoPlotLayers: true,
   };
   let timer = null;
   try {

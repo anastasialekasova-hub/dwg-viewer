@@ -50,9 +50,12 @@ for (const f of files) {
       () => {
         const ok = document.getElementById('drawnPill');
         const err = document.getElementById('error');
-        return (ok && !ok.hidden) || (err && !err.hidden);
+        const end = (ok && !ok.hidden) || (err && !err.hidden);
+        if (end && !window.__openEnd) window.__openEnd = performance.now();
+        return end;
       },
-      { timeout: OPEN_LIMIT_S * 1000, polling: 250 },
+      // Past the viewer's own deadline, so its timeout card is observed too.
+      { timeout: (OPEN_LIMIT_S + 20) * 1000, polling: 100 },
     );
     row.ok = await page.evaluate(() => !document.getElementById('error').hidden ? false : true);
     if (!row.ok) {
@@ -79,7 +82,7 @@ for (const f of files) {
       canvasW: snap.w,
       canvasH: snap.h,
     });
-    row.ms_open = await page.evaluate(() => Math.round(performance.now() - window.__openStart));
+    row.ms_open = await page.evaluate(() => Math.round(window.__openEnd - window.__openStart));
     row.ms_total = Date.now() - t0;
   } catch (e) {
     row.ok = row.ok ?? false;

@@ -1,0 +1,396 @@
+[
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/2000/Constraints.dxf",
+  "name": "Constraints.dxf",
+  "bytes": 220441,
+  "code": "AC1015",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/2000/entities-2d.dxf",
+  "name": "entities-2d.dxf",
+  "bytes": 19995,
+  "code": "AC1015",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/2000/entities-3d.dxf",
+  "name": "entities-3d.dxf",
+  "bytes": 20097,
+  "code": "AC1015",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/2000/Leader.dxf",
+  "name": "Leader.dxf",
+  "bytes": 229827,
+  "code": "AC1015",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/2000/PolyLine2D.dxf",
+  "name": "PolyLine2D.dxf",
+  "bytes": 200301,
+  "code": "AC1015",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/2000/TS1.dxf",
+  "name": "TS1.dxf",
+  "bytes": 1057584,
+  "code": "AC1015",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/2004/Constraints.dxf",
+  "name": "Constraints.dxf",
+  "bytes": 219910,
+  "code": "AC1018",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/2004/Leader.dxf",
+  "name": "Leader.dxf",
+  "bytes": 229662,
+  "code": "AC1018",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/2004/material.dxf",
+  "name": "material.dxf",
+  "bytes": 424990,
+  "code": "AC1018",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/2004/Surface.dxf",
+  "name": "Surface.dxf",
+  "bytes": 658329,
+  "code": "AC1018",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/2004/Underlay.dxf",
+  "name": "Underlay.dxf",
+  "bytes": 376695,
+  "code": "AC1018",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/2007/Constraints.dxf",
+  "name": "Constraints.dxf",
+  "bytes": 220004,
+  "code": "AC1021",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/2007/Leader.dxf",
+  "name": "Leader.dxf",
+  "bytes": 230173,
+  "code": "AC1021",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/2010/Constraints.dxf",
+  "name": "Constraints.dxf",
+  "bytes": 173884,
+  "code": "AC1024",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/2010/gh209_1.dxf",
+  "name": "gh209_1.dxf",
+  "bytes": 272831,
+  "code": "AC1024",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/2010/Leader.dxf",
+  "name": "Leader.dxf",
+  "bytes": 288903,
+  "code": "AC1024",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/2013/Constraints.dxf",
+  "name": "Constraints.dxf",
+  "bytes": 128076,
+  "code": "AC1027",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/2013/gh109_1.dxf",
+  "name": "gh109_1.dxf",
+  "bytes": 421428,
+  "code": "AC1027",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/2013/Leader.dxf",
+  "name": "Leader.dxf",
+  "bytes": 143555,
+  "code": "AC1027",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/2018/Constraints.dxf",
+  "name": "Constraints.dxf",
+  "bytes": 127870,
+  "code": "AC1032",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/2018/Dynblocks.dxf",
+  "name": "Dynblocks.dxf",
+  "bytes": 10308881,
+  "code": "AC1032",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/2018/Leader.dxf",
+  "name": "Leader.dxf",
+  "bytes": 143348,
+  "code": "AC1032",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/2018/LiveSection1.dxf",
+  "name": "LiveSection1.dxf",
+  "bytes": 146350,
+  "code": "AC1032",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/2018/TS1.dxf",
+  "name": "TS1.dxf",
+  "bytes": 969243,
+  "code": "AC1032",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/example_2000.dxf",
+  "name": "example_2000.dxf",
+  "bytes": 1387952,
+  "code": "AC1015",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/example_2000.dxfb",
+  "name": "example_2000.dxfb",
+  "bytes": 925636,
+  "code": "AC1015",
+  "dxfBinary": true,
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/example_2004.dxf",
+  "name": "example_2004.dxf",
+  "bytes": 922305,
+  "code": "AC1018",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/example_2007.dxf",
+  "name": "example_2007.dxf",
+  "bytes": 925472,
+  "code": "AC1021",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/example_2010.dxf",
+  "name": "example_2010.dxf",
+  "bytes": 879558,
+  "code": "AC1024",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/example_2013.dxf",
+  "name": "example_2013.dxf",
+  "bytes": 850618,
+  "code": "AC1027",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/example_2018.dxf",
+  "name": "example_2018.dxf",
+  "bytes": 845818,
+  "code": "AC1032",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/example_2018.dxfb",
+  "name": "example_2018.dxfb",
+  "bytes": 65268,
+  "code": "AC1032",
+  "dxfBinary": true,
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/example_r12.dxf",
+  "name": "example_r12.dxf",
+  "bytes": 711206,
+  "code": "AC1009",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/example_r13.dxf",
+  "name": "example_r13.dxf",
+  "bytes": 1206223,
+  "code": "AC1012",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/example_r14.dxf",
+  "name": "example_r14.dxf",
+  "bytes": 575437,
+  "code": "AC1014",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/r10/entities.dxf",
+  "name": "entities.dxf",
+  "bytes": 8197,
+  "code": "AC1006",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/r10/tmp_line.dxf",
+  "name": "tmp_line.dxf",
+  "bytes": 4530,
+  "code": "AC1006",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/r11/Constraints_12.dxf",
+  "name": "Constraints_12.dxf",
+  "bytes": 6220,
+  "code": "AC1009",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/r11/entities-2d.dxf",
+  "name": "entities-2d.dxf",
+  "bytes": 8605,
+  "code": "AC1009",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/r11/entities-3d.dxf",
+  "name": "entities-3d.dxf",
+  "bytes": 8741,
+  "code": "AC1009",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/r12/Constraints.dxf",
+  "name": "Constraints.dxf",
+  "bytes": 6220,
+  "code": "AC1009",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/r12/Leader.dxf",
+  "name": "Leader.dxf",
+  "bytes": 20771,
+  "code": "AC1009",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/r13/v.dxf",
+  "name": "v.dxf",
+  "bytes": 12678,
+  "code": "AC1012",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/r14/Leader.dxf",
+  "name": "Leader.dxf",
+  "bytes": 93138,
+  "code": "AC1014",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/r2.10/block.dxf",
+  "name": "block.dxf",
+  "bytes": 2698,
+  "code": null,
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/r2.10/entities.dxf",
+  "name": "entities.dxf",
+  "bytes": 4186,
+  "code": null,
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/r2.6/dim.dxf",
+  "name": "dim.dxf",
+  "bytes": 9071,
+  "code": "AC1003",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/r2.6/entities.dxf",
+  "name": "entities.dxf",
+  "bytes": 6485,
+  "code": "AC1003",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/r9/entities.dxf",
+  "name": "entities.dxf",
+  "bytes": 6799,
+  "code": "AC1004",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/sample_2000.dxf",
+  "name": "sample_2000.dxf",
+  "bytes": 214241,
+  "code": "AC1015",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/sample_2004.dxf",
+  "name": "sample_2004.dxf",
+  "bytes": 181283,
+  "code": "AC1018",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/sample_2007.dxf",
+  "name": "sample_2007.dxf",
+  "bytes": 182255,
+  "code": "AC1021",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/sample_2010.dxf",
+  "name": "sample_2010.dxf",
+  "bytes": 136150,
+  "code": "AC1024",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/sample_2013.dxf",
+  "name": "sample_2013.dxf",
+  "bytes": 93511,
+  "code": "AC1027",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/sample_2018.dxf",
+  "name": "sample_2018.dxf",
+  "bytes": 89031,
+  "code": "AC1032",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/sample_r14.dxf",
+  "name": "sample_r14.dxf",
+  "bytes": 38271,
+  "code": "AC1014",
+  "kind": "dxf"
+ }
+]
