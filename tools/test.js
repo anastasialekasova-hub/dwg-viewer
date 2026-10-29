@@ -2,6 +2,7 @@
 // matching, file-format sniffing, card 4 response classification. The review
 // widget (F-27) and background colors get their tests with their modules.
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { SETTINGS_DEFAULTS, migrateSettings } from '../src/lib/settings.js';
 import { isDrawingUrl } from '../src/lib/links-match.js';
 import { VERSION_CODES, dwgVersion, dxfVersion, sniffKind } from '../src/lib/format.js';
@@ -215,6 +216,39 @@ run('link size limit: 100 MB decimal, boundary inclusive', () => {
   assert.equal(isOverLinkLimit(100 * 1e6), false);
   assert.equal(isOverLinkLimit(100 * 1e6 + 1), true);
 });
+
+/* ---------- vendor fit patch (4.2.1, F-8) ---------- */
+
+{
+  const vendor = readFileSync(new URL('../src/vendor/cad-viewer.js', import.meta.url), 'utf8');
+  run('fit patch: smart-fit boxes skip the XLINE / RAY exclusion set', () => {
+    assert.ok(vendor.includes('// DWG Viewer patch: fit extents'));
+    assert.ok(vendor.includes('filter((o) => Ke2(o) && !x.has(o.id))'));
+    assert.ok(vendor.includes('Ke2(o) && !this._extentExcludedObjectIds.has(o.id) && i.push(o)'));
+    assert.ok(vendor.includes('const t = await Mb(__dwvDropOutliers(s), e);'));
+  });
+  const at = vendor.indexOf('function __dwvDropOutliers(boxes) {');
+  const end = vendor.indexOf('\n}\n', at) + 2;
+  const drop = new Function(`${vendor.slice(at, end)}; return __dwvDropOutliers;`)();
+  const box = (x, y, w = 10, h = 10) => ({ minX: x, minY: y, maxX: x + w, maxY: y + h });
+  // acadsharp sample layout: ~150 boxes in x 0..1852, y -566..111
+  const core = Array.from({ length: 150 }, (_, i) => box((i * 37) % 1840, -560 + ((i * 53) % 660)));
+  run('fit patch: far box and ±1e6 segment are dropped, core kept', () => {
+    const far = box(5e6, 5e6);
+    const huge = { minX: -1e6, minY: -1e6, maxX: 1e6, maxY: 1e6 };
+    const out = drop([...core, far, huge]);
+    assert.equal(out.length, core.length);
+    assert.ok(!out.includes(far) && !out.includes(huge));
+  });
+  run('fit patch: under 20 boxes nothing is dropped', () => {
+    const few = [...core.slice(0, 10), box(5e6, 5e6)];
+    assert.equal(drop(few).length, few.length);
+  });
+  run('fit patch: a second cluster with over 2 % of boxes stays', () => {
+    const second = Array.from({ length: 10 }, (_, i) => box(50000 + i * 20, 0));
+    assert.equal(drop([...core, ...second]).length, core.length + second.length);
+  });
+}
 
 /* ---------- report ---------- */
 

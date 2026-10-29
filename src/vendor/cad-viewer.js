@@ -177553,8 +177553,33 @@ var kp2 = class {
     await accmYieldForPaint(), this.lastYield = performance.now();
   }
 };
+// DWG Viewer patch: fit extents
+function __dwvDropOutliers(boxes) {
+  if (boxes.length < 20) return boxes;
+  var xs = [], ys = [];
+  for (var i = 0; i < boxes.length; i++) {
+    var b = boxes[i];
+    xs.push((b.minX + b.maxX) / 2);
+    ys.push((b.minY + b.maxY) / 2);
+  }
+  xs.sort(function(a, c) { return a - c; });
+  ys.sort(function(a, c) { return a - c; });
+  var lo = Math.floor(xs.length * 0.02), hi = Math.min(xs.length - 1, Math.ceil(xs.length * 0.98) - 1);
+  var x0 = xs[lo], x1 = xs[hi], y0 = ys[lo], y1 = ys[hi];
+  var size = Math.max(x1 - x0, y1 - y0, 1e-9);
+  var reach = size * 10, maxSize = size * 100, kept = [];
+  for (var j = 0; j < boxes.length; j++) {
+    var q = boxes[j], cx = (q.minX + q.maxX) / 2, cy = (q.minY + q.maxY) / 2;
+    var dx = cx < x0 ? x0 - cx : cx > x1 ? cx - x1 : 0;
+    var dy = cy < y0 ? y0 - cy : cy > y1 ? cy - y1 : 0;
+    if (Math.max(dx, dy) > reach) continue;
+    if (Math.max(q.maxX - q.minX, q.maxY - q.minY) > maxSize) continue;
+    kept.push(q);
+  }
+  return kept.length > 0 ? kept : boxes;
+}
 async function Lb(s, e = new kp2()) {
-  const t = await Mb(s, e);
+  const t = await Mb(__dwvDropOutliers(s), e);
   if (!t)
     return;
   await e.yieldNow();
@@ -180300,7 +180325,8 @@ var Cp2 = class {
    * @returns Flat list of finite world XY boxes.
    */
   collectSpatialExtentBoxes() {
-    return this._spatialIndex.all().filter(Ke2);
+    const x = this._extentExcludedObjectIds;
+    return this._spatialIndex.all().filter((o) => Ke2(o) && !x.has(o.id));
   }
   /**
    * Async variant of {@link collectSpatialExtentBoxes} that yields while
@@ -180312,7 +180338,7 @@ var Cp2 = class {
     const t = await this._spatialIndex.allAsync(e), i = [];
     for (let n = 0; n < t.length; n++) {
       const o = t[n];
-      Ke2(o) && i.push(o), (n & 2047) === 2047 && await e.maybeYield();
+      Ke2(o) && !this._extentExcludedObjectIds.has(o.id) && i.push(o), (n & 2047) === 2047 && await e.maybeYield();
     }
     return i;
   }

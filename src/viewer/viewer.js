@@ -558,10 +558,15 @@ function wire() {
     engine.zoomBy(0.8);
     setZoomPct();
   });
-  els.fitBtn.addEventListener('click', async () => {
+  const fitAll = async () => {
     await engine.fit();
     engine.captureZoomBaseline();
     setZoomPct();
+  };
+  els.fitBtn.addEventListener('click', fitAll);
+  // F-8: double-click anywhere on the drawing fits it, same path as Fit.
+  els.cad.addEventListener('dblclick', (e) => {
+    if (e.button === 0) fitAll();
   });
 
   els.partialDismissBtn.addEventListener('click', () => {
