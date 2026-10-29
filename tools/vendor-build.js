@@ -143,6 +143,23 @@ const CDN_FONTS = 'https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/';
   console.log('patched mtext worker font catalog default -> same-origin fonts/');
 }
 
+// Text without the drawing's fonts (4.2.1): the engine's catalog is a CDN we
+// never call, so with an empty fonts.json every TEXT/MTEXT stayed invisible.
+// Ship one unmodified DejaVu Sans (Latin, Cyrillic, Greek, °, ±, Ø) and register
+// it under the engine's default-chain names ("modern" preset: simsun, hztxt),
+// so any text whose own font is missing falls back to it. The drawing's own
+// font names stay in missedFonts (the banner still lists them).
+const fontsDir = path.join(vendorDir, 'fonts');
+await mkdir(fontsDir, { recursive: true });
+const FONT = { pkg: 'dejavu-fonts-ttf', file: 'DejaVuSans.ttf' };
+await copyFile(nm(`${FONT.pkg}/ttf/${FONT.file}`), path.join(fontsDir, FONT.file));
+await copyFile(nm(`${FONT.pkg}/LICENSE`), path.join(fontsDir, 'DejaVu-LICENSE.txt'));
+await writeFile(
+  path.join(fontsDir, 'fonts.json'),
+  JSON.stringify([{ name: ['dejavusans', 'dejavu sans', 'simsun', 'hztxt'], file: FONT.file, type: 'mesh' }], null, 1) + '\n',
+);
+console.log(`src/vendor/fonts/${FONT.file}: ${((await stat(path.join(fontsDir, FONT.file))).size / 1024).toFixed(0)} KB (fallback font)`);
+
 const wasmSrc = nm('@mlightcad/libredwg-web/wasm/libredwg-web.wasm');
 const wasmOut = path.join(vendorDir, 'libredwg-web.wasm');
 await copyFile(wasmSrc, wasmOut);
@@ -159,6 +176,7 @@ const DIRECT = [
   '@mlightcad/three-renderer',
   'three',
   'lodash-es',
+  'dejavu-fonts-ttf',
 ];
 const rows = [];
 for (const name of DIRECT) {
@@ -184,6 +202,14 @@ https://github.com/mlightcad/libredwg-web). It is a build of LibreDWG
 (https://github.com/LibreDWG/libredwg, GPL-3.0) compiled to WebAssembly by
 that package; the exact sources and build scripts are the libredwg-web
 repository at tag v${lwVer}.
+
+## src/vendor/fonts/DejaVuSans.ttf
+
+Unmodified copy of \`DejaVuSans.ttf\` from \`dejavu-fonts-ttf@${(await pkgMeta('dejavu-fonts-ttf')).version}\`
+(DejaVu Fonts 2.37, https://dejavu-fonts.github.io/). License: Bitstream Vera
+Fonts license with DejaVu changes in the public domain; full text in
+\`src/vendor/fonts/DejaVu-LICENSE.txt\`. Used only as the fallback for text
+whose own font is not in the drawing.
 `;
 await writeFile(path.join(root, 'THIRD_PARTY_NOTICES.md'), notices);
 console.log('THIRD_PARTY_NOTICES.md regenerated');

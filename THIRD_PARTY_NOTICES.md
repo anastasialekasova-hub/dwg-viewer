@@ -15,6 +15,7 @@ distributed under GPL-3.0-or-later (ТЗ 7.9).
 | @mlightcad/three-renderer | 1.7.6 | MIT | https://github.com/mlightcad/cad-viewer |
 | three | 0.172.0 | MIT | https://github.com/mrdoob/three.js |
 | lodash-es | 4.17.21 | MIT | lodash/lodash |
+| dejavu-fonts-ttf | 2.37.3 | SEE LICENSE IN README.md AND LICENSE | senotrusov/dejavu-fonts-ttf |
 
 ## libredwg-web.wasm
 
@@ -24,3 +25,11 @@ https://github.com/mlightcad/libredwg-web). It is a build of LibreDWG
 (https://github.com/LibreDWG/libredwg, GPL-3.0) compiled to WebAssembly by
 that package; the exact sources and build scripts are the libredwg-web
 repository at tag v0.7.17.
+
+## src/vendor/fonts/DejaVuSans.ttf
+
+Unmodified copy of `DejaVuSans.ttf` from `dejavu-fonts-ttf@2.37.3`
+(DejaVu Fonts 2.37, https://dejavu-fonts.github.io/). License: Bitstream Vera
+Fonts license with DejaVu changes in the public domain; full text in
+`src/vendor/fonts/DejaVu-LICENSE.txt`. Used only as the fallback for text
+whose own font is not in the drawing.

@@ -1,1 +1,12 @@
-[]
+[
+ {
+  "name": [
+   "dejavusans",
+   "dejavu sans",
+   "simsun",
+   "hztxt"
+  ],
+  "file": "DejaVuSans.ttf",
+  "type": "mesh"
+ }
+]
