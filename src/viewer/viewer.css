@@ -326,3 +326,14 @@ body:not([data-state="start"]) #start { display: none; }
 body[data-state="view"] #fileBox,
 body[data-state="view"] #zoomGroup { display: flex; }
 body[data-state="view"] #stageHint { display: flex; }
+
+/* Print / Save as PDF (ТЗ 4.2.13): zero page margins leave Chrome no room for
+   its header/footer (title, chrome-extension:// URL, date, page number), and
+   only the drawing canvas is printed. */
+@page { margin: 0; }
+@media print {
+  html, body { height: auto; background: #fff; }
+  .top, .status, .warn, #stageHint, .stagecenter, .empty { display: none !important; }
+  .body, .stage { position: static; display: block; height: 100vh; width: 100vw; overflow: hidden; }
+  .cadhost { position: absolute; inset: 0; }
+}

@@ -189,6 +189,14 @@ function refreshCounts() {
 
 /* ---------- view ---------- */
 
+// Tab title = default PDF file name in Chrome's print dialog (ТЗ 4.2.13): "{file} · {layout}".
+function updateTitle() {
+  const active = engine.activeLayoutBtrId();
+  const l = engine.listLayouts().find((x) => x.btrId === active);
+  const layout = !l || l.isModel ? msg('modelTab') : l.name;
+  document.title = msg('statusFileTitle', current.meta.name, layout);
+}
+
 function renderTabs() {
   const ls = engine.listLayouts().sort((a, b) => Number(b.isModel) - Number(a.isModel));
   const active = engine.activeLayoutBtrId();
@@ -210,6 +218,7 @@ function renderTabs() {
         for (const t of els.layoutTabs.children) {
           t.setAttribute('aria-selected', String(t === b));
         }
+        updateTitle();
       });
       return b;
     }),
@@ -220,7 +229,7 @@ function enterView() {
   setState('view');
   els.loading.hidden = true;
   const { meta, ver } = current;
-  document.title = msg('statusFileTitle', meta.name);
+  updateTitle();
   els.fname.textContent = meta.name;
   if (ver.kind === 'dwg') els.fchip.textContent = msg('chipDwg', ver.name);
   else if (ver.code) els.fchip.textContent = msg('chipDxf', ver.name);

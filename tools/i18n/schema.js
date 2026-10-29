@@ -30,7 +30,7 @@ export const MESSAGES = {
   progressObjects: '$1 of $2 objects',
   cancel: 'Cancel',
 
-  statusFileTitle: '$1 · DWG Viewer',
+  statusFileTitle: '$1 · $2',
   chipDwg: 'DWG · AutoCAD $1',
   chipDxf: 'DXF · AutoCAD $1',
   chipDxfPlain: 'DXF',

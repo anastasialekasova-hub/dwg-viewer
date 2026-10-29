@@ -30,6 +30,7 @@ const capture = {};
 const page = await viewerPage(browser, extId, capture);
 await armPage(page);
 if (process.env.DIAG_FRONT === '1') await page.bringToFront();
+if (process.env.DIAG_HIDE === '1') await (await browser.newPage()).bringToFront(); // viewer becomes a background tab
 page.on('workercreated', (w) => {
   console.log('WORKER+ ' + w.url().split('/').pop());
   w.on('console', (m) => console.log('WCONSOLE ' + m.type() + ' ' + m.text().slice(0, 300)));
