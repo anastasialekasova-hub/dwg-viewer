@@ -227,6 +227,16 @@ run('link size limit: 100 MB decimal, boundary inclusive', () => {
     assert.ok(vendor.includes('Ke2(o) && !this._extentExcludedObjectIds.has(o.id) && i.push(o)'));
     assert.ok(vendor.includes('const t = await Mb(__dwvDropOutliers(s), e);'));
   });
+  run('print patch: engine renderer keeps its drawing buffer (4.2.13)', () => {
+    assert.ok(vendor.includes('/* DWG Viewer patch: print buffer */ preserveDrawingBuffer: true'));
+  });
+  run('engine UI off: command line and toolbars hidden, session-only', () => {
+    const eng = readFileSync(new URL('../src/viewer/engine.js', import.meta.url), 'utf8');
+    for (const k of ['isShowCommandLine', 'isShowToolbar', 'isShowShortCutToolbar', 'isShowRibbon']) {
+      assert.ok(new RegExp(k + ': false').test(eng), k);
+    }
+    assert.ok(eng.includes('{ persist: false }'));
+  });
   const at = vendor.indexOf('function __dwvDropOutliers(boxes) {');
   const end = vendor.indexOf('\n}\n', at) + 2;
   const drop = new Function(`${vendor.slice(at, end)}; return __dwvDropOutliers;`)();

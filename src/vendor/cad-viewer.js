@@ -226304,7 +226304,8 @@ var de2 = class de3 extends qx {
     t.container = i, i.style.overflow = "hidden", i.hasAttribute("tabindex") || (i.tabIndex = -1);
     const n = new WebGLRenderer({
       antialias: true,
-      alpha: true
+      alpha: true,
+      /* DWG Viewer patch: print buffer */ preserveDrawingBuffer: true
     });
     i.appendChild(n.domElement), n.domElement.style.display = "block", n.domElement.style.maxWidth = "100%", n.domElement.style.maxHeight = "100%";
     const o = uv(
@@ -234752,6 +234753,7 @@ init_lib4();
 export {
   x as AcApDocManager,
   Mo3 as AcApOpenViewMode,
+  he as AcApSettingManager,
   AcDbDatabaseConverterManager,
   AcDbFileType,
   AcDbLibreDwgConverter,

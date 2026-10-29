@@ -84,6 +84,17 @@ try {
   await page.pdf({ path: pdfs.margin, format: 'A4', landscape: true, preferCSSPageSize: true, printBackground: true, ...hf });
   const shot = path.join(ensureOut('screens'), `print_${safeName(name)}.png`);
   await page.screenshot({ path: shot });
+  // What the sheet holds: the page in print media (no top bar, no engine UI).
+  await page.emulateMediaType('print');
+  await new Promise((r) => setTimeout(r, 800));
+  const printShot = path.join(ensureOut('screens'), `print-media_${safeName(name)}.png`);
+  await page.screenshot({ path: printShot });
+  const engineUi = await page.evaluate(() =>
+    ['.ml-cli-container', '.ml-shortcut-toolbar', '[class*="ml-toolbar"]', '[class*="ribbon"]']
+      .map((q) => [q, [...document.querySelectorAll(q)].filter((e) => e.offsetParent !== null).length]),
+  );
+  console.log('ENGINE-UI ' + JSON.stringify(engineUi));
+  await page.emulateMediaType('screen');
   // The vendor WebGL canvas is created with preserveDrawingBuffer=false, so
   // print gets an empty buffer. Candidate fix for E2: preserveDrawingBuffer=true.
   // Proof without touching the product: force it for a second page and print
@@ -111,7 +122,7 @@ try {
   pdfs.pdb = path.join(dir, `print-pdb_${safeName(name)}.pdf`);
   await p2.pdf({ path: pdfs.pdb, format: 'A4', landscape: true, preferCSSPageSize: true, printBackground: true });
   const sizes = Object.fromEntries(Object.entries(pdfs).map(([k, p]) => [k, fs.statSync(p).size]));
-  const res = { file: name, commands, opened, title, paperTitle, gl, sizes, pdfs, shot };
+  const res = { file: name, commands, opened, title, paperTitle, gl, sizes, pdfs, shot, printShot, engineUi };
   console.log('PRINT ' + JSON.stringify(res));
   await browser.close();
   finish([res], `print-${safeName(name)}.json`, {});

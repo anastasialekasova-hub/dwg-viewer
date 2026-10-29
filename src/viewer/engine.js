@@ -3,6 +3,7 @@
 // Owns the single AcApDocManager instance and the DWG converter registration.
 import {
   AcApDocManager,
+  AcApSettingManager,
   AcEdOpenMode,
   AcApOpenViewMode,
   eventBus,
@@ -43,6 +44,22 @@ export function ensureEngine(container) {
     return model;
   };
   AcDbDatabaseConverterManager.instance.register(AcDbFileType.DWG, dwgConverter);
+  // The viewer has its own top bar; the engine's command line ("Type command"),
+  // undo/redo/delete toolbar, ribbon and coordinate readout are editor UI that
+  // the mockups do not have and that land on the printed sheet (ТЗ 4.2.13).
+  // Session-only (persist: false): nothing is written to localStorage.
+  AcApSettingManager.instance.apply(
+    {
+      isShowCommandLine: false,
+      isShowToolbar: false,
+      isShowShortCutToolbar: false,
+      isShowRibbon: false,
+      isShowCoordinate: false,
+      isShowLanguageSelector: false,
+      isShowStats: false,
+    },
+    { persist: false },
+  );
   manager = AcApDocManager.createInstance({
     container,
     autoResize: true,

@@ -15,6 +15,8 @@ import {
   finish,
   ensureOut,
   safeName,
+  pixelMetric,
+  screenWord,
   OPEN_LIMIT_S,
 } from './lib.js';
 
@@ -107,8 +109,31 @@ for (const f of files) {
     row.failedReq = capture.requests.filter((r) => r.startsWith('FAILED')).slice(0, 5);
   }
   const shot = path.join(shots, `${safeName(f.name)}_${tag || 'run'}.png`);
-  await page.screenshot({ path: shot, fullPage: false }).catch(() => {});
+  const png = await page.screenshot({ path: shot, fullPage: false }).catch(() => null);
   row.shot = path.relative(process.cwd(), shot);
+  if (png) {
+    row.px = await pixelMetric(browser, png).catch((e) => ({ err: String(e).slice(0, 120) }));
+    row.screen = screenWord(row.px);
+  }
+  // Fit button and double-click must give the same frame as the open (F-8).
+  if (row.ok) {
+    try {
+      await page.click('#fitBtn');
+      await new Promise((r) => setTimeout(r, 800));
+      const pf = await page.screenshot({ fullPage: false });
+      row.pxFit = await pixelMetric(browser, pf);
+      const box = await (await page.$('#cad canvas')).boundingBox();
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, { count: 2 });
+      await new Promise((r) => setTimeout(r, 800));
+      const pd = await page.screenshot({
+        path: shot.replace(/\.png$/, '_dbl.png'),
+        fullPage: false,
+      });
+      row.pxDbl = await pixelMetric(browser, pd);
+    } catch (e) {
+      row.fitErr = String(e).slice(0, 160);
+    }
+  }
   await page.close().catch(() => {});
   rows.push(row);
   console.log('ROW ' + JSON.stringify(row));

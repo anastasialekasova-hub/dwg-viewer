@@ -4,6 +4,7 @@
 // AcDbDatabaseConverterManager shared by the bundle internals and engine.js.
 export {
   AcApDocManager,
+  AcApSettingManager,
   AcTrView2d,
   AcApOpenViewMode,
   AcEdOpenMode,

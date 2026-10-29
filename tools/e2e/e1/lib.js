@@ -162,3 +162,71 @@ export function finish(rows, outfile, extra = {}) {
   for (const r of rows) console.log('ROW ' + JSON.stringify(r));
   console.log(`WROTE ${path.relative(ROOT, out)} rows=${rows.length}`);
 }
+
+// Visible-drawing metric (ТЗ 4.2.1 is judged by the screen, not the counter).
+// Area: x 0..w, y 50..min(h-120, 785) of the 1280×900 viewport — below the
+// viewer top bar, above the bottom panel. Dominant colour = the most common
+// colour in the area (the background); "ink" = a pixel that differs from it by
+// more than 40 on any channel. Returns the ink share and the ink bounding box
+// as a share of the area on each axis.
+let metricPage = null;
+export async function pixelMetric(browser, png) {
+  if (!metricPage || metricPage.isClosed()) {
+    metricPage = await browser.newPage();
+    await metricPage.goto('about:blank');
+  }
+  const b64 = Buffer.from(png).toString('base64');
+  return metricPage.evaluate(async (b64) => {
+    const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    const bmp = await createImageBitmap(new Blob([bin], { type: 'image/png' }));
+    const W = bmp.width;
+    const H = bmp.height;
+    const y0 = 50;
+    const y1 = Math.min(H - 120, 785);
+    const c = new OffscreenCanvas(W, H);
+    const g = c.getContext('2d');
+    g.drawImage(bmp, 0, 0);
+    const d = g.getImageData(0, y0, W, y1 - y0).data;
+    const hist = new Map();
+    for (let i = 0; i < d.length; i += 4) {
+      const k = (d[i] << 16) | (d[i + 1] << 8) | d[i + 2];
+      hist.set(k, (hist.get(k) ?? 0) + 1);
+    }
+    let bg = 0;
+    let best = -1;
+    for (const [k, v] of hist) if (v > best) { best = v; bg = k; }
+    const br = bg >> 16, bgG = (bg >> 8) & 255, bb = bg & 255;
+    let ink = 0, minX = W, maxX = -1, minY = H, maxY = -1;
+    const rowW = W * 4;
+    for (let i = 0; i < d.length; i += 4) {
+      if (Math.abs(d[i] - br) > 40 || Math.abs(d[i + 1] - bgG) > 40 || Math.abs(d[i + 2] - bb) > 40) {
+        ink++;
+        const x = (i % rowW) / 4;
+        const y = Math.floor(i / rowW);
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+    }
+    const areaH = y1 - y0;
+    const total = W * areaH;
+    return {
+      sharePct: Math.round((ink / total) * 10000) / 100,
+      bg: '#' + bg.toString(16).padStart(6, '0'),
+      bboxW: ink ? Math.round(((maxX - minX + 1) / W) * 100) : 0,
+      bboxH: ink ? Math.round(((maxY - minY + 1) / areaH) * 100) : 0,
+      area: [0, y0, W, y1],
+    };
+  }, b64);
+}
+
+// One word for the "на экране" column. пусто: under 0.05 % ink; частично: the
+// ink box spans under 30 % of the area on both axes (the fit leaves the drawing
+// a speck); otherwise чертёж. Cases where a reference render shows more than the
+// screen are downgraded by hand in the report.
+export function screenWord(m) {
+  if (!m || m.sharePct < 0.05) return 'пусто';
+  if (m.bboxW < 30 && m.bboxH < 30) return 'частично';
+  return 'чертёж';
+}
