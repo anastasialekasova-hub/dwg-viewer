@@ -34154,7 +34154,7 @@ var mx = class {
    * Creates a new instance of DefaultFontLoader
    */
   constructor() {
-    this._availableFontsPromise = null, this._catalogRefreshAttempted = false, this._avaiableFonts = [], this._avaiableFontMap = /* @__PURE__ */ new Map(), this._baseUrl = "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/";
+    this._availableFontsPromise = null, this._catalogRefreshAttempted = false, this._avaiableFonts = [], this._avaiableFontMap = /* @__PURE__ */ new Map(), this._baseUrl = "fonts/";
   }
   /**
    * Base URL to load fonts

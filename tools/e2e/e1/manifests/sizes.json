@@ -1,0 +1,5 @@
+[
+  {"name":"size_1mb.dwg","path":"tools/e2e/fixtures-local/sizes/size_1mb.dwg","code":"AC1015","bytes":578649},
+  {"name":"size_5mb.dwg","path":"tools/e2e/fixtures-local/sizes/size_5mb.dwg","code":"AC1015","bytes":2738388},
+  {"name":"size_20mb.dwg","path":"tools/e2e/fixtures-local/sizes/size_20mb.dwg","code":"AC1015","bytes":10900407}
+]

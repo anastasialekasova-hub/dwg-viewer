@@ -14,6 +14,7 @@ import { existsSync } from 'node:fs';
 import { copyFile, mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { patchCspEval } from './vendor-patch-csp.js';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const vendorDir = path.join(root, 'src', 'vendor');
@@ -112,6 +113,25 @@ for (const b of BUNDLES) {
   await build({ ...COMMON, entryPoints: [b.entry], outfile: b.out, banner: { js: header(b.meta, b.note) } });
   const size = (await stat(b.out)).size;
   console.log(`${path.relative(root, b.out)}: ${(size / 1024 / 1024).toFixed(2)} MB`);
+}
+
+// MV3 CSP forbids 'unsafe-eval'; the emscripten runtime in the DWG worker
+// builds embind/emval invokers via new Function. Patch both sites post-build.
+await patchCspEval(path.join(vendorDir, 'libredwg-worker.js'));
+
+// Zero network (4.2.6): the mtext worker bakes in the engine's CDN font
+// catalog default and fetches fonts.json with it during boot, before any
+// setFontUrl message lands. A relative base resolves against the worker
+// script URL (src/vendor/), i.e. our shipped src/vendor/fonts/ catalog.
+const mtextOut = path.join(vendorDir, 'mtext-renderer-worker.js');
+const CDN_FONTS = 'https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/';
+{
+  const src = await readFile(mtextOut, 'utf8');
+  if (!src.includes(CDN_FONTS)) {
+    throw new Error(`mtext worker: expected CDN font default not found — upstream drifted`);
+  }
+  await writeFile(mtextOut, src.split(CDN_FONTS).join('fonts/'));
+  console.log('patched mtext worker font catalog default -> same-origin fonts/');
 }
 
 const wasmSrc = nm('@mlightcad/libredwg-web/wasm/libredwg-web.wasm');

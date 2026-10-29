@@ -48,11 +48,18 @@ export function ensureEngine(container) {
     },
   });
   if (!manager) throw new Error('AcApDocManager.createInstance returned undefined');
+  // The engine defaults its font catalog to an external CDN and awaits fonts
+  // before drawing; a stalled CDN keeps deferred glyph jobs pending forever
+  // (see AcApDocManager.installFontFileLoadTimeout comment). _fontLoader is
+  // the engine's FontManager singleton — repoint it at our empty on-extension
+  // catalog before any open so font requests resolve as NotFound locally
+  // (4.2.6 zero network).
+  manager._fontLoader.baseUrl = extUrl('src/vendor/fonts/');
   return manager;
 }
 
 function view() {
-  return manager.curView();
+  return manager.curView;
 }
 
 export function fileVersion(name, bytes) {
@@ -75,8 +82,7 @@ function countBlockEntities(btr) {
 export function counts() {
   const doc = manager.curDocument;
   let total = 0;
-  const it = doc.database.blockTable.newIterator();
-  for (const btr of it) {
+  for (const btr of doc.database.tables.blockTable._recordsByName.values()) {
     if (btr && (btr.isModelSapce || btr.isPaperSapce)) total += countBlockEntities(btr);
   }
   const drawn = view().stats.summary.entityCount;
@@ -99,8 +105,7 @@ export function missedData() {
 export function listLayouts() {
   const doc = manager.curDocument;
   const out = [];
-  const it = doc.database.blockTable.newIterator();
-  for (const btr of it) {
+  for (const btr of doc.database.tables.blockTable._recordsByName.values()) {
     if (!btr) continue;
     if (btr.isModelSapce || btr.isPaperSapce) {
       out.push({ name: btr.name, btrId: String(btr.objectId), isModel: btr.isModelSapce });

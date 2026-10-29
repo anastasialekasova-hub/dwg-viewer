@@ -1,0 +1,9 @@
+[
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/example_2013.dwg",
+  "name": "example_2013.dwg",
+  "bytes": 146906,
+  "code": "AC1027",
+  "kind": "dwg"
+ }
+]

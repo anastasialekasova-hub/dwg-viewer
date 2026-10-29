@@ -39,7 +39,8 @@ for (const id of [
   'error', 'errIco', 'errTitle', 'errWhy', 'errNext', 'errOpenAnother', 'errDownloadBtn', 'errTryAgain',
   'hintPan', 'hintZoom', 'hintFit', 'dragOver', 'dropToOpenLbl',
   'partial', 'partialMsg', 'partialDetailsBtn', 'partialDismissBtn', 'partialDet',
-  'partialRows', 'fontNote', 'layoutTabs', 'drawnPill', 'renderedLbl', 'fileInput',
+  'partialRows', 'fontNote', 'colType', 'colCount', 'colLayers',
+  'layoutTabs', 'drawnPill', 'renderedLbl', 'fileInput',
 ]) els[id] = $(id);
 
 let state = 'start';
