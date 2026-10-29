@@ -16,6 +16,10 @@ import { sniffKind, dwgVersion, dxfVersion } from '../lib/format.js';
 import { OPEN_TIME_LIMIT_S } from '../lib/config.js';
 
 let manager = null;
+// DWG: [{handle, type, layer}] for model + paper space, as parsed (pre-conversion).
+let rawEntities = null;
+// DXF: entities the DXF reader skipped as unknown (no per-type detail upstream).
+let dxfUnknown = 0;
 
 function extUrl(p) {
   return chrome.runtime.getURL(p);
@@ -25,14 +29,20 @@ function extUrl(p) {
 // fonts/templates, and the viewer must make zero network requests (4.2.6).
 export function ensureEngine(container) {
   if (manager) return manager;
-  AcDbDatabaseConverterManager.instance.register(
-    AcDbFileType.DWG,
-    new AcDbLibreDwgConverter({
-      useWorker: true,
-      parserWorkerUrl: extUrl('src/vendor/libredwg-worker.js'),
-      timeout: OPEN_TIME_LIMIT_S * 1000,
-    }),
-  );
+  const dwgConverter = new AcDbLibreDwgConverter({
+    useWorker: true,
+    parserWorkerUrl: extUrl('src/vendor/libredwg-worker.js'),
+    timeout: OPEN_TIME_LIMIT_S * 1000,
+  });
+  // Keep what the parser read, before the converter drops entities it cannot
+  // build (returns null) — otherwise "total" would hide them (ТЗ 7.3, 4.2.3).
+  const baseParse = dwgConverter.parse;
+  dwgConverter.parse = async function (data, timeout) {
+    const model = await baseParse.call(this, data, timeout);
+    rawEntities = collectRaw(model);
+    return model;
+  };
+  AcDbDatabaseConverterManager.instance.register(AcDbFileType.DWG, dwgConverter);
   manager = AcApDocManager.createInstance({
     container,
     autoResize: true,
@@ -69,24 +79,58 @@ export function fileVersion(name, bytes) {
   return { kind: null };
 }
 
-function countBlockEntities(btr) {
-  let n = 0;
-  for (const e of btr.newIterator()) {
-    if (e) n++;
+const isLayoutName = (n) => /^\*(model|paper)_space/i.test(n || '');
+
+function collectRaw(model) {
+  const out = [];
+  for (const btr of model?.tables?.BLOCK_RECORD?.entries ?? []) {
+    if (!isLayoutName(btr.name)) continue;
+    for (const e of btr.entities ?? []) out.push({ handle: String(e.handle), type: e.type, layer: e.layer || '0' });
   }
-  return n;
+  return out;
 }
 
-// total: every top-level entity in model + paper spaces (what the file holds);
-// drawn: what the engine rendered (view.stats.summary.entityCount).
+function groupUndrawn(list) {
+  const by = new Map();
+  for (const e of list) {
+    const g = by.get(e.type) ?? { type: e.type, count: 0, layers: new Set() };
+    g.count++;
+    g.layers.add(e.layer);
+    by.set(e.type, g);
+  }
+  return [...by.values()]
+    .map((g) => ({ type: g.type, count: g.count, layers: [...g.layers].sort() }))
+    .sort((a, b) => b.count - a.count);
+}
+
+// total: every top-level entity in model + paper spaces the parser read;
+// drawn: what the engine rendered (view.stats.summary.entityCount);
+// undrawn: [{type, count, layers}] — entities the converter dropped, plus an
+// "OTHER" bucket for converted entities the renderer did not draw (the view
+// reports only a total, so those cannot be attributed to a type).
 export function counts() {
   const doc = manager.curDocument;
-  let total = 0;
+  const converted = new Set();
   for (const btr of doc.database.tables.blockTable._recordsByName.values()) {
-    if (btr && (btr.isModelSapce || btr.isPaperSapce)) total += countBlockEntities(btr);
+    if (!btr || !(btr.isModelSapce || btr.isPaperSapce)) continue;
+    for (const e of btr.newIterator()) {
+      if (e) converted.add(String(e.objectId));
+    }
   }
   const drawn = view().stats.summary.entityCount;
-  return { total, drawn, undrawn: Math.max(0, total - drawn) };
+  const undrawnList = [];
+  let total;
+  if (rawEntities) {
+    total = rawEntities.length;
+    for (const e of rawEntities) if (!converted.has(e.handle)) undrawnList.push(e);
+  } else {
+    total = converted.size + dxfUnknown;
+    for (let i = 0; i < dxfUnknown; i++) undrawnList.push({ type: 'UNKNOWN', layer: '?' });
+  }
+  const undrawnN = Math.max(0, total - drawn);
+  const notRendered = undrawnN - undrawnList.length;
+  for (let i = 0; i < notRendered; i++) undrawnList.push({ type: 'OTHER', layer: '?' });
+  return { total, drawn, undrawn: undrawnN, byType: groupUndrawn(undrawnList), converted: converted.size };
 }
 
 export function missedData() {
@@ -130,11 +174,15 @@ export async function open({ name, bytes, onProgress } = {}) {
     return { ok: false, reason: 'version', version: ver };
   }
 
-  let progressHandler = null;
-  if (typeof onProgress === 'function') {
-    progressHandler = (args) => onProgress(args);
-    eventBus.on('open-file-progress', progressHandler);
-  }
+  rawEntities = null;
+  dxfUnknown = 0;
+  const progressHandler = (args) => {
+    if (args?.subStage === 'PARSE' && args?.subStageStatus === 'END' && args?.data) {
+      dxfUnknown = args.data.unknownEntityCount ?? 0;
+    }
+    if (typeof onProgress === 'function') onProgress(args);
+  };
+  eventBus.on('open-file-progress', progressHandler);
 
   const options = {
     mode: AcEdOpenMode.Read,
@@ -157,7 +205,7 @@ export async function open({ name, bytes, onProgress } = {}) {
     return { ok: false, reason: 'error', version: ver, message: String(err?.message ?? err) };
   } finally {
     clearTimeout(timer);
-    if (progressHandler) eventBus.off('open-file-progress', progressHandler);
+    eventBus.off('open-file-progress', progressHandler);
   }
 }
 

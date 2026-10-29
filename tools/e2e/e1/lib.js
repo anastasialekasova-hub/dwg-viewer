@@ -107,11 +107,19 @@ export async function engineSnapshot(page) {
   return page.evaluate(async () => {
     const url = chrome.runtime.getURL('src/viewer/engine.js');
     const m = await import(url);
+    const t = performance.now();
+    let idle = null;
+    try {
+      idle = await m.idle(30000);
+    } catch {}
+    const msIdle = Math.round(performance.now() - t);
     let canvas = null;
     const host = document.getElementById('cad');
     if (host) canvas = host.querySelector('canvas');
     return {
       counts: m.counts(),
+      idle,
+      msIdle,
       missed: m.missedData(),
       layouts: m.listLayouts().map((l) => ({ name: l.name, isModel: l.isModel })),
       hasCanvas: Boolean(canvas),

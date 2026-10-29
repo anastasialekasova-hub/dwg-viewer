@@ -79264,7 +79264,12 @@ var init_AcDbSpline = __esm({
           }
         }
         if (fitPointCount > 0) {
-          return AcDbSpline2.fromFitPoints(spline.fitPoints, knotParam, spline.degree, closed, spline.startTangent, spline.endTangent);
+          var fromFit = AcDbSpline2.fromFitPoints(spline.fitPoints, knotParam, spline.degree, closed, spline.startTangent, spline.endTangent);
+          // DWG Viewer patch: closed spline with too few fit points -> open loop through them.
+          if (!fromFit && closed && spline.fitPoints && spline.fitPoints.length >= 2) {
+            fromFit = AcDbSpline2.fromFitPoints(spline.fitPoints.concat([spline.fitPoints[0]]), knotParam, spline.degree, false, void 0, void 0);
+          }
+          return fromFit;
         }
         return null;
       };
