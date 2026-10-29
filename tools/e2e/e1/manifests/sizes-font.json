@@ -1,0 +1,20 @@
+[
+ {
+  "name": "example_r13.dxf",
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/example_r13.dxf",
+  "code": "DXF",
+  "bytes": 1206223
+ },
+ {
+  "name": "TS1_2000.dxf",
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/2000/TS1.dxf",
+  "code": "DXF",
+  "bytes": 1057584
+ },
+ {
+  "name": "canteen.dwg",
+  "path": "tools/e2e/fixtures-local/real/mlightcad/canteen.dwg",
+  "code": "AC1021",
+  "bytes": 2618816
+ }
+]
