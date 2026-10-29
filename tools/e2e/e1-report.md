@@ -141,13 +141,15 @@ AC1006×4, AC1003×4, AC1004×2, AC1012×3, без кода (DXF)×6.
 
 ## 4.2.10 — link flow cookies/DNR — PASS (mechanics, small)
 
-- Прогон `open-link.js <small.dwg>`: сервер 127.0.0.1, навигация на `http://127.0.0.1:<port>/small.dwg`
+- Прогон `open-link.js sample_2018.dwg` (19KB): навигация на `http://127.0.0.1:<port>/sample_2018.dwg`
   → DNR-правило редиректит main_frame на `chrome-extension://…/src/viewer/viewer.html#raw=<url>`
   (`urlIsExtension:true`, `rawInUrl:true`).
-- Viewer открыл файл: `ok:true`, drawn 6/6, `ms_open:1016`; сервер видел ровно один fetch с
-  `content-disposition`-запросом (cookie-заголовки пишутся в serverLog — формат для сверки с прод-ссылками).
-- Внешних запросов 0, кроме самого источника на localhost (`extRequests` — только 127.0.0.1); CSP 0.
-- Дословно: `ROW {"file":"small3.dwg",...,"ok":true,...,"ms_open":1016,"finalUrl":"chrome-extension://…/viewer.html#raw=http://127.0.0.1:…/small3.dwg","urlIsExtension":true,"rawInUrl":true,...,"csp":0,"extRequests":2}`
+- Viewer открыл файл: `ok:true`, drawn 6/6, `ms_open:1024`; сервер видел ровно один fetch
+  (cookie/authorization/origin пишутся в serverLog — формат для сверки с прод-ссылками; в стенде куки нет).
+- Внешних запросов 0, кроме самого источника на localhost (`extRequests:2` — main_frame + fetch воркера на 127.0.0.1); CSP 0.
+- Дословно: `ROW {"file":"sample_2018.dwg","sizeKB":19,"mode":"dnr-redirect","ok":true,"total":6,"drawn":6,"layouts":3,"hasCanvas":true,"ms_open":1024,"ms_total":1041,"finalUrl":"chrome-extension://chjnnacclclmmjgeljppiihomfdnldcd/src/viewer/viewer.html#raw=http://127.0.0.1:53828/sample_2018.dwg","urlIsExtension":true,"rawInUrl":true,"heapPeakMB":31,"cookies":[],"serverSaw":[{"url":"/sample_2018.dwg","cookie":null,"authorization":null,"origin":null}],"csp":0,"extRequests":2}` (`WROTE …open-link-small4b.json rows=1`, `EXIT 0 chromes_left=0`)
+- Замечание: ранний прогон small3 (тот же файл) дал таймаут-карточку — флак холодного старта
+  (fonts.json churn воркера); два последующих прогона — PASS, см. 4.2.9 про churn.
 
 ## 4.2.11 — Ctrl+O — PASS
 
