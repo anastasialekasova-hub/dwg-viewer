@@ -1,0 +1,4 @@
+[
+ ["tools/e2e/e1/print.js", "tools/e2e/fixtures/acadsharp/sample_AC1032.dwg"],
+ ["tools/e2e/e1/interactions.js", "tools/e2e/fixtures/acadsharp/sample_AC1032.dwg"]
+]
