@@ -1,0 +1,100 @@
+[
+ {
+  "path": "tools/e2e/fixtures/acadsharp/sample_AC1014.dwg",
+  "name": "acadsharp/sample_AC1014.dwg",
+  "bytes": 1312281,
+  "code": "AC1014",
+  "kind": "dwg"
+ },
+ {
+  "path": "tools/e2e/fixtures/acadsharp/sample_AC1015.dwg",
+  "name": "acadsharp/sample_AC1015.dwg",
+  "bytes": 1297511,
+  "code": "AC1015",
+  "kind": "dwg"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/real/gdal/text_mtext_attdef_r2000.dwg",
+  "name": "gdal/text_mtext_attdef_r2000.dwg",
+  "bytes": 179046,
+  "code": "AC1015",
+  "kind": "dwg"
+ },
+ {
+  "path": "tools/e2e/fixtures/acadsharp/sample_AC1018.dwg",
+  "name": "acadsharp/sample_AC1018.dwg",
+  "bytes": 1097214,
+  "code": "AC1018",
+  "kind": "dwg"
+ },
+ {
+  "path": "tools/e2e/fixtures/acadsharp/sample_AC1021.dwg",
+  "name": "acadsharp/sample_AC1021.dwg",
+  "bytes": 1063168,
+  "code": "AC1021",
+  "kind": "dwg"
+ },
+ {
+  "path": "tools/e2e/fixtures/acadsharp/sample_AC1024.dwg",
+  "name": "acadsharp/sample_AC1024.dwg",
+  "bytes": 1122389,
+  "code": "AC1024",
+  "kind": "dwg"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/real/autodesk/visualization_-_condominium_with_skylight.dwg",
+  "name": "autodesk/visualization_-_condominium_with_skylight.dwg",
+  "bytes": 1415699,
+  "code": "AC1024",
+  "kind": "dwg"
+ },
+ {
+  "path": "tools/e2e/fixtures/acadsharp/sample_AC1027.dwg",
+  "name": "acadsharp/sample_AC1027.dwg",
+  "bytes": 1091959,
+  "code": "AC1027",
+  "kind": "dwg"
+ },
+ {
+  "path": "tools/e2e/fixtures/acadsharp/sample_AC1032.dwg",
+  "name": "acadsharp/sample_AC1032.dwg",
+  "bytes": 1081979,
+  "code": "AC1032",
+  "kind": "dwg"
+ },
+ {
+  "path": "tools/e2e/fixtures/acadsharp/export_sample.dwg",
+  "name": "acadsharp/export_sample.dwg",
+  "bytes": 94819,
+  "code": "AC1032",
+  "kind": "dwg"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/2000/PolyLine2D.dxf",
+  "name": "PolyLine2D.dxf",
+  "bytes": 200301,
+  "code": "AC1015",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/2004/Underlay.dxf",
+  "name": "Underlay.dxf",
+  "bytes": 376695,
+  "code": "AC1018",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/r10/tmp_line.dxf",
+  "name": "tmp_line.dxf",
+  "bytes": 4530,
+  "code": "AC1006",
+  "kind": "dxf"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/libredwg-testdata/r2.10/block.dxf",
+  "name": "block.dxf",
+  "bytes": 2698,
+  "code": null,
+  "kind": "dxf"
+ }
+]

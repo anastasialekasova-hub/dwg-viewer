@@ -108,6 +108,20 @@ for (const f of files) {
     row.consoleFirst = capture.console.slice(0, 8).map((c) => `[${c.type}] ${c.text}`);
     row.failedReq = capture.requests.filter((r) => r.startsWith('FAILED')).slice(0, 5);
   }
+  // The engine keeps working after the pill (its progress overlay is hidden by
+  // viewer.css, but its inline display still says "busy"): measure the screen
+  // only once it is idle, and record how long that took.
+  if (row.ok) {
+    const w0 = Date.now();
+    row.engineBusyAfterPill = await page
+      .waitForFunction(
+        () => ![...document.querySelectorAll('.ml-ccl-overlay')].some((e) => e.style.display === 'flex'),
+        { timeout: 30000, polling: 100 },
+      )
+      .then(() => Date.now() - w0)
+      .catch(() => 'timeout 30 s');
+    await new Promise((r) => setTimeout(r, 300));
+  }
   const shot = path.join(shots, `${safeName(f.name)}_${tag || 'run'}.png`);
   const png = await page.screenshot({ path: shot, fullPage: false }).catch(() => null);
   row.shot = path.relative(process.cwd(), shot);
@@ -117,11 +131,16 @@ for (const f of files) {
   }
   // Fit button and double-click must give the same frame as the open (F-8).
   if (row.ok) {
+    let stage = 'fit-click';
+    const tf = Date.now();
     try {
       await page.click('#fitBtn');
+      stage = 'fit-shot';
       await new Promise((r) => setTimeout(r, 800));
       const pf = await page.screenshot({ fullPage: false });
+      stage = 'fit-metric';
       row.pxFit = await pixelMetric(browser, pf);
+      stage = 'dbl';
       const box = await (await page.$('#cad canvas')).boundingBox();
       await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, { count: 2 });
       await new Promise((r) => setTimeout(r, 800));
@@ -131,7 +150,7 @@ for (const f of files) {
       });
       row.pxDbl = await pixelMetric(browser, pd);
     } catch (e) {
-      row.fitErr = String(e).slice(0, 160);
+      row.fitErr = `${stage} after ${Date.now() - tf} ms: ${String(e).slice(0, 140)}`;
     }
   }
   await page.close().catch(() => {});

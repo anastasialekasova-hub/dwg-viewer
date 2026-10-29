@@ -34,6 +34,7 @@ export async function launchWithExtension(extraArgs = []) {
   return puppeteer.launch({
     executablePath: process.env.CHROME_PATH,
     headless: true,
+    protocolTimeout: 90000,
     args,
   });
 }

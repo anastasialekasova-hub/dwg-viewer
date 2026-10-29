@@ -223,6 +223,7 @@ function renderTabs() {
           t.setAttribute('aria-selected', String(t === b));
         }
         updateTitle();
+        refreshCounts(); // the counter and the banner describe the tab on screen
       });
       return b;
     }),

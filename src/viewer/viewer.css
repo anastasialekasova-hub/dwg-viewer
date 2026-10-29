@@ -337,3 +337,8 @@ body[data-state="view"] #stageHint { display: flex; }
   .body, .stage { position: static; display: block; height: 100vh; width: 100vw; overflow: hidden; }
   .cadhost { position: absolute; inset: 0; }
 }
+
+/* The engine's own "Parsing … / Rendering drawing …" overlay with its brand
+   spinner: the viewer shows its own loading card (F-5), and the engine overlay
+   was caught on screen after the open (PolyLine2D.dxf, E1 call 3). */
+.ml-ccl-overlay { display: none !important; }

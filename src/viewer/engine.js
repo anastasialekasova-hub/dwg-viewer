@@ -110,7 +110,8 @@ function collectRaw(result) {
   };
   for (const btr of model?.tables?.BLOCK_RECORD?.entries ?? []) {
     if (!isLayoutName(btr.name)) continue;
-    for (const e of btr.entities ?? []) out.push({ handle: String(e.handle), type: e.type, layer: e.layer || '0' });
+    const space = String(btr.name).toLowerCase();
+    for (const e of btr.entities ?? []) out.push({ handle: String(e.handle), type: e.type, layer: e.layer || '0', space });
   }
   return out;
 }
@@ -128,8 +129,14 @@ function groupUndrawn(list) {
     .sort((a, b) => b.count - a.count);
 }
 
-// total: every top-level entity in model + paper spaces the parser read;
-// drawn: what the engine rendered (view.stats.summary.entityCount);
+// Counts for the layout on screen (ТЗ 4.2.1: the counter matches what is
+// visible; the Model tab of PolyLine2D.dxf said "1 of 1" for a paper-space
+// VIEWPORT while Model was empty).
+// total: top-level entities of the active space the parser read (DWG: raw
+// entities of the BLOCK_RECORD with the active layout's name; DXF: converted
+// entities + the parser's unknown count, attributed to Model — the DXF parser
+// reports a file-wide number only);
+// drawn: converted entities of the active space found in the scene;
 // undrawn: [{type, count, layers}] — entities the converter dropped, plus an
 // "OTHER" bucket for converted entities the renderer did not draw (the view
 // reports only a total, so those cannot be attributed to a type).
@@ -137,46 +144,59 @@ export function counts() {
   const doc = manager.curDocument;
   // drawn = converted entities found in the scene. stats.entityCount counts an
   // INSERT once per layer its block touches (sample_AC1014: 172 "drawn" of 164),
-  // so it is not a per-object number. Layouts not opened yet are converted on
-  // first view; their converted entities count as drawn (ТЗ 4.2.3: types the
-  // renderer handles).
+  // so it is not a per-object number. A layout not converted yet (still
+  // opening) counts its converted entities as drawn (ТЗ 4.2.3).
   const v = view();
   const scene = v._scene;
   const inited = v._initializedLayouts;
+  const activeId = String(v.activeLayoutBtrId);
+  let active = null;
+  for (const btr of doc.database.tables.blockTable._recordsByName.values()) {
+    if (btr && (btr.isModelSapce || btr.isPaperSapce) && String(btr.objectId) === activeId) active = btr;
+  }
+  if (!active) active = doc.database.tables.blockTable.modelSpace;
   const converted = new Set();
   let drawn = 0;
-  for (const btr of doc.database.tables.blockTable._recordsByName.values()) {
-    if (!btr || !(btr.isModelSapce || btr.isPaperSapce)) continue;
-    const btrId = String(btr.objectId);
+  if (active) {
+    const btrId = String(active.objectId);
     const lay = scene?.layouts?.get(btrId);
     const live = Boolean(lay) && (!inited || inited.has(btrId));
-    for (const e of btr.newIterator()) {
+    for (const e of active.newIterator()) {
       if (!e) continue;
       const id = String(e.objectId);
       converted.add(id);
       if (!live || lay.hasEntity(id)) drawn++;
     }
   }
+  const isModel = Boolean(active?.isModelSapce);
   const undrawnList = [];
   let total;
   if (rawEntities) {
-    total = rawEntities.length;
-    for (const e of rawEntities) if (!converted.has(e.handle)) undrawnList.push(e);
+    const name = String(active?.name ?? '').toLowerCase();
+    const mine = rawEntities.filter((e) => e.space === name);
+    total = mine.length;
+    for (const e of mine) if (!converted.has(e.handle)) undrawnList.push(e);
   } else {
-    total = converted.size + dxfUnknown;
-    for (let i = 0; i < dxfUnknown; i++) undrawnList.push({ type: 'UNKNOWN', layer: '?' });
+    const unknown = isModel ? dxfUnknown : 0;
+    total = converted.size + unknown;
+    for (let i = 0; i < unknown; i++) undrawnList.push({ type: 'UNKNOWN', layer: '?' });
   }
   const undrawnN = Math.max(0, total - drawn);
   const notRendered = undrawnN - undrawnList.length;
   for (let i = 0; i < notRendered; i++) undrawnList.push({ type: 'OTHER', layer: '?' });
-  return { total, drawn, undrawn: undrawnN, byType: groupUndrawn(undrawnList), converted: converted.size, parseInfo };
+  return { total, drawn, undrawn: undrawnN, byType: groupUndrawn(undrawnList), converted: converted.size, isModel, parseInfo };
 }
 
 export function missedData() {
   const m = view().missedData;
   const fonts = Object.entries(m.fonts).map(([name, count]) => ({ name, count }));
   const images = [...m.images.keys()].map((name) => ({ name, count: 1 }));
-  const xrefs = (m.xrefs ?? []).map((x) => ({ name: x.name ?? String(x), count: 1 }));
+  // A '*'-name is a layout or anonymous block, never an xref: libredwg-written
+  // DXFs put the block name into group 1 (xref path), and the engine's DXF
+  // reader then flags *Model_Space / *Paper_SpaceN as unresolved xrefs.
+  const xrefs = (m.xrefs ?? [])
+    .map((x) => ({ name: String(x?.name ?? x), count: 1 }))
+    .filter((x) => !x.name.startsWith('*'));
   return {
     fonts,
     images,
