@@ -84,6 +84,32 @@ try {
   await page.pdf({ path: pdfs.margin, format: 'A4', landscape: true, preferCSSPageSize: true, printBackground: true, ...hf });
   const shot = path.join(ensureOut('screens'), `print_${safeName(name)}.png`);
   await page.screenshot({ path: shot });
+  // The vendor WebGL canvas is created with preserveDrawingBuffer=false, so
+  // print gets an empty buffer. Candidate fix for E2: preserveDrawingBuffer=true.
+  // Proof without touching the product: force it for a second page and print
+  // both without header/footer templates (pixels are counted from the PDFs).
+  pdfs.plain = path.join(dir, `print-plain_${safeName(name)}.pdf`);
+  await page.pdf({ path: pdfs.plain, format: 'A4', landscape: true, preferCSSPageSize: true, printBackground: true });
+  const p2 = await browser.newPage();
+  await p2.setViewport({ width: 1280, height: 900 });
+  await p2.evaluateOnNewDocument(() => {
+    const orig = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (type, attrs) {
+      if (type === 'webgl' || type === 'webgl2') attrs = { ...(attrs || {}), preserveDrawingBuffer: true };
+      return orig.call(this, type, attrs);
+    };
+  });
+  await p2.goto(`chrome-extension://${extId}/src/viewer/viewer.html`, { waitUntil: 'load' });
+  await p2.bringToFront();
+  await (await p2.waitForSelector('#fileInput', { timeout: 10000 })).uploadFile(fileArg);
+  await p2.waitForFunction(() => {
+    const ok = document.getElementById('drawnPill');
+    const err = document.getElementById('error');
+    return (ok && !ok.hidden) || (err && !err.hidden);
+  }, { timeout: 90000, polling: 250 });
+  await new Promise((r) => setTimeout(r, 2500));
+  pdfs.pdb = path.join(dir, `print-pdb_${safeName(name)}.pdf`);
+  await p2.pdf({ path: pdfs.pdb, format: 'A4', landscape: true, preferCSSPageSize: true, printBackground: true });
   const sizes = Object.fromEntries(Object.entries(pdfs).map(([k, p]) => [k, fs.statSync(p).size]));
   const res = { file: name, commands, opened, title, paperTitle, gl, sizes, pdfs, shot };
   console.log('PRINT ' + JSON.stringify(res));

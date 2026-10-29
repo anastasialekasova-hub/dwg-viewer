@@ -14,10 +14,16 @@ CHROME_PATH=<chrome> node tools/e2e/e1/open-link.js <file> [--direct]
 CHROME_PATH=<chrome> node tools/e2e/e1/interactions.js <dwg-with-2+-layouts>
 CHROME_PATH=<chrome> node tools/e2e/e1/diag-open.js <file> [ticks]
 CHROME_PATH=<chrome> node tools/e2e/e1/diag-link.js <file> [--direct]
+CHROME_PATH=<chrome> node tools/e2e/e1/print.js <file>            # 4.2.12/4.2.13
+CHROME_PATH=<chrome> node tools/e2e/e1/cookies.js <file> [--incognito]  # 4.2.8/4.2.14
+node tools/e2e/e1/batch.js tools/e2e/e1/manifests/plan-e1b.json   # несколько шагов за один ssh-run
 ```
 
+Через `remote-test.sh` весь проход — один `run` с batch.js (sshd сервера рвёт серии коротких
+сессий). Перед `sync` папки `tools/.venv` и `tools/libredwg-0.14` убираются из дерева.
+
 Артефакты → `tools/e2e/out/e1/` (JSON-rows + скриншоты), сводка —
-`tools/e2e/out/e1/e1-report.md`.
+`tools/e2e/e1-report.md` (по нумерации ТЗ 4.2.1–4.2.14).
 
 ## Корпус Э1 (ТЗ 4.2.1): 26 настоящих DWG, по 2+ на версию
 
@@ -61,13 +67,17 @@ I=INSERT, P=LWPOLYLINE, E=ELLIPSE, D=DIMENSION; «объектов» = все с
 Пробел корпуса: нет файлов из BricsCAD, DraftSight, ZWCAD и LibreCAD (LibreCAD пишет только DXF);
 из «не AutoCAD» есть ODA SDK (attribs.dwg) и LibreDWG (example_2000_by_libredwg.dwg).
 Layout (листы) есть в файлах ACadSharp, libredwg-testdata и autodesk/*.
-DXF (ТЗ 4.2.2) — `tools/e2e/e1/manifests/corpus.json`, тестовые файлы LibreDWG (55 DXF).
-Синтетика по размерам (`fixtures-local/sizes/`, dxf2dwg) в корпус не входит.
+DXF (ТЗ 4.2.2) — `tools/e2e/e1/manifests/corpus.json`, тестовые файлы LibreDWG (56 DXF: 54 ASCII + 2 binary).
+Самый большой настоящий DWG в корпусе — canteen.dwg 2,5 МБ, DXF — Dynblocks.dxf 10 МБ; публичных
+настоящих DWG от 5 МБ с понятной лицензией не нашлось. Синтетика по размерам в корпус не входит.
 
 ## Регенерация фикстур
 
-- Синтетика по размерам (1/5/20/50 MB): генератор dxf2dwg на сервере
-  (`node tools/e2e/e1/gen-sizes.js` в сценарии синка; выход `tools/e2e/fixtures-local/sizes/size_*.dwg`).
+- Синтетика по размерам (DXF 1/20/50 MB): `tools/.venv/bin/python -I tools/e2e/e1/gen-sizes.py
+  tools/e2e/fixtures-local/sizes2 size_1mb.dxf:7200 size_20mb.dxf:144000 size_50mb.dxf:360000`
+  (ezdxf, слой SIZES объявлен в таблице LAYER; манифест `manifests/sizes2.json`).
+  Синтетический DWG через LibreDWG dxf2dwg непригоден: из R2000 он пишет два *Model_Space,
+  из R12 — блоки без имён, вьюер рисует пустой экран; 5 МБ конвертируется ~7 мин.
 - Vendor-движок: `node tools/vendor-build.js` — esbuild-сборка + обязательные патчи
   (`tools/vendor-patch-csp.js`: 2×`new Function`; замена CDN-каталога шрифтов mtext-воркера
   на `fonts/`). Патчи падают громко при изменении upstream.

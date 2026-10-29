@@ -1,0 +1,20 @@
+[
+ {
+  "name": "syn_size_1mb.dxf",
+  "path": "tools/e2e/fixtures-local/sizes2/size_1mb.dxf",
+  "code": "DXF",
+  "bytes": 917634
+ },
+ {
+  "name": "syn_size_20mb.dxf",
+  "path": "tools/e2e/fixtures-local/sizes2/size_20mb.dxf",
+  "code": "DXF",
+  "bytes": 18681132
+ },
+ {
+  "name": "syn_size_50mb.dxf",
+  "path": "tools/e2e/fixtures-local/sizes2/size_50mb.dxf",
+  "code": "DXF",
+  "bytes": 47135456
+ }
+]

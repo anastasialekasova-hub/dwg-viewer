@@ -129,10 +129,15 @@ try {
   await flow.screenshot({ path: path.join(ensureOut('screens'), 'cookies_viewerFlow.png') });
 
   if (wantIncognito) {
+    // Each incognito stage is bounded and logged: the first run hung for 30 min
+    // with no output, so the next one must say where it stops.
+    const withT = (p, ms, label) => Promise.race([p, sleep(ms).then(() => { throw new Error(`timeout ${ms} ms: ${label}`); })]);
+    const stage = (k, v) => { out[k] = v; console.log('INCOG ' + k + ' ' + JSON.stringify(v).slice(0, 600)); };
+    try {
     // Allow in Incognito the way the toggle on chrome://extensions does it.
     const ext = await browser.newPage();
     await ext.goto(`chrome://extensions/?id=${extId}`);
-    out.incognitoGrant = await ext.evaluate(async (id) => {
+    out.incognitoGrant = await withT(ext.evaluate(async (id) => {
       try {
         await chrome.developerPrivate.updateExtensionConfiguration({ extensionId: id, incognitoAccess: true });
         const info = await chrome.developerPrivate.getExtensionInfo(id);
@@ -140,24 +145,27 @@ try {
       } catch (e) {
         return { ok: false, err: String(e).slice(0, 200) };
       }
-    }, extId);
+    }, extId), 20000, 'developerPrivate');
+    stage('incognitoGrant', out.incognitoGrant);
     await sleep(2000);
     extId = await extensionId(browser);
     out.incognitoMode = await swEval(() => ({ allowed: null, manifestIncognito: chrome.runtime.getManifest().incognito ?? 'spanning (default)' }));
-    out.incognitoMode.allowed = await swEval(() => chrome.extension.isAllowedIncognitoAccess());
+    out.incognitoMode.allowed = await withT(swEval(() => chrome.extension.isAllowedIncognitoAccess()), 15000, 'isAllowedIncognitoAccess');
+    stage('incognitoMode', out.incognitoMode);
     // A real incognito window (primary off-the-record profile), opened by the SW.
-    const win = await swEval(async (url) => {
+    const win = await withT(swEval(async (url) => {
       const w = await chrome.windows.create({ incognito: true, url });
       return { id: w.id, incognito: w.incognito };
-    }, `${A}/login`);
-    out.incognitoWindow = win;
+    }, `${A}/login`), 20000, 'windows.create incognito');
+    stage('incognitoWindow', win);
+    stage('targetsAfterCreate', browser.targets().map((t) => `${t.type()} ${t.url().slice(0, 80)}`));
     await sleep(1500);
     // In incognito: log in with a different cookie value, then click the link.
     const findIncog = async (pred) => {
       for (let i = 0; i < 40; i++) {
         for (const t of browser.targets()) {
           if (t.type() === 'page' && pred(t.url())) {
-            const pg = await t.page();
+            const pg = await withT(t.page(), 10000, 'target.page ' + t.url().slice(0, 60)).catch((e) => { console.log('INCOG page-err ' + e.message); return null; });
             if (pg) return pg;
           }
         }
@@ -166,7 +174,7 @@ try {
       return null;
     };
     const ip = await findIncog((u) => u.startsWith(`${A}/login`));
-    out.incognitoPageFound = Boolean(ip);
+    stage('incognitoPageFound', Boolean(ip));
     if (ip) {
       await ip.evaluate(() => (document.cookie = 'a_incog=1; path=/; SameSite=Lax'));
       await ip.goto(`${A}/page.html`);
@@ -182,13 +190,18 @@ try {
           windows: wins.map((w) => ({ id: w.id, incognito: w.incognito, type: w.type })),
         };
       }, before);
+      stage('afterClick', out.afterClick);
       out.incognitoSourceUrl = ip.url();
       const vt = await findIncog((u) => u.includes('/src/viewer/viewer.html#src='));
       if (vt) {
         await vt.waitForFunction(() => !document.getElementById('drawnPill').hidden || !document.getElementById('error').hidden, { timeout: 60000 }).catch(() => {});
         out.incognitoViewer = await vt.evaluate(() => ({ inIncognitoContext: chrome.extension.inIncognitoContext, ok: document.getElementById('error').hidden, title: document.title }));
+        stage('incognitoViewer', out.incognitoViewer);
         await vt.screenshot({ path: path.join(ensureOut('screens'), 'cookies_incognitoViewer.png') });
       }
+    }
+    } catch (e) {
+      stage('incognitoError', String(e?.message ?? e).slice(0, 300));
     }
   }
   out.serverLog = log;

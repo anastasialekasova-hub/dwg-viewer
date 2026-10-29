@@ -1,0 +1,29 @@
+[
+ [
+  "tools/e2e/e1/open-corpus.js",
+  "tools/e2e/e1/manifests/sizes2.json",
+  "--tag",
+  "sizes2"
+ ],
+ [
+  "tools/e2e/e1/open-link.js",
+  "tools/e2e/fixtures-local/sizes2/size_20mb.dxf",
+  "--tag",
+  "link20dxf"
+ ],
+ [
+  "tools/e2e/e1/open-link.js",
+  "tools/e2e/fixtures-local/sizes2/size_50mb.dxf",
+  "--tag",
+  "link50dxf"
+ ],
+ [
+  "tools/e2e/e1/print.js",
+  "tools/e2e/fixtures/acadsharp/sample_AC1032.dwg"
+ ],
+ [
+  "tools/e2e/e1/cookies.js",
+  "tools/e2e/fixtures/acadsharp/sample_AC1032.dwg",
+  "--incognito"
+ ]
+]
