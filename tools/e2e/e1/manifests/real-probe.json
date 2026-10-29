@@ -1,0 +1,23 @@
+[
+ {
+  "path": "tools/e2e/fixtures/acadsharp/sample_AC1015.dwg",
+  "name": "acadsharp/sample_AC1015.dwg",
+  "bytes": 1297511,
+  "code": "AC1015",
+  "kind": "dwg"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/real/owerko/spline.dwg",
+  "name": "owerko/spline.dwg",
+  "bytes": 1066490,
+  "code": "AC1032",
+  "kind": "dwg"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/real/owerko/dimensions.dwg",
+  "name": "owerko/dimensions.dwg",
+  "bytes": 1161410,
+  "code": "AC1032",
+  "kind": "dwg"
+ }
+]

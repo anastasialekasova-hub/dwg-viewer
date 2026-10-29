@@ -6191,11 +6191,10 @@ var LibreEntityConverter = class {
               endTangent: seg.end_tangent
             };
           }
-          return void 0;
-        }).filter((edge) => edge != null);
+        });
         return {
           ...commonAttrs,
-          numberOfEdges: edges.length,
+          numberOfEdges: path.num_segs_or_paths,
           edges
         };
       }

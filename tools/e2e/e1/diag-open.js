@@ -29,6 +29,12 @@ const extId = await extensionId(browser);
 const capture = {};
 const page = await viewerPage(browser, extId, capture);
 await armPage(page);
+if (process.env.DIAG_FRONT === '1') await page.bringToFront();
+page.on('workercreated', (w) => {
+  console.log('WORKER+ ' + w.url().split('/').pop());
+  w.on('console', (m) => console.log('WCONSOLE ' + m.type() + ' ' + m.text().slice(0, 300)));
+});
+page.on('workerdestroyed', (w) => console.log('WORKER- ' + w.url().split('/').pop()));
 
 await page.evaluate(async (b64name) => {
   const bytes = Uint8Array.from(atob(b64name.b64), (c) => c.charCodeAt(0));
@@ -44,7 +50,8 @@ await page.evaluate(async (b64name) => {
   cv.eventBus.on('open-file-progress', (a) => {
     window.__diag.progressEvents++;
     try {
-      window.__diag.lastProgress = JSON.stringify(a)?.slice(0, 160) ?? String(a).slice(0, 160);
+      window.__diag.lastProgress = [a?.stage, a?.subStage, a?.subStageStatus, a?.percentage].join('|');
+      (window.__diag.stages ??= []).push(window.__diag.lastProgress + '@' + Math.round(performance.now() - window.__diag.t0));
     } catch {
       window.__diag.lastProgress = String(a).slice(0, 160);
     }
@@ -70,7 +77,13 @@ for (let t = 2; t <= diagS; t += 2) {
         cerr = String(e).slice(0, 120);
       }
       const d = window.__diag ?? {};
+      const raf = await new Promise((ok) => {
+        let done = false;
+        requestAnimationFrame(() => { if (!done) { done = true; ok('fired'); } });
+        setTimeout(() => { if (!done) { done = true; ok('timeout1s'); } }, 1000);
+      });
       return {
+        vis: document.visibilityState, focus: document.hasFocus(), raf,
         t: Math.round(performance.now() - (d.t0 ?? 0)),
         counts,
         processing,
@@ -78,7 +91,7 @@ for (let t = 2; t <= diagS; t += 2) {
         openResult: d.openResult ?? null,
         openErr: d.openErr ?? null, ensureErr: d.ensureErr ?? null,
         progressEvents: d.progressEvents ?? 0,
-        lastProgress: d.lastProgress ?? null,
+        lastProgress: d.lastProgress ?? null, stages: (d.stages ?? []).slice(-6),
       };
     })
     .catch((e) => ({ t, evalError: String(e).slice(0, 120) }));

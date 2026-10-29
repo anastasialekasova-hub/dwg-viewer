@@ -8,7 +8,7 @@ distributed under GPL-3.0-or-later (ТЗ 7.9).
 |---|---|---|---|
 | @mlightcad/cad-simple-viewer | 1.7.6 | MIT | https://github.com/mlightcad/cad-viewer |
 | @mlightcad/libredwg-converter | 3.15.17 | GPL-3.0 | https://github.com/mlightcad/realdwg-web |
-| @mlightcad/libredwg-web | 0.8.2 | GPL-3.0 | https://github.com/mlightcad/libredwg-web |
+| @mlightcad/libredwg-web | 0.7.17 | GPL-3.0 | https://github.com/mlightcad/libredwg-web |
 | @mlightcad/data-model | 1.15.17 | MIT | https://github.com/mlightcad/realdwg-web |
 | @mlightcad/mtext-parser | 1.5.5 | MIT | https://github.com/mlightcad/mtext-parser |
 | @mlightcad/mtext-renderer | 0.13.4 | MIT | https://github.com/mlightcad/mtext-renderer |
@@ -19,8 +19,8 @@ distributed under GPL-3.0-or-later (ТЗ 7.9).
 ## libredwg-web.wasm
 
 The vendored `src/vendor/libredwg-web.wasm` is a byte-for-byte copy of
-`@mlightcad/libredwg-web@0.8.2` `wasm/libredwg-web.wasm` (GPL-3.0,
+`@mlightcad/libredwg-web@0.7.17` `wasm/libredwg-web.wasm` (GPL-3.0,
 https://github.com/mlightcad/libredwg-web). It is a build of LibreDWG
 (https://github.com/LibreDWG/libredwg, GPL-3.0) compiled to WebAssembly by
 that package; the exact sources and build scripts are the libredwg-web
-repository at tag v0.8.2.
+repository at tag v0.7.17.

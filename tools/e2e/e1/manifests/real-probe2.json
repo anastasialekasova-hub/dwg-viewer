@@ -1,0 +1,44 @@
+[
+ {
+  "path": "tools/e2e/fixtures/acadsharp/sample_AC1014.dwg",
+  "name": "acadsharp/sample_AC1014.dwg",
+  "bytes": 1312281,
+  "code": "AC1014",
+  "kind": "dwg"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/real/mlightcad/canteen.dwg",
+  "name": "mlightcad/canteen.dwg",
+  "bytes": 2618816,
+  "code": "AC1021",
+  "kind": "dwg"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/real/autodesk/civil_example-imperial.dwg",
+  "name": "autodesk/civil_example-imperial.dwg",
+  "bytes": 169592,
+  "code": "AC1024",
+  "kind": "dwg"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/real/owerko/hatches.dwg",
+  "name": "owerko/hatches.dwg",
+  "bytes": 1076690,
+  "code": "AC1032",
+  "kind": "dwg"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/real/owerko/spline.dwg",
+  "name": "owerko/spline.dwg",
+  "bytes": 1066490,
+  "code": "AC1032",
+  "kind": "dwg"
+ },
+ {
+  "path": "tools/e2e/fixtures-local/real/owerko/dimensions.dwg",
+  "name": "owerko/dimensions.dwg",
+  "bytes": 1161410,
+  "code": "AC1032",
+  "kind": "dwg"
+ }
+]

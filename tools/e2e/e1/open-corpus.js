@@ -68,6 +68,7 @@ for (const f of files) {
       undrawn: snap.counts.undrawn,
       converted: snap.counts.converted,
       byType: snap.counts.byType,
+      parseInfo: snap.counts.parseInfo,
       msIdle: snap.msIdle,
       missedEmpty: snap.missed.empty,
       missedFonts: snap.missed.fonts.length,

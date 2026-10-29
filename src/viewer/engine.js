@@ -81,8 +81,16 @@ export function fileVersion(name, bytes) {
 
 const isLayoutName = (n) => /^\*(model|paper)_space/i.test(n || '');
 
-function collectRaw(model) {
+let parseInfo = null; // diagnostics: what the parser returned
+function collectRaw(result) {
+  // The parser worker answers { model, data }; older builds answered the model.
+  const model = result?.model?.tables ? result.model : result;
   const out = [];
+  parseInfo = {
+    keys: Object.keys(model ?? {}).slice(0, 20),
+    btr: (model?.tables?.BLOCK_RECORD?.entries ?? []).slice(0, 8).map((b) => [b.name, b.entities?.length ?? null]),
+    entities: Array.isArray(model?.entities) ? model.entities.length : null,
+  };
   for (const btr of model?.tables?.BLOCK_RECORD?.entries ?? []) {
     if (!isLayoutName(btr.name)) continue;
     for (const e of btr.entities ?? []) out.push({ handle: String(e.handle), type: e.type, layer: e.layer || '0' });
@@ -130,7 +138,7 @@ export function counts() {
   const undrawnN = Math.max(0, total - drawn);
   const notRendered = undrawnN - undrawnList.length;
   for (let i = 0; i < notRendered; i++) undrawnList.push({ type: 'OTHER', layer: '?' });
-  return { total, drawn, undrawn: undrawnN, byType: groupUndrawn(undrawnList), converted: converted.size };
+  return { total, drawn, undrawn: undrawnN, byType: groupUndrawn(undrawnList), converted: converted.size, parseInfo };
 }
 
 export function missedData() {
@@ -188,7 +196,7 @@ export async function open({ name, bytes, onProgress } = {}) {
     mode: AcEdOpenMode.Read,
     openViewMode: AcApOpenViewMode.Extents,
     convertAllLayouts: true,
-    skipSpatialIndex: true,
+    skipSpatialIndex: false,
   };
   let timer = null;
   try {
