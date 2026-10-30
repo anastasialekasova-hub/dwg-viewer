@@ -24,19 +24,14 @@ const OUTDIR = ensureOut('screens');
 // page.click() intermittently hangs on this Windows CfT setup (Runtime
 // .callFunctionOn never answers — same flake that hit the E1 fit click);
 // synthetic clicks are enough for everything this script drives.
-const eclick = async (page, sel) => {
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      return await Promise.race([
-        page.evaluate((x) => document.querySelector(x)?.click(), sel),
-        sleep(15000).then(() => Promise.reject(new Error(`eclick ${sel} hang`))),
-      ]);
-    } catch (e) {
-      if (attempt === 1) throw e;
-      await sleep(1500);
-    }
-  }
-};
+// No retry: a hung first attempt can still deliver its click late, and a
+// retry would fire twice — fatal for toggle buttons like Layers (the panel
+// probe proved the toggle itself works; the run had clicked it twice).
+const eclick = async (page, sel) =>
+  Promise.race([
+    page.evaluate((x) => document.querySelector(x)?.click(), sel),
+    sleep(15000).then(() => Promise.reject(new Error(`eclick ${sel} hang`))),
+  ]);
 const shot = async (page, file) => {
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
