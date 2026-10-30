@@ -487,12 +487,20 @@ function enterView() {
 // solids the viewer does not draw. Both read as a blank screen without it.
 function maybeShowEmptyCard() {
   const c = current?.counts;
-  if (!c || c.drawn > 0) {
+  if (!c) {
     els.emptycard.hidden = true;
     return;
   }
+  // condominium.dwg: 52 of 65 objects are 3DSOLID solids the viewer does not
+  // draw, the 13 drawn ones are corner fragments — the canvas reads as blank,
+  // so the card names it a 3D model. A file with nothing drawable at all
+  // (block.dxf: 0 of 0) gets the no-objects card instead.
   const solids = (c.byType ?? []).find((g) => /3DSOLID/i.test(g.type))?.count ?? 0;
-  const is3d = c.undrawn > 0 && solids >= Math.max(1, c.undrawn / 2);
+  const is3d = c.total > 0 && solids >= c.total / 2 && solids >= c.undrawn / 2;
+  if (!is3d && c.drawn > 0) {
+    els.emptycard.hidden = true;
+    return;
+  }
   els.emptyTitle.textContent = msg(is3d ? 'empty3dModel' : 'emptyNoObjects');
   els.emptycard.hidden = false;
 }

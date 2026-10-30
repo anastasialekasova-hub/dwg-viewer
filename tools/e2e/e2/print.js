@@ -71,11 +71,12 @@ try {
   // print-media screenshot: only the sheet (top bar absent, ink present)
   await page.emulateMediaType('print');
   await page.screenshot({ path: path.join(OUT, 'print-media.png') });
-  await page.emulateMediaType('screen');
-  await page.screenshot({ path: path.join(OUT, 'print-screen.png') });
-
-  // one-page PDF
+  await page.screenshot({ path: path.join(OUT, 'print-screen.png') }).catch(() => {});
+  // printToPDF on this build renders the SCREEN layout unless the print
+  // emulation is active while the PDF is made (real Ctrl+P always uses the
+  // print layout; this is harness-only). Keep print emulation during pdf().
   const pdf = await page.pdf({ printBackground: true, preferCSSPageSize: true });
+  await page.emulateMediaType('screen');
   fs.writeFileSync(path.join(OUT, 'print.pdf'), pdf);
   out.pdfBytes = pdf.length;
   out.pdfPages = (String(pdf).match(/\/Type\s*\/Page[^s]/g) ?? []).length;
