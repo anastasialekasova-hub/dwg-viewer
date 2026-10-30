@@ -13,6 +13,17 @@ import {
   looksLikeHtml,
   isOverLinkLimit,
 } from '../src/lib/link-classify.js';
+import {
+  REVIEW_DEFAULTS,
+  migrateReview,
+  recordUsefulDay,
+  shouldShow,
+  urlForStars,
+  applyStars,
+  applyNotNow,
+} from '../src/lib/review.js';
+import { LIGHT_BACKGROUND_RGB, darkenToContrast, contrastRatio, aciMappedContrastOk } from '../src/lib/colors.js';
+import ACI_RGB from '../src/lib/aci-rgb.json' with { type: 'json' };
 
 let n = 0;
 const failed = [];
@@ -259,6 +270,98 @@ run('link size limit: LINK_LIMIT_MB decimal, boundary inclusive', () => {
     assert.equal(drop([...core, ...second]).length, core.length + second.length);
   });
 }
+
+/* ---------- review widget (F-27) ---------- */
+
+const DAY = 86_400_000;
+const baseReview = { ...REVIEW_DEFAULTS, usefulDays: 5, lastUsefulDay: '2026-01-01' };
+const NOW = new Date('2026-01-10T12:00:00').getTime();
+
+run('review: migrate junk → defaults, strict types', () => {
+  assert.deepEqual(migrateReview(null), REVIEW_DEFAULTS);
+  assert.deepEqual(migrateReview('x'), REVIEW_DEFAULTS);
+  assert.deepEqual(migrateReview({ usefulDays: '5', answered: 1, junk: true }), REVIEW_DEFAULTS);
+  const m = migrateReview({ usefulDays: 3.9, dismissals: 2.2, snoozeUntil: -5 });
+  assert.equal(m.usefulDays, 3);
+  assert.equal(m.dismissals, 2);
+  assert.equal(m.snoozeUntil, 0);
+});
+
+run('review: shouldShow needs usefulDays >= 5', () => {
+  const seen = { now: NOW, msSinceOpen: 60_000 };
+  assert.equal(shouldShow({ ...baseReview, usefulDays: 4 }, seen), false);
+  assert.equal(shouldShow(baseReview, seen), true);
+});
+
+run('review: answered or two dismissals never show', () => {
+  assert.equal(shouldShow({ ...baseReview, answered: true }, { now: NOW }), false);
+  assert.equal(shouldShow({ ...baseReview, dismissals: 2 }, { now: NOW }), false);
+});
+
+run('review: snooze blocks until it expires', () => {
+  const snoozed = { ...baseReview, snoozeUntil: NOW + DAY };
+  assert.equal(shouldShow(snoozed, { now: NOW, msSinceOpen: 60_000 }), false);
+  assert.equal(shouldShow(snoozed, { now: NOW + DAY + 1, msSinceOpen: 60_000 }), true);
+});
+
+run('review: incomplete drawing, non-view screens, < 60 s', () => {
+  assert.equal(shouldShow(baseReview, { now: NOW, fullyDrawn: false }), false);
+  assert.equal(shouldShow(baseReview, { now: NOW, screen: 'start' }), false);
+  assert.equal(shouldShow(baseReview, { now: NOW, screen: 'loading' }), false);
+  assert.equal(shouldShow(baseReview, { now: NOW, screen: 'error' }), false);
+  assert.equal(shouldShow(baseReview, { now: NOW, msSinceOpen: 59_999 }), false);
+  assert.equal(shouldShow(baseReview, { now: NOW, msSinceOpen: 60_000 }), true);
+});
+
+run('review: recordUsefulDay counts once per local day', () => {
+  const d1 = new Date('2026-01-10T09:00:00');
+  const once = recordUsefulDay(REVIEW_DEFAULTS, d1);
+  assert.equal(once.usefulDays, 1);
+  assert.equal(once.lastUsefulDay, '2026-01-10');
+  const twice = recordUsefulDay(once, new Date('2026-01-10T23:30:00'));
+  assert.equal(twice.usefulDays, 1); // same day → +1 total
+  const nextDay = recordUsefulDay(once, new Date('2026-01-11T00:00:01'));
+  assert.equal(nextDay.usefulDays, 2);
+});
+
+run('review: urlForStars 1–3 → feedback page, 4–5 → store reviews', () => {
+  for (const n of [1, 2, 3]) {
+    assert.equal(urlForStars(n, 'abc123'), 'https://anastasialekasova-hub.github.io/dwg-viewer-pages/feedback/');
+  }
+  for (const n of [4, 5]) {
+    assert.equal(urlForStars(n, 'abc123'), 'https://chromewebstore.google.com/detail/abc123/reviews');
+  }
+});
+
+run('review: stars answer forever, Not now snoozes then never', () => {
+  const answered = applyStars(baseReview);
+  assert.equal(answered.answered, true);
+  assert.equal(shouldShow(answered, { now: NOW + 400 * DAY }), false);
+  const n1 = applyNotNow(baseReview, NOW);
+  assert.equal(n1.dismissals, 1);
+  assert.equal(n1.snoozeUntil, NOW + 30 * DAY);
+  assert.equal(shouldShow(n1, { now: NOW }), false);
+  const n2 = applyNotNow(n1, NOW + 31 * DAY);
+  assert.equal(n2.dismissals, 2);
+  assert.equal(shouldShow(n2, { now: NOW + 400 * DAY }), false);
+});
+
+/* ---------- light-canvas colours (F-11/F-15, ТЗ 5.6) ---------- */
+
+run('colors: every mapped ACI 1–255 clears 4.5:1 on the light background', () => {
+  assert.equal(aciMappedContrastOk(), 0);
+  for (let i = 1; i <= 255; i++) {
+    const rgb = ACI_RGB[i];
+    assert.equal(typeof rgb, 'number', `aci ${i}`);
+    assert.ok(contrastRatio(darkenToContrast(rgb), LIGHT_BACKGROUND_RGB) >= 4.5, `aci ${i}`);
+  }
+});
+
+run('colors: mapping is idempotent and keeps passing colours untouched', () => {
+  assert.equal(darkenToContrast(0x0000ff), 0x0000ff); // already ≥ 4.5:1
+  const m = darkenToContrast(0xffffff);
+  assert.equal(darkenToContrast(m), m);
+});
 
 /* ---------- report ---------- */
 

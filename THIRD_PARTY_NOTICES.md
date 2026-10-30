@@ -26,10 +26,16 @@ https://github.com/mlightcad/libredwg-web). It is a build of LibreDWG
 that package; the exact sources and build scripts are the libredwg-web
 repository at tag v0.7.17.
 
-## src/vendor/fonts/DejaVuSans.ttf
+## src/vendor/fonts/CadSans-subset.ttf
 
-Unmodified copy of `DejaVuSans.ttf` from `dejavu-fonts-ttf@2.37.3`
-(DejaVu Fonts 2.37, https://dejavu-fonts.github.io/). License: Bitstream Vera
-Fonts license with DejaVu changes in the public domain; full text in
-`src/vendor/fonts/DejaVu-LICENSE.txt`. Used only as the fallback for text
-whose own font is not in the drawing.
+A glyph subset (Latin, Cyrillic, Greek, Vietnamese, common CAD symbols,
+punctuation) of `DejaVuSans.ttf` from `dejavu-fonts-ttf@2.37.3`
+(DejaVu Fonts 2.37, https://dejavu-fonts.github.io/), built by
+tools/vendor-build.js with pyftsubset (fontTools), hinting and layout
+features dropped. License: Bitstream Vera Fonts license with DejaVu changes
+in the public domain; full text in `src/vendor/fonts/DejaVu-LICENSE.txt`.
+Modified font files must not carry the DejaVu/Vera name, so the subset is
+renamed "Cad Sans" (the name table is stripped). Used only as the fallback
+for text whose own font is not in the drawing.
+
+| CadSans-subset.ttf (subset of DejaVu Sans) | 2.37.3 | Bitstream Vera license (fonts) / public domain (modifications) | https://github.com/dejavu-fonts/dejavu-fonts |

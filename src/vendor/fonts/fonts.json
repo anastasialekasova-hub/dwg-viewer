@@ -4,9 +4,11 @@
    "dejavusans",
    "dejavu sans",
    "simsun",
-   "hztxt"
+   "hztxt",
+   "cadsans",
+   "cad sans"
   ],
-  "file": "DejaVuSans.ttf",
+  "file": "CadSans-subset.ttf",
   "type": "mesh"
  }
 ]
