@@ -282,3 +282,11 @@ Data usage: the extension does not collect or transmit any user data.
 ## Запасное название (если модерация отвергнет «DWG Viewer»)
 
 DWG File Viewer (5 400/мес, KD 65, имя свободно — Semrush US, 28.10.2026)
+
+## Адреса служебных страниц (для кабинета CWS, опубликовано 30.10.2026)
+
+- Welcome page: https://anastasialekasova-hub.github.io/dwg-viewer-pages/welcome/
+- Uninstall page: https://anastasialekasova-hub.github.io/dwg-viewer-pages/uninstall/
+- Feedback page: https://anastasialekasova-hub.github.io/dwg-viewer-pages/feedback/
+- Privacy policy URL: https://pinwisp.com/dwg-viewer/privacy/
+- Репо страниц: github.com/anastasialekasova-hub/dwg-viewer-pages

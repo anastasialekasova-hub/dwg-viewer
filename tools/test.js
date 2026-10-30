@@ -9,6 +9,7 @@ import { VERSION_CODES, dwgVersion, dxfVersion, sniffKind } from '../src/lib/for
 import {
   LINK_LIMIT_BYTES,
   classifyLinkStatus,
+  isAuthHtml,
   isHtmlContentType,
   looksLikeHtml,
   isOverLinkLimit,
@@ -203,6 +204,14 @@ run('classifyLinkStatus: 401/403 → auth, other non-2xx → generic, 2xx → nu
   assert.equal(classifyLinkStatus(204), null);
   assert.equal(classifyLinkStatus(404), 'generic');
   assert.equal(classifyLinkStatus(500), 'generic');
+});
+
+run('isAuthHtml: 404 HTML is not a sign-in page, other HTML is', () => {
+  assert.equal(isAuthHtml(404, 'text/html; charset=utf-8'), false);
+  assert.equal(isAuthHtml(200, 'text/html'), true);
+  assert.equal(isAuthHtml(500, 'text/html'), true);
+  assert.equal(isAuthHtml(200, 'application/octet-stream'), false);
+  assert.equal(isAuthHtml(404, null), false);
 });
 
 run('isHtmlContentType', () => {

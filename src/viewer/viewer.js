@@ -18,7 +18,7 @@ import { VERSION_CODES, SUPPORTED_RANGE } from '../lib/format.js';
 import {
   LINK_LIMIT_BYTES,
   classifyLinkStatus,
-  isHtmlContentType,
+  isAuthHtml,
   looksLikeHtml,
   isOverLinkLimit,
 } from '../lib/link-classify.js';
@@ -761,7 +761,7 @@ async function fetchLink(token, url) {
   }
   const statusKind = classifyLinkStatus(res.status);
   if (statusKind) fail(statusKind);
-  if (isHtmlContentType(res.headers.get('content-type'))) fail('auth');
+  if (isAuthHtml(res.status, res.headers.get('content-type'))) fail('auth');
   const len = Number(res.headers.get('content-length'));
   if (Number.isFinite(len) && len > 0 && isOverLinkLimit(len)) fail('size');
 
