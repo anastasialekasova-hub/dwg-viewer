@@ -202,7 +202,7 @@ function showPartial() {
   const { counts: c, missed: m } = current;
   const groups = c.byType ?? [];
   const items = groups.map((g) => msg('partialItem', fmtInt(g.count), typeName(g.type)));
-  for (const x of [...m.xrefs, ...m.images]) items.push(msg('partialItem', '1', x.name));
+  for (const x of [...m.xrefs, ...m.images]) items.push(msg('partialItem', '1', typeName(x.name)));
   const summary = items.length ? items.join(', ') : msg('partialUnknownTypes');
   els.partialMsg.textContent = msg('partialSummary', summary);
   els.fontNote.hidden = m.fonts.length === 0;
@@ -1070,6 +1070,9 @@ function localize() {
   // CSS data-state rules drive these; the hidden attribute would win over them
   els.fileBox.hidden = false;
   els.zoomGroup.hidden = false;
+  els.layersBtn.hidden = false;
+  els.bgPick.hidden = false;
+  els.printBtn.hidden = false;
 
   loadSettings()
     .then((s) => {

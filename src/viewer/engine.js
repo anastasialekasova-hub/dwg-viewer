@@ -25,9 +25,11 @@ let dxfUnknown = 0;
 
 /* ---------- canvas palette (F-11, F-15) ---------- */
 
-// The dark background the file was opened with (engine default, ~#302f2c);
-// Light mode swaps to the paper value and back on the next file.
-let savedDarkBg = LIGHT_BACKGROUND_RGB;
+// ТЗ 5.6 dark canvas: --cad-bg oklch(19% 0.008 60) ≈ #302f2c. The engine's
+// own default is pure black (ACGI_MODEL_SPACE_BACKGROUND = 0) — set the mockup
+// colour when the file opens; Light mode swaps to the paper value and back.
+const DARK_CAD_BG = 0x302f2c;
+let savedDarkBg = DARK_CAD_BG;
 // 'dark' | 'light' — current canvas palette.
 let palette = 'dark';
 // Materials recoloured for Light mode: material -> original hex, so switching
@@ -396,12 +398,12 @@ export async function open({ name, bytes, onProgress } = {}) {
     ]);
     if (opened === 'timeout') return { ok: false, reason: 'timeout', version: ver };
     if (opened !== true) return { ok: false, reason: 'error', version: ver };
-    // The engine's default canvas colour for this file, captured before any
-    // Light-mode swap; setBackground(false) restores exactly this value.
+    // The mockup canvas colour for this file; setBackground(false) restores it.
     try {
-      savedDarkBg = view().backgroundColor ?? savedDarkBg;
+      view().backgroundColor = DARK_CAD_BG;
+      savedDarkBg = DARK_CAD_BG;
     } catch {
-      // keep the previous value
+      // keep the engine default
     }
     return { ok: true, version: ver };
   } catch (err) {
