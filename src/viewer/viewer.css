@@ -527,14 +527,13 @@ body[data-layers="on"] #layersBtn svg { color: var(--accent-text); }
    print snapshot (engine.printView), the live canvas is not printed. */
 @media print {
   html, body { height: auto; background: #fff; }
-  .top, .status, .warn, .rate, .notice, #stageHint, .stagecenter, .empty, .srcbar, .layers, .pop, .dragover { display: none !important; }
-  .body, .stage { position: static; display: block; height: 100vh; width: 100vw; overflow: hidden; }
-  .cadhost { position: absolute; inset: 0; visibility: hidden; }
+  .top, .status, .warn, .rate, .notice, #stageHint, .stagecenter, .empty, .srcbar, .layers, .pop, .dragover, .body { display: none !important; }
+  /* The sheet is the only flow content: exactly one page tall. */
   .sheet {
-    position: absolute;
-    inset: 0;
     display: flex;
     flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
     padding: 9mm 11mm;
     color: oklch(25% 0.01 60);
     background: #fff;
