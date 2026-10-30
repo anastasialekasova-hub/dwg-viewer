@@ -1073,6 +1073,7 @@ function localize() {
   els.layersBtn.hidden = false;
   els.bgPick.hidden = false;
   els.printBtn.hidden = false;
+  els.layersPanel.hidden = false; // shown by the data-layers gate
 
   loadSettings()
     .then((s) => {
