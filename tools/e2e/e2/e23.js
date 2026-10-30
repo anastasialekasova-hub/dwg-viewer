@@ -13,6 +13,7 @@ import { createHash } from 'node:crypto';
 const ROOT = process.cwd();
 const OUT = path.join(ROOT, 'tools', 'e2e', 'out', 'e2');
 const fixture = path.resolve(process.argv[2] ?? path.join(ROOT, 'tools', 'e2e', 'fixtures', 'acadsharp', 'sample_AC1015.dwg'));
+const FULLY_DRAWN = path.join(ROOT, 'tools', 'e2e', 'fixtures-local', 'real', 'mlightcad', 'map-of-uae.dwg');
 const bytes = fs.readFileSync(fixture);
 const sha = createHash('sha256').update(bytes).digest('hex');
 const tls = path.join(ROOT, 'tools', 'e2e', 'fixtures-local', 'tls');
@@ -301,16 +302,29 @@ try {
       await site.goto(`${SITE}/site.html`, { waitUntil: 'load' });
       const bcdp = await b2.target().createCDPSession();
       try {
-        await Promise.race([
+        const loaded = await Promise.race([
           bcdp.send('Extensions.loadUnpacked', { path: ROOT }),
           sleep(45000).then(() => {
             throw new Error('loadUnpacked timed out after 45 s');
           }),
         ]);
+        note('case3.loadUnpacked', { loaded: loaded ?? null });
       } catch (e) {
         note('case3.loadUnpacked', { err: String(e?.message ?? e).slice(0, 160) });
       }
       await sleep(3000);
+      note('case3.swTarget', {
+        sw: Boolean(b2.targets().find((t) => t.type() === 'service_worker' && t.url().startsWith('chrome-extension://'))),
+        targets: b2.targets().map((t) => `${t.type()}`).join(','),
+      });
+      // loadUnpacked leaves the MV3 worker dormant; opening an extension page
+      // wakes it, and its onInstalled then injects the open site tab (F-24).
+      const helper = await b2.newPage();
+      await helper.goto(`chrome-extension://chjnnacclclmmjgeljppiihomfdnldcd/src/viewer/viewer.html`, { waitUntil: 'load', timeout: 20000 }).catch(() => {});
+      for (let i = 0; i < 50 && !b2.targets().find((t) => t.type() === 'service_worker'); i++) await sleep(200);
+      note('case3.swAwake', { sw: Boolean(b2.targets().find((t) => t.type() === 'service_worker')) });
+      await helper.close().catch(() => {});
+      await sleep(1500);
       await site.click('#plain');
       await sleep(3000);
       const sw2 = b2.targets().find((t) => t.type() === 'service_worker' && t.url().startsWith('chrome-extension://'));
@@ -343,7 +357,10 @@ try {
       return true;
     });
     await sleep(800);
-    const ruleCount = await swEval(() => chrome.declarativeNetRequest.getDynamicRules().then((r) => r.rules.filter((x) => x.id === 1).length));
+    const ruleCount = await swEval(async () => {
+      const r = await chrome.declarativeNetRequest.getDynamicRules();
+      return Array.isArray(r?.rules) ? r.rules.filter((x) => x.id === 1).length : JSON.stringify(r);
+    });
     const site = await newPage();
     await allowDownloads(site);
     await site.goto(`${SITE}/site.html`, { waitUntil: 'load' });
@@ -359,7 +376,10 @@ try {
       return true;
     });
     await sleep(800);
-    const ruleCount2 = await swEval(() => chrome.declarativeNetRequest.getDynamicRules().then((r) => r.rules.filter((x) => x.id === 1).length));
+    const ruleCount2 = await swEval(async () => {
+      const r = await chrome.declarativeNetRequest.getDynamicRules();
+      return Array.isArray(r?.rules) ? r.rules.filter((x) => x.id === 1).length : JSON.stringify(r);
+    });
     await site.reload({ waitUntil: 'load' });
     const before = (await viewerTabs()).length;
     await site.click('#plain');
@@ -374,9 +394,9 @@ try {
     const res = await swEval(async () => {
       try {
         await chrome.contextMenus.update('open-in-viewer', {});
-        const all = await new Promise((r) => chrome.contextMenus.getAll(r));
-        const item = all.find((m) => m.id === 'open-in-viewer');
-        return { ok: true, contexts: item?.contexts, enabled: item?.enabled };
+        // getAll is not exposed in this build; update resolving without error
+        // means the menu item from onInstalled is still registered.
+        return { ok: true, note: 'contextMenus.update resolved (getAll unavailable)' };
       } catch (e) {
         return { ok: false, err: String(e).slice(0, 200) };
       }
@@ -467,6 +487,7 @@ try {
       downloaded: files[0] ?? null,
       shaMatch: gotSha === sha,
       fileRequests: hits.filter((h) => h.includes('orig.dwg')).length,
+      origHits: hits.filter((h) => h.includes('orig.dwg')),
     });
     await vp.close().catch(() => {});
     for (const t of await viewerTabs()) await swEval((id) => chrome.tabs.remove(id), t.id).catch(() => {});
@@ -486,9 +507,9 @@ try {
     const vp = await newPage();
     await seed();
     await vp.goto(`chrome-extension://${extId}/src/viewer/viewer.html`, { waitUntil: 'load' });
-    await vp.setFileInputFiles?.([]);
-    // open the fixture from disk
-    const input = path.relative(ROOT, fixture);
+    // ТЗ 10.2 case 8: a fully drawn fixture — sample_AC1015 keeps two 3DSOLID
+    // undrawn and the widget must stay hidden there.
+    const input = path.relative(ROOT, FULLY_DRAWN);
     await vp.evaluate(async (rel) => {
       const url = chrome.runtime.getURL(rel);
       const buf = await (await fetch(url)).arrayBuffer();
@@ -501,6 +522,9 @@ try {
     }, input);
     await waitViewerSettled(vp, 60000).catch(() => {});
     note('case8.opened', await vp.evaluate(() => ({ state: document.body.dataset.state, drawn: document.getElementById('drawnPill').textContent })));
+    // hidden while the count has not settled into a fully drawn state
+    await sleep(2500);
+    note('case8.earlyHidden', await vp.evaluate(() => document.getElementById('rate').hidden));
     // wait past the 60 s rule (real wait, no test flags)
     await sleep(62000);
     const vis = await vp.evaluate(() => ({
@@ -548,11 +572,15 @@ try {
     });
     await vp.close().catch(() => {});
     await vp2.close().catch(() => {});
-    for (const t of await viewerTabs()) await swEval((id) => chrome.tabs.remove(id), t.id).catch(() => {});
+    try {
+      for (const t of await viewerTabs()) await swEval((id) => chrome.tabs.remove(id), t.id);
+    } catch (e) {
+      note('case8.cleanup', { err: String(e?.message ?? e).slice(0, 120) });
+    }
   }
 
   // ---------- case 10: lifecycle ----------
-  {
+  try {
     const welcomeUrl = await swEval(() => (chrome.runtime.getManifest(), null)).then(() => null);
     const ts = await tabs();
     const welcome = ts.filter((t) => t.url.includes('dwg-viewer-pages/welcome')).length;
@@ -567,6 +595,8 @@ try {
       uninstallUrl: typeof uninstall === 'string' && uninstall.includes('/uninstall/'),
       tabsTotal: ts2.length,
     });
+  } catch (e) {
+    note('case10.lifecycle', { err: String(e?.message ?? e).slice(0, 160) });
   }
 
   console.log('E23-DONE ' + JSON.stringify(Object.keys(results)));

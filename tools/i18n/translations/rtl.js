@@ -3,11 +3,11 @@
  * Plain text only — Chrome supplies the RTL direction; no markup, no control characters.
  */
 export const ar = {
-  extDescription: "استخدم DWG Viewer لفتح ملف DWG في Chrome ومشاهدة DXF عبر الإنترنت وتشغيل الطبقات أو إيقافها وحفظ العرض بتنسيق PDF. لا يتم تحميل أي شيء.",
+  extDescription: "استخدم DWG Viewer لفتح ملف DWG في Chrome ومشاهدة DXF عبر الإنترنت وتشغيل/إيقاف الطبقات وحفظ العرض بتنسيق PDF. لا يتم تحميل أي شيء.",
 };
 
 export const fa = {
-  extDescription: "با DWG Viewer فایل DWG را در Chrome باز کنید، DXF را آنلاین ببینید، لایه‌ها را روشن یا خاموش کنید و نما را در PDF ذخیره کنید. هیچ چیزی آپلود نمی‌شود.",
+  extDescription: "با DWG Viewer: باز کردن فایل DWG در Chrome، دیدن DXF آنلاین، روشن/خاموش کردن لایه‌ها و ذخیره نما در PDF. هیچ‌چیز آپلود نمی‌شود.",
 };
 
 export const he = {

@@ -1,14 +1,14 @@
 /** Indonesian, Malay, Vietnamese, Thai, Filipino. */
 export const id = {
-  extDescription: "Gunakan DWG Viewer untuk membuka file DWG di Chrome, melihat DXF online, menyalakan dan mematikan layer, serta menyimpan tampilan ke PDF. Tidak ada yang diunggah.",
+  extDescription: "Buka DWG di Chrome dan lihat DXF online dengan DWG Viewer, nyalakan/matikan layer, simpan tampilan ke PDF. Tidak ada yang diunggah.",
 };
 
 export const ms = {
-  extDescription: "Gunakan DWG Viewer untuk membuka fail DWG dalam Chrome, melihat DXF dalam talian, menghidupkan dan mematikan lapisan serta menyimpan paparan ke PDF. Tiada apa-apa yang dimuat naik.",
+  extDescription: "Buka DWG dalam Chrome, lihat DXF dalam talian dengan DWG Viewer, hidupkan/matikan lapisan, simpan paparan ke PDF. Tiada dimuat naik.",
 };
 
 export const vi = {
-  extDescription: "Sử dụng DWG Viewer để mở tệp DWG trong Chrome, xem DXF trực tuyến, bật hoặc tắt các lớp và lưu chế độ xem thành PDF. Không có gì được tải lên.",
+  extDescription: "Mở DWG trong Chrome, xem DXF trực tuyến bằng DWG Viewer, bật/tắt các lớp và lưu chế độ xem thành PDF. Không có gì được tải lên.",
 };
 
 export const th = {
@@ -16,5 +16,5 @@ export const th = {
 };
 
 export const fil = {
-  extDescription: "Gamitin ang DWG Viewer para buksan ang DWG file sa Chrome, tingnan ang DXF online, i-on at i-off ang mga layer, at i-save ang view bilang PDF. Walang ina-upload.",
+  extDescription: "Buksan ang DWG sa Chrome, tingnan ang DXF online sa DWG Viewer, i-on/i-off ang layer, i-save ang view sa PDF. Walang ia-upload.",
 };

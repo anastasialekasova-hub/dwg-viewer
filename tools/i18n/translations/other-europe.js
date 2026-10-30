@@ -1,22 +1,22 @@
 /** Hungarian, Greek, Turkish, Lithuanian, Latvian, Amharic, Swahili. */
 export const hu = {
-  extDescription: "DWG Viewerrel DWG-fájlokat nyithat meg a Chrome-ban, DXF fájlokat tekinthet meg online, be- és kikapcsolhatja a rétegeket, és elmentheti a nézetet PDF-be. Semmi nem töltődik fel.",
+  extDescription: "DWG Viewerrel DWG-t nyithat a Chrome-ban, DXF-t online, rétegeket kapcsolhat, a nézetet PDF-be mentheti. Semmi nem töltődik fel.",
 };
 
 export const el = {
-  extDescription: "Με το DWG Viewer ανοίγετε αρχεία DWG στο Chrome, βλέπετε DXF online, ενεργοποιείτε και απενεργοποιείτε επίπεδα και αποθηκεύετε την προβολή σε PDF. Δεν μεταφορτώνεται τίποτα.",
+  extDescription: "Με το DWG Viewer ανοίγετε DWG στο Chrome και DXF online, διαχειρίζεστε επίπεδα, αποθηκεύετε την προβολή σε PDF. Καμία μεταφόρτωση.",
 };
 
 export const tr = {
-  extDescription: "DWG Viewer ile DWG dosyalarını Chrome'da açın, DXF dosyalarını çevrim içi görüntüleyin, katmanları açıp kapatın ve görünümü PDF olarak kaydedin. Hiçbir şey karşıya yüklenmez.",
+  extDescription: "DWG Viewer DWG'yi Chrome'da açar, DXF'yi online gösterir, katmanları açıp kapatır, görünümü PDF'e kaydeder. Karşıya yükleme yoktur.",
 };
 
 export const lt = {
-  extDescription: "Naudodami DWG Viewer atverkite DWG failus Chrome naršyklėje, peržiūrėkite DXF internete, įjunkite arba išjunkite sluoksnius ir įrašykite rodinį kaip PDF. Nieko neįkeliama.",
+  extDescription: "DWG Viewer atveria DWG Chrome'yje ir DXF internete, įjungia ir išjungia sluoksnius, įrašo rodinį į PDF. Nieko neįkeliama.",
 };
 
 export const lv = {
-  extDescription: "Ar DWG Viewer atveriet DWG failus Chrome, skatiet DXF tiešsaistē, ieslēdziet un izslēdziet slāņus un saglabājiet skatu PDF formātā. Nekas netiek augšupielādēts.",
+  extDescription: "DWG Viewer atver DWG failus Chrome un DXF tiešsaistē, ieslēdz un izslēdz slāņus, saglabā skatu kā PDF. Nekas netiek augšupielādēts.",
 };
 
 export const am = {
@@ -24,5 +24,5 @@ export const am = {
 };
 
 export const sw = {
-  extDescription: "Tumia DWG Viewer kufungua faili za DWG kwenye Chrome, kutazama DXF mtandaoni, kuwasha na kuzima tabaka, na kuhifadhi mwonekano kama PDF. Hakuna kinachopakiwa.",
+  extDescription: "DWG Viewer hufungua DWG kwenye Chrome na DXF online, huwasha/kuzima tabaka, kuhifadhi mwonekano kama PDF. Hakuna kinachopakiwa.",
 };

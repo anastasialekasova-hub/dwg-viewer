@@ -1,10 +1,10 @@
 /** German, Dutch, Swedish, Danish, Norwegian, Finnish, Estonian. */
 export const de = {
-  extDescription: "Mit DWG Viewer öffnest du eine DWG-Datei in Chrome, siehst DXF online ein, blendest Ebenen ein und aus und speicherst die Ansicht als PDF. Es wird nichts hochgeladen.",
+  extDescription: "Mit DWG Viewer: DWG in Chrome und DXF online öffnen, Ebenen ein und aus blenden, Ansicht als PDF speichern. Nichts wird hochgeladen.",
 };
 
 export const nl = {
-  extDescription: "Met DWG Viewer open je een DWG-bestand in Chrome, bekijk je DXF online, schakel je lagen in en uit en sla je de weergave op als PDF. Er wordt niets geüpload.",
+  extDescription: "Open DWG in Chrome en bekijk DXF online met DWG Viewer, schakel lagen in/uit en sla de weergave op als PDF. Niets wordt geüpload.",
 };
 
 export const sv = {
@@ -20,9 +20,9 @@ export const no = {
 };
 
 export const fi = {
-  extDescription: "Avaa DWG Viewerilla DWG-tiedosto Chromessa, katsele DXF-tiedostoja verkossa, näytä ja piilota tasoja ja tallenna näkymä PDF:nä. Mitään ei ladata.",
+  extDescription: "Avaa DWG Viewerilla DWG-tiedosto Chromessa, katso DXF verkossa, näytä ja piilota tasoja, tallenna näkymä PDF:nä. Mitään ei ladata.",
 };
 
 export const et = {
-  extDescription: "Ava DWG Vieweriga DWG-fail Chrome'is, vaata DXF-faile võrgus, lülita kihte sisse ja välja ning salvesta vaade PDF-failina. Midagi ei laadita üles.",
+  extDescription: "Ava DWG-fail Chrome'is ja DXF võrgus DWG Vieweriga, lülita kihte sisse ja välja ning salvesta vaade PDF-i. Midagi ei laadita üles.",
 };
