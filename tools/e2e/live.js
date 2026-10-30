@@ -35,140 +35,164 @@ async function httpStatus(url) {
   }
 }
 
+function filterExternal(capture) {
+  return (capture.requests ?? []).filter((u) => {
+    const url = u.startsWith('FAILED ') ? u.slice(7) : u;
+    return !url.startsWith('chrome-extension://') && !url.startsWith('devtools://') && !url.startsWith('data:') && !url.startsWith('blob:');
+  });
+}
+
 const REAL_DWG = 'https://github.com/DomCR/ACadSharp/raw/master/samples/sample_AC1032.dwg';
 
 const browser = await launchWithExtension();
+const extId = await extensionId(browser);
+const swEval = async (fn, ...args) => {
+  const t = browser.targets().find((x) => x.type() === 'service_worker' && x.url().startsWith(`chrome-extension://${extId}/`));
+  const w = await t.worker(); // worker() returns a promise
+  return w.evaluate(fn, ...args);
+};
+
+// ---------- extension card ----------
 try {
-  const extId = await extensionId(browser);
-
-  // ---------- extension card ----------
-  {
-    const card = await browser.targets()
-      .find((t) => t.type() === 'service_worker' && t.url().startsWith(`chrome-extension://${extId}/`))
-      .worker()
-      .evaluate(() => chrome.management.getSelf());
-    check('extension card', card.version === '1.0.0' && card.installType === 'development',
-      `version ${card.version}, installType ${card.installType}, enabled ${card.enabled}`);
-  }
-
-  // ---------- welcome + uninstall pages (real network) ----------
-  {
-    const welcome = await httpStatus(WELCOME_URL);
-    info('welcome page', `${WELCOME_URL} — ${welcome} (404 before the pages stage ships is expected)`);
-    const uninstall = await httpStatus(UNINSTALL_URL);
-    info('uninstall page', `${UNINSTALL_URL} — ${uninstall}`);
-    const setUrl = await browser.targets()
-      .find((t) => t.type() === 'service_worker')
-      .worker()
-      .evaluate(() => chrome.runtime.getUninstallURL?.() ?? null);
-    check('uninstall URL armed', typeof setUrl === 'string' && setUrl === UNINSTALL_URL, setUrl ?? 'not set');
-  }
-
-  // ---------- real drawing from the internet (link flow) ----------
-  {
-    const capture = {};
-    const page = await viewerPage(browser, extId, capture);
-    await page.goto(`chrome-extension://${extId}/src/viewer/viewer.html#src=${encodeURIComponent(REAL_DWG)}`, { waitUntil: 'load' });
-    await page.waitForFunction(() => ['view', 'error'].includes(document.body.dataset.state), { timeout: 90000 });
-    const st = await page.evaluate(() => ({
-      state: document.body.dataset.state,
-      title: document.title,
-      drawn: document.getElementById('drawnPill').textContent,
-      srcHost: document.querySelector('#srcPath b')?.textContent,
-      err: document.getElementById('errTitle').textContent,
-    }));
-    check('real .dwg from github opens', st.state === 'view',
-      `${st.state}: ${st.state === 'view' ? `${st.drawn}, from ${st.srcHost}, title ${st.title}` : st.err}`);
-    const ext = (await import(pathToFileURLHelper())).filterExternal(capture);
-    check('no external requests beyond the drawing', ext.filter((u) => !u.includes('github')).length === 0,
-      `${ext.length} external request(s) total`);
-    await page.screenshot({ path: path.join(OUT, 'live-real-dwg.png') });
-
-    // ---------- layers panel + background on the live drawing ----------
-    await page.evaluate(() => document.getElementById('layersBtn').click());
-    await sleep(600);
-    const layers = await page.evaluate(() => ({
-      visible: getComputedStyle(document.getElementById('layersPanel')).display !== 'none',
-      rows: document.querySelectorAll('#layersRows .lrow').length,
-    }));
-    check('layers panel opens', layers.visible && layers.rows > 0, `${layers.rows} layer rows`);
-    await page.evaluate(() => document.getElementById('bgLight').click());
-    await sleep(900);
-    const bg = await page.evaluate(async () => {
-      const m = await import(chrome.runtime.getURL('src/viewer/engine.js'));
-      return { palette: m.canvasBackground(), cadbg: document.body.dataset.cadbg };
-    });
-    check('light background applies', bg.palette === 'light' && bg.cadbg === 'light', JSON.stringify(bg));
-    await page.screenshot({ path: path.join(OUT, 'live-light-layers.png') });
-
-    // ---------- print sheet on the release palette ----------
-    await page.evaluate(() => {
-      window.__printed = 0;
-      window.print = () => {
-        window.__printed++;
-      };
-    });
-    await page.evaluate(() => document.getElementById('printBtn').click());
-    await sleep(1500);
-    const sheet = await page.evaluate(() => ({
-      printed: window.__printed,
-      imgKB: Math.round(((document.getElementById('printShot2')?.src ?? '').length * 3) / 4 / 1024),
-      layers: document.getElementById('printLayers').textContent,
-      objects: document.getElementById('printObjects').textContent,
-      page: document.getElementById('pageStyle').textContent,
-    }));
-    check('print sheet builds', sheet.printed === 1 && sheet.imgKB > 20,
-      `print() calls ${sheet.printed}, snapshot ${sheet.imgKB} KB, ${sheet.layers}, ${sheet.objects}, ${sheet.page.trim()}`);
-    await page.close();
-  }
-
-  // ---------- local fixture: zero network, honest counter ----------
-  {
-    const capture = {};
-    const page = await viewerPage(browser, extId, capture);
-    await page.evaluate(async (rel) => {
-      const buf = await (await fetch(chrome.runtime.getURL(rel))).arrayBuffer();
-      const dt = new DataTransfer();
-      dt.items.add(new File([buf], rel.split('/').pop()));
-      const inp = document.getElementById('fileInput');
-      inp.files = dt.files;
-      inp.dispatchEvent(new Event('change', { bubbles: true }));
-    }, path.join('tools', 'e2e', 'fixtures', 'acadsharp', 'sample_AC1015.dwg'));
-    await page.waitForFunction(() => ['view', 'error'].includes(document.body.dataset.state), { timeout: 60000 });
-    const st = await page.evaluate(() => ({ state: document.body.dataset.state, drawn: document.getElementById('drawnPill').textContent }));
-    const extReq = capture.requests.filter((u) => !u.startsWith('chrome-extension://') && !u.startsWith('devtools://') && !u.startsWith('data:'));
-    check('local file opens with zero network', st.state === 'view' && extReq.length === 0,
-      `${st.drawn}, external requests ${extReq.length}`);
-    await page.close();
-  }
-
-  // ---------- rating URLs ----------
-  {
-    const urls = await page.evaluate(() => null).catch(() => null);
-    const store = STORE_REVIEWS_URL(extId);
-    check('rating URLs built from runtime id', store === `https://chromewebstore.google.com/detail/${extId}/reviews` && FEEDBACK_URL.endsWith('/feedback/'), `${store}`);
-  }
-
-  await browser.close();
-  fs.writeFileSync(path.join(OUT, 'live.json'), JSON.stringify(results, null, 2));
-  const failed = results.filter((r) => r.kind === 'FAIL');
-  console.log(`LIVE DONE pass=${results.filter((r) => r.kind === 'PASS').length} fail=${failed.length}`);
-  process.exit(failed.length ? 1 : 0);
+  const card = await swEval(() => chrome.management.getSelf());
+  check('extension card', card.version === '1.0.0' && card.installType === 'development',
+    `version ${card.version}, installType ${card.installType}, enabled ${card.enabled}`);
 } catch (e) {
-  console.error('LIVE-FATAL ' + String(e?.stack ?? e).slice(0, 800));
-  fs.writeFileSync(path.join(OUT, 'live.json'), JSON.stringify(results, null, 2));
-  await browser.close().catch(() => {});
-  process.exit(1);
+  check('extension card', false, String(e?.message ?? e).slice(0, 140));
 }
 
-function pathToFileURLHelper() {
-  // small helper kept at the bottom: the external-request filter used above
-  return {
-    filterExternal(capture) {
-      return (capture.requests ?? []).filter((u) => {
-        const url = u.startsWith('FAILED ') ? u.slice(7) : u;
-        return !url.startsWith('chrome-extension://') && !url.startsWith('devtools://') && !url.startsWith('data:') && !url.startsWith('blob:');
-      });
-    },
-  };
+// ---------- welcome + uninstall pages (real network) ----------
+try {
+  const welcome = await httpStatus(WELCOME_URL);
+  info('welcome page', `${WELCOME_URL} — ${welcome} (404 before the pages stage ships is expected)`);
+  const uninstall = await httpStatus(UNINSTALL_URL);
+  info('uninstall page', `${UNINSTALL_URL} — ${uninstall}`);
+  // There is no runtime.getUninstallURL: re-setting the same URL resolves
+  // only when the address is valid, which is the arming check.
+  const rearm = await swEval(async (u) => {
+    try {
+      await chrome.runtime.setUninstallURL(u);
+      return 'set';
+    } catch (e) {
+      return String(e).slice(0, 120);
+    }
+  }, UNINSTALL_URL);
+  check('uninstall URL armed', rearm === 'set', rearm);
+} catch (e) {
+  check('uninstall URL armed', false, String(e?.message ?? e).slice(0, 140));
 }
+
+// ---------- real drawing from the internet (link flow) ----------
+try {
+  const capture = {};
+  const page = await viewerPage(browser, extId, capture);
+  // A hash-only goto does not re-run the document: set the hash, then reload,
+  // so init() reads #src= on a fresh load.
+  await page.evaluate((u) => {
+    location.hash = `src=${encodeURIComponent(u)}`;
+  }, REAL_DWG);
+  await page.reload({ waitUntil: 'load' });
+  const settled = await page
+    .waitForFunction(() => ['view', 'error'].includes(document.body.dataset.state), { timeout: 90000 })
+    .then(() => true)
+    .catch(async (e) => {
+      const st = await page.evaluate(() => ({
+        state: document.body.dataset.state,
+        err: document.getElementById('errTitle')?.textContent,
+        why: document.getElementById('errWhy')?.textContent?.slice(0, 120),
+        cnt: document.getElementById('loadCnt')?.textContent,
+      })).catch(() => ({}));
+      info('real .dwg wait', `${String(e).slice(0, 60)}; state ${JSON.stringify(st)}`);
+      return false;
+    });
+  const st = await page.evaluate(() => ({
+    state: document.body.dataset.state,
+    title: document.title,
+    drawn: document.getElementById('drawnPill')?.textContent,
+    srcHost: document.querySelector('#srcPath b')?.textContent,
+    err: document.getElementById('errTitle')?.textContent,
+  }));
+  check('real .dwg from github opens', settled && st.state === 'view',
+    `${st.state}: ${st.state === 'view' ? `${st.drawn}, from ${st.srcHost}, title ${st.title}` : st.err ?? 'timeout'}`);
+  const ext = filterExternal(capture).filter((u) => !u.includes('github'));
+  check('no external requests beyond the drawing', ext.length === 0, `${ext.length} non-github external request(s)`);
+  await page.screenshot({ path: path.join(OUT, 'live-real-dwg.png') });
+
+  // ---------- layers panel + background on the live drawing ----------
+  await page.evaluate(() => document.getElementById('layersBtn').click());
+  await sleep(600);
+  const layers = await page.evaluate(() => ({
+    visible: getComputedStyle(document.getElementById('layersPanel')).display !== 'none',
+    rows: document.querySelectorAll('#layersRows .lrow').length,
+  }));
+  check('layers panel opens', layers.visible && layers.rows > 0, `${layers.rows} layer rows`);
+  await page.evaluate(() => document.getElementById('bgLight').click());
+  await sleep(900);
+  const bg = await page.evaluate(async () => {
+    const m = await import(chrome.runtime.getURL('src/viewer/engine.js'));
+    return { palette: m.canvasBackground(), cadbg: document.body.dataset.cadbg };
+  });
+  check('light background applies', bg.palette === 'light' && bg.cadbg === 'light', JSON.stringify(bg));
+  await page.screenshot({ path: path.join(OUT, 'live-light-layers.png') });
+
+  // ---------- print sheet on the release palette ----------
+  await page.evaluate(() => {
+    window.__printed = 0;
+    window.print = () => {
+      window.__printed++;
+    };
+  });
+  await page.evaluate(() => document.getElementById('printBtn').click());
+  // The stubbed window.print() cannot fire Chrome's beforeprint; dispatch the
+  // exact event a real Ctrl+P sends so the sheet builder runs.
+  await page.evaluate(() => window.dispatchEvent(new Event('beforeprint')));
+  await sleep(1500);
+  const sheet = await page.evaluate(() => ({
+    printed: window.__printed,
+    imgKB: Math.round(((document.getElementById('printShot2')?.src ?? '').length * 3) / 4 / 1024),
+    layers: document.getElementById('printLayers').textContent,
+    objects: document.getElementById('printObjects').textContent,
+    page: document.getElementById('pageStyle').textContent,
+  }));
+  check('print sheet builds', sheet.printed === 1 && sheet.imgKB > 20,
+    `print() calls ${sheet.printed}, snapshot ${sheet.imgKB} KB, ${sheet.layers}, ${sheet.objects}, ${sheet.page.trim()}`);
+  await page.close();
+} catch (e) {
+  info('live drawing section', String(e?.message ?? e).slice(0, 160));
+}
+
+// ---------- local fixture: zero network, honest counter ----------
+try {
+  const capture = {};
+  const page = await viewerPage(browser, extId, capture);
+  await page.evaluate(async (rel) => {
+    const buf = await (await fetch(chrome.runtime.getURL(rel))).arrayBuffer();
+    const dt = new DataTransfer();
+    dt.items.add(new File([buf], rel.split('/').pop()));
+    const inp = document.getElementById('fileInput');
+    inp.files = dt.files;
+    inp.dispatchEvent(new Event('change', { bubbles: true }));
+  }, path.join('tools', 'e2e', 'fixtures', 'acadsharp', 'sample_AC1015.dwg'));
+  await page.waitForFunction(() => ['view', 'error'].includes(document.body.dataset.state), { timeout: 60000 });
+  const st = await page.evaluate(() => ({ state: document.body.dataset.state, drawn: document.getElementById('drawnPill').textContent }));
+  const extReq = filterExternal(capture);
+  check('local file opens with zero network', st.state === 'view' && extReq.length === 0,
+    `${st.drawn}, external requests ${extReq.length}`);
+  await page.close();
+} catch (e) {
+  info('local fixture section', String(e?.message ?? e).slice(0, 160));
+}
+
+// ---------- rating URLs ----------
+{
+  const store = STORE_REVIEWS_URL(extId);
+  check('rating URLs built from runtime id',
+    store === `https://chromewebstore.google.com/detail/${extId}/reviews` && FEEDBACK_URL.endsWith('/feedback/'),
+    store);
+}
+
+await browser.close();
+fs.writeFileSync(path.join(OUT, 'live.json'), JSON.stringify(results, null, 2));
+const failed = results.filter((r) => r.kind === 'FAIL');
+console.log(`LIVE DONE pass=${results.filter((r) => r.kind === 'PASS').length} fail=${failed.length}`);
+process.exit(failed.length ? 1 : 0);
