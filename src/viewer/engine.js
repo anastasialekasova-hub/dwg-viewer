@@ -11,16 +11,136 @@ import {
   AcDbDatabaseConverterManager,
   AcDbFileType,
   AcGeBox2d,
-  acapGetCameraZoom,
+  WebGLRenderer,
 } from '../vendor/cad-viewer.js';
 import { sniffKind, dwgVersion, dxfVersion } from '../lib/format.js';
 import { OPEN_TIME_LIMIT_S } from '../lib/config.js';
+import { LIGHT_BACKGROUND_RGB, darkenToContrast } from '../lib/colors.js';
 
 let manager = null;
 // DWG: [{handle, type, layer}] for model + paper space, as parsed (pre-conversion).
 let rawEntities = null;
 // DXF: entities the DXF reader skipped as unknown (no per-type detail upstream).
 let dxfUnknown = 0;
+
+/* ---------- canvas palette (F-11, F-15) ---------- */
+
+// The dark background the file was opened with (engine default, ~#302f2c);
+// Light mode swaps to the paper value and back on the next file.
+let savedDarkBg = LIGHT_BACKGROUND_RGB;
+// 'dark' | 'light' — current canvas palette.
+let palette = 'dark';
+// Materials recoloured for Light mode: material -> original hex, so switching
+// back restores file colours exactly (the mapping itself is not invertible).
+let lightSwapped = null;
+// Persistent offscreen renderer for print (created on first print, reused;
+// browsers cap WebGL contexts, so the print canvas is never disposed).
+let printGL = null;
+
+// Materials attached to the scene: cached manager materials, batch clones and
+// text glyph materials all appear here; texture-bearing materials are skipped
+// (their map carries the colours, the material colour is a multiplier).
+function eachMaterial(fn) {
+  const scene = view()?._scene?.internalScene;
+  if (!scene) return;
+  scene.traverse((o) => {
+    const ms = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
+    for (const m of ms) {
+      if (m.map) continue;
+      if (typeof m.color?.getHex === 'function') fn(m, m.color);
+      const u = m.uniforms?.u_color;
+      if (u && typeof u.value?.getHex === 'function') fn(m, u.value);
+    }
+  });
+}
+
+function applyPalette(light) {
+  const v = view();
+  if (!v) return;
+  if (light === (palette === 'light')) return;
+  globalThis.__dwgColorMap = light ? (rgb) => darkenToContrast(rgb) : null;
+  if (light) {
+    lightSwapped = new Map();
+    eachMaterial((m, color) => {
+      const hex = color.getHex();
+      if (!lightSwapped.has(m)) lightSwapped.set(m, hex);
+      color.setHex(darkenToContrast(hex));
+    });
+    palette = 'light';
+    // Upstream flips ACI-7 foreground, wipeouts and ACI-7 layers, sets the
+    // clear colour and marks dirty.
+    v.backgroundColor = LIGHT_BACKGROUND_RGB;
+  } else {
+    palette = 'dark';
+    v.backgroundColor = savedDarkBg;
+    const saved = lightSwapped;
+    lightSwapped = null;
+    globalThis.__dwgColorMap = null;
+    if (saved) eachMaterial((m, color) => {
+      const hex = saved.get(m);
+      if (hex != null) color.setHex(hex);
+    });
+  }
+}
+
+export function canvasBackground() {
+  return palette;
+}
+
+export function setBackground(light) {
+  applyPalette(light);
+}
+
+/** Layers of the drawing: [{name, colorHex, on}] in file order. */
+export function layersInfo() {
+  const doc = manager?.curDocument;
+  if (!doc) return [];
+  const out = [];
+  const seen = new Set();
+  for (const rec of doc.database.tables.layerTable._recordsByName.values()) {
+    if (!rec || seen.has(rec.name)) continue;
+    seen.add(rec.name);
+    const color = rec.color;
+    const rgb = color?.isForeground ? acapForegroundRgb() : color?.RGB;
+    out.push({
+      name: rec.name,
+      colorHex: typeof rgb === 'number' ? rgb : 0xffffff,
+      on: !rec.isOff && !rec.isFrozen,
+    });
+  }
+  return out;
+}
+
+function acapForegroundRgb() {
+  return palette === 'light' ? 0x000000 : 0xffffff;
+}
+
+// Session display state (F-9): flips the three.js layer groups, not the file.
+export function setLayerVisible(name, on) {
+  const scene = view()?._scene;
+  if (!scene) return;
+  for (const layout of scene.layouts.values()) {
+    const layer = layout.layers?.get?.(name);
+    if (layer) layer.visible = on;
+  }
+  view()._isDirty = true;
+}
+
+/** $INSUNITS of the open file as a unit suffix for the status bar (F-13). */
+const INSUNITS_SUFFIX = { 1: 'in', 2: 'ft', 4: 'mm', 5: 'cm', 6: 'm' };
+export function unitsSuffix() {
+  const db = manager?.curDocument?.database;
+  const u = db?.insunits;
+  return (typeof u === 'number' && INSUNITS_SUFFIX[u]) || '';
+}
+
+export function screenToWorld(pt) {
+  try {
+    return view().screenToWorld(pt);
+  } catch {
+    return null;
+  }
+}
 
 function extUrl(p) {
   return chrome.runtime.getURL(p);
@@ -276,6 +396,13 @@ export async function open({ name, bytes, onProgress } = {}) {
     ]);
     if (opened === 'timeout') return { ok: false, reason: 'timeout', version: ver };
     if (opened !== true) return { ok: false, reason: 'error', version: ver };
+    // The engine's default canvas colour for this file, captured before any
+    // Light-mode swap; setBackground(false) restores exactly this value.
+    try {
+      savedDarkBg = view().backgroundColor ?? savedDarkBg;
+    } catch {
+      // keep the previous value
+    }
     return { ok: true, version: ver };
   } catch (err) {
     return { ok: false, reason: 'error', version: ver, message: String(err?.message ?? err) };
@@ -287,16 +414,6 @@ export async function open({ name, bytes, onProgress } = {}) {
 
 // Zoom to the drawing extents; zoomToSmartExtents falls back to batch
 // geometry when EXTMIN/EXTMAX are missing or stale.
-// Print snapshot (ТЗ 4.2.13 / F-15 mechanics): the WebGL buffer is kept
-// (vendor-patch-print: preserveDrawingBuffer), so the last frame is read as
-// is. The print layout resizes the canvas and the engine redraws on the next
-// animation frame, which never comes while Chrome lays out the sheet, so the
-// sheet prints this image instead of the live canvas.
-export function snapshot() {
-  const c = document.querySelector('#cad canvas');
-  return c && c.width > 0 ? c.toDataURL('image/png') : '';
-}
-
 export async function fit() {
   const v = view();
   try {
@@ -304,6 +421,92 @@ export async function fit() {
   } catch {
     v.zoomToFitDrawing(OPEN_TIME_LIMIT_S * 1000);
   }
+}
+
+/* ---------- print (F-15) ---------- */
+
+// Print renders the current view off screen with the light palette: a second
+// WebGLRenderer on a detached canvas (ТЗ 5.2 — 2× the on-screen size, capped
+// by MAX_RENDERBUFFER_SIZE), the live scene, the active layout's camera. The
+// live canvas is not read at all — hidden during @media print, its drawing
+// buffer was already dropped by the time beforeprint ran (E1 4.2.13).
+function printAdapter(gl) {
+  return {
+    get autoClear() {
+      return gl.autoClear;
+    },
+    set autoClear(v) {
+      gl.autoClear = v;
+    },
+    getViewport(t) {
+      return gl.getViewport(t);
+    },
+    setViewport(x, y, w, h) {
+      gl.setViewport(x, y, w, h);
+    },
+    setScissor(x, y, w, h) {
+      gl.setScissor(x, y, w, h);
+    },
+    setScissorTest(b) {
+      gl.setScissorTest(b);
+    },
+    clear() {
+      gl.clear();
+    },
+    clearDepth() {
+      gl.clearDepth();
+    },
+    render(scene, cam) {
+      gl.render(scene, cam.internalCamera ?? cam);
+    },
+  };
+}
+
+export function printView() {
+  const v = view();
+  if (!v) return '';
+  const scene = v._scene;
+  const lv = v._layoutViewManager?.activeLayoutView;
+  const cam = lv?._camera;
+  if (!scene || !cam) return '';
+
+  const live = document.querySelector('#cad canvas');
+  const cssW = live?.clientWidth || 1280;
+  const cssH = live?.clientHeight || 782;
+  printGL ||= new WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true });
+  const maxRB = printGL.getContext().getParameter(printGL.getContext().MAX_RENDERBUFFER_SIZE) || 4096;
+  const scale = Math.min(2.5, maxRB / Math.max(cssW, cssH));
+  const w = Math.round(cssW * scale);
+  const h = Math.round(cssH * scale);
+  printGL.setPixelRatio(1);
+  printGL.setSize(w, h, false);
+
+  // Light palette on the sheet regardless of the on-screen background (F-15):
+  // walk the scene materials to the mapped colours, render, walk back.
+  const wasLight = palette === 'light';
+  if (!wasLight) applyPalette(true);
+  printGL.setClearColor(LIGHT_BACKGROUND_RGB);
+  printGL.render(scene.internalScene, cam.internalCamera);
+  // Paper-space layouts: model content reaches the sheet through viewport
+  // views; borrow them onto the print renderer for this frame.
+  const modelLayout = scene.modelSpaceLayout;
+  if (!v.isModelSpaceLayout?.() && modelLayout && lv.viewportViews?.size) {
+    // The layout and its viewport views hold the live renderer; lend them the
+    // print one for this frame, then give it back.
+    const adapter = printAdapter(printGL);
+    const saved = [];
+    for (const vv of lv.viewportViews) saved.push([vv, vv._renderer]);
+    for (const [vv] of saved) vv._renderer = adapter;
+    try {
+      lv.drawViewports(modelLayout.internalObject);
+    } catch {
+      // a paper layout without viewport machinery still prints its sheet view
+    }
+    for (const [vv, rr] of saved) vv._renderer = rr;
+  }
+  const url = printGL.domElement.toDataURL('image/png');
+  if (!wasLight) applyPalette(false);
+  return url;
 }
 
 // Relative zoom around the viewport center, mirroring the engine's own
@@ -327,15 +530,26 @@ export function zoomBy(factor) {
 }
 
 // Camera zoom relative to the baseline captured right after fit; null when
-// the engine cannot report it (percentage hidden in the UI).
-let baseZoom = null;
+// the engine cannot report it (percentage hidden in the UI). Percent is the
+// pixels-per-world-unit ratio against the baseline: camera.zoom does not move
+// when the view box changes via zoomTo, so it always read 100 % (E1, item 15).
+let baseScale = null;
 export function captureZoomBaseline() {
-  baseZoom = acapGetCameraZoom(view());
+  baseScale = screenScale();
+}
+function screenScale() {
+  const v = view();
+  const el = v.container ?? document.querySelector('canvas');
+  const a = v.worldToScreen({ x: 0, y: 0 });
+  const b = v.worldToScreen({ x: 1, y: 0 });
+  const d = Math.hypot(b.x - a.x, b.y - a.y);
+  const area = (el?.clientWidth || 0) * (el?.clientHeight || 0);
+  return d > 0 && Number.isFinite(d) && area > 0 ? d : null;
 }
 export function zoomPercent() {
-  const z = acapGetCameraZoom(view());
-  if (z === null || z === undefined || !baseZoom || !z) return null;
-  return Math.round((baseZoom / z) * 100);
+  const z = screenScale();
+  if (z === null || !baseScale) return null;
+  return Math.round((z / baseScale) * 100);
 }
 
 export async function idle(timeoutMs = OPEN_TIME_LIMIT_S * 1000) {
@@ -354,4 +568,10 @@ export function dispose() {
     // single-page viewer: nothing to recover, the tab is being torn down
   }
   manager = null;
+  // Next file starts from the engine defaults; the background choice is
+  // re-applied by the viewer once the new drawing is on screen.
+  palette = 'dark';
+  globalThis.__dwgColorMap = null;
+  lightSwapped = null;
+  baseScale = null;
 }

@@ -19,3 +19,6 @@ export {
   AcDbFileType,
   AcGeBox2d,
 } from '@mlightcad/data-model';
+// Offscreen print rendering (F-15): a second WebGLRenderer on a detached
+// canvas renders the live scene at print resolution.
+export { WebGLRenderer } from 'three';

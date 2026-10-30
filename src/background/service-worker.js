@@ -7,6 +7,10 @@ const ALLOW_MS = 60_000;
 
 const VIEWER_PAGE = chrome.runtime.getURL('src/viewer/viewer.html');
 
+// F-26: the uninstall page is re-armed on every service-worker start, not
+// only on install/update events (the worker restarts often; MV3 forgets).
+chrome.runtime.setUninstallURL(UNINSTALL_URL);
+
 function viewerUrlFor(url, hashKey) {
   return VIEWER_PAGE + `#${hashKey}=${encodeURIComponent(url)}`;
 }
@@ -18,11 +22,23 @@ async function openViewerTab(url, background, sender) {
 }
 
 chrome.runtime.onInstalled.addListener(({ reason }) => {
-  chrome.runtime.setUninstallURL(UNINSTALL_URL);
   if (reason === 'install') chrome.tabs.create({ url: WELCOME_URL });
   injectIntoOpenTabs();
   setupMenu();
-  installDnrRules();
+  syncDnrRules();
+});
+
+// F-18 / F-22: link interception is on by default and the settings toggle
+// turns the DNR navigation rule off (and back on) live, in every tab.
+async function syncDnrRules() {
+  const on = (await chrome.storage.local.get('interceptLinks')).interceptLinks !== false;
+  await chrome.declarativeNetRequest.updateDynamicRules({
+    removeRuleIds: [DNR_RULE_ID],
+    addRules: on ? [dnrRule()] : [],
+  });
+}
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && 'interceptLinks' in changes) syncDnrRules().catch(() => {});
 });
 
 async function injectIntoOpenTabs() {
@@ -61,25 +77,20 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   openViewerTab(url, false, tab);
 });
 
-async function installDnrRules() {
-  await chrome.declarativeNetRequest.updateDynamicRules({
-    removeRuleIds: [DNR_RULE_ID],
-    addRules: [
-      {
-        id: DNR_RULE_ID,
-        priority: 1,
-        condition: {
-          regexFilter: '^https?://[^?#]*\\.(dwg|dxf)([?#].*)?',
-          isUrlFilterCaseSensitive: false,
-          resourceTypes: ['main_frame'],
-        },
-        action: {
-          type: 'redirect',
-          redirect: { regexSubstitution: VIEWER_PAGE + '#raw=\\0' },
-        },
-      },
-    ],
-  });
+function dnrRule() {
+  return {
+    id: DNR_RULE_ID,
+    priority: 1,
+    condition: {
+      regexFilter: '^https?://[^?#]*\\.(dwg|dxf)([?#].*)?',
+      isUrlFilterCaseSensitive: false,
+      resourceTypes: ['main_frame'],
+    },
+    action: {
+      type: 'redirect',
+      redirect: { regexSubstitution: VIEWER_PAGE + '#raw=\\0' },
+    },
+  };
 }
 
 async function allowDownloadOnce(url, tabId) {
@@ -120,12 +131,30 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   return false;
 });
 
-chrome.action.onClicked.addListener((tab) => {
+// F-16 / F-17: the icon (and Alt+Shift+D) focuses the viewer tab the icon
+// opened last, if it is still alive; otherwise it opens one next to the
+// current tab. Tabs opened from links never take over this memory.
+chrome.action.onClicked.addListener(async (tab) => {
   if (tab?.id !== undefined && typeof tab.url === 'string' && tab.url.startsWith(VIEWER_PAGE)) {
     chrome.tabs.sendMessage(tab.id, { type: 'focus-open' }, () => void chrome.runtime.lastError);
     return;
   }
+  try {
+    const { iconTabId } = await chrome.storage.session.get('iconTabId');
+    if (typeof iconTabId === 'number') {
+      const [ctx] = await chrome.runtime.getContexts({ contextTypes: ['TAB'], tabIds: [iconTabId] });
+      if (ctx && typeof ctx.tabId === 'number' && (ctx.url || '').startsWith(VIEWER_PAGE)) {
+        await chrome.tabs.update(iconTabId, { active: true });
+        const t = await chrome.tabs.get(iconTabId).catch(() => null);
+        if (t?.windowId !== undefined) await chrome.windows.update(t.windowId, { focused: true });
+        return;
+      }
+    }
+  } catch {
+    // getContexts unavailable or the context list raced a tab close: open fresh
+  }
   const createProps = { url: VIEWER_PAGE, active: true };
   if (tab?.index !== undefined) createProps.index = tab.index + 1;
-  chrome.tabs.create(createProps);
+  const t = await chrome.tabs.create(createProps);
+  chrome.storage.session.set({ iconTabId: t.id }).catch(() => {});
 });

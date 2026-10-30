@@ -1,11 +1,14 @@
 // Every interface string. English everywhere; non-English locales carry only
 // extName/extDescription until the listing translations land (ТЗ 8).
-// extDescription stays the temporary pre-listing line until `--release`.
+// extDescription is the approved meta v2 short description (04-meta-281026-v2.md);
+// if the listing changes, the orchestrator updates this line and reorders the
+// extDescription translations.
 export const TEMP_EXT_DESCRIPTION = 'View DWG and DXF drawings in a Chrome tab.';
 
 export const MESSAGES = {
   extName: 'DWG Viewer',
-  extDescription: TEMP_EXT_DESCRIPTION,
+  extDescription:
+    'Use DWG Viewer to open a DWG file in Chrome, view DXF online, toggle layers and save the view to PDF. Nothing is uploaded.',
   actionTitle: 'DWG Viewer',
   commandDesc: 'Open DWG Viewer',
   menuOpen: 'Open in DWG Viewer',
@@ -64,7 +67,11 @@ export const MESSAGES = {
   partialTypeXref: 'Xref',
   partialTypeImage: 'Image',
   partialTypeFont: 'Font',
+  partialTypeUnderlay: 'underlay',
   partialUnknownTypes: 'unsupported object types',
+  emptyNoObjects: 'No visible objects in this drawing',
+  empty3dModel: 'This is a 3D model',
+  printLayersOn: '$1 of $2 layers on',
   fontNote:
     'Text is drawn with a system font and may look different from your CAD program.',
 
@@ -72,11 +79,29 @@ export const MESSAGES = {
   zoomIn: 'Zoom in',
   fit: 'Fit',
   modelTab: 'Model',
+  layers: 'Layers',
+  showAll: 'Show all',
+  hideAll: 'Hide all',
+  background: 'Background',
+  dark: 'Dark',
+  light: 'Light',
+  printSave: 'Print / Save as PDF',
+  settings: 'Settings',
+  coordsXY: 'X $1  Y $2  $3',
   hintPan: 'Drag to pan',
   hintZoom: 'Scroll to zoom',
   hintFit: 'Double-click to fit',
   tipLink1: 'Tip: click a .dwg or .dxf link on any site and the drawing opens here.',
   tipLink2: 'Or right-click the link and choose Open in DWG Viewer.',
+  settingsToggleLbl: 'Open .dwg and .dxf links here',
+  settingsToggleHint:
+    'When on, clicking a link to a .dwg or .dxf file opens it in DWG Viewer. When off, the file downloads as usual.',
+  settingsNote: 'Right-click a link and choose Open in DWG Viewer to open it here either way.',
+  noticeText: 'Links to .dwg and .dxf files now open in DWG Viewer.',
+  noticeGot: 'Got it',
+  rateQuestion: 'Is DWG Viewer useful?',
+  rateStar: 'Rate $1 out of 5',
+  rateNotNow: 'Not now',
   srcOpenedFrom: 'Opened from',
   srcDownload: 'Download original',
   dropToOpen: 'Drop to open',

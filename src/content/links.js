@@ -23,6 +23,13 @@
     chrome.storage.local.get('interceptLinks', (v) => {
       if (v && v.interceptLinks === false) gate = false;
     });
+    // F-22: the settings toggle acts on tabs that are already open, without
+    // a reload (storage.onChanged reaches isolated worlds).
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area === 'local' && 'interceptLinks' in changes) {
+        gate = changes.interceptLinks.newValue !== false;
+      }
+    });
   } catch {
     gate = false;
   }

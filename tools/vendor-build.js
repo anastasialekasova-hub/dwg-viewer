@@ -19,6 +19,7 @@ import { patchSpline } from './vendor-patch-spline.js';
 import { patchYield } from './vendor-patch-yield.js';
 import { patchExtents } from './vendor-patch-extents.js';
 import { patchPrint } from './vendor-patch-print.js';
+import { patchColors } from './vendor-patch-colors.js';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const vendorDir = path.join(root, 'src', 'vendor');
@@ -130,6 +131,9 @@ await patchYield(path.join(vendorDir, 'cad-viewer.js'));
 await patchExtents(path.join(vendorDir, 'cad-viewer.js'));
 // WebGL buffer cleared before Chrome's print snapshot -> blank PDF (4.2.13, F-12).
 await patchPrint(path.join(vendorDir, 'cad-viewer.js'));
+// Light background / print palette: route resolved colours through the
+// globalThis.__dwgColorMap hook (F-11, F-15).
+await patchColors(path.join(vendorDir, 'cad-viewer.js'));
 
 // Zero network (4.2.6): the mtext worker bakes in the engine's CDN font
 // catalog default and fetches fonts.json with it during boot, before any

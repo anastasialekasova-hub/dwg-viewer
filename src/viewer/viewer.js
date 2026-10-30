@@ -1,9 +1,19 @@
 // Viewer tab logic (ТЗ 7.4): start → loading → view/error, open from disk or
 // link (#src=, #raw=), progress card, honest drawn/total counter, partial
-// notice. Layers/Background/Print/Settings screens are later phases.
+// notice, layers panel, background switch, print sheet, settings popover,
+// link notice, rating widget (F-8…F-27).
 import * as engine from './engine.js';
-import { OPEN_TIME_LIMIT_S, LINK_LIMIT_MB } from '../lib/config.js';
-import { loadSettings } from '../lib/settings.js';
+import { OPEN_TIME_LIMIT_S, LINK_LIMIT_MB, REVIEW_MIN_SECONDS } from '../lib/config.js';
+import { loadSettings, saveSettings } from '../lib/settings.js';
+import {
+  REVIEW_DEFAULTS,
+  migrateReview,
+  recordUsefulDay,
+  shouldShow,
+  urlForStars,
+  applyStars,
+  applyNotNow,
+} from '../lib/review.js';
 import { VERSION_CODES, SUPPORTED_RANGE } from '../lib/format.js';
 import {
   LINK_LIMIT_BYTES,
@@ -28,19 +38,32 @@ const ICON_ZOOM_OUT =
   '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.4" stroke="currentColor" stroke-width="1.3"/><path d="M10.4 10.4 14 14M4.9 7h4.2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
 const ICON_ERR =
   '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 3 17.5 16h-15z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 8v4M10 14.6v.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+const ICON_SETTINGS =
+  '<svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><path d="M1.5 3.5h5.5M10 3.5h1.5M1.5 9.5h1.5M6 9.5h5.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="8.5" cy="3.5" r="1.5" stroke="currentColor" stroke-width="1.3"/><circle cx="4.5" cy="9.5" r="1.5" stroke="currentColor" stroke-width="1.3"/></svg>';
+const ICON_STAR =
+  '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3.2l2.6 5.5 6 .7-4.4 4.1 1.2 5.9L12 16.5l-5.4 2.9 1.2-5.9L3.4 9.4l6-.7z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>';
 
 const els = {};
 for (const id of [
   'fileBox', 'fname', 'fchip', 'zoomGroup', 'zoomOutBtn', 'zoomPct', 'zoomInBtn', 'fitBtn', 'openBtn',
+  'layersBtn', 'layersLbl', 'bgPick', 'bgCap', 'bgDark', 'bgLight', 'printBtn', 'printLbl',
+  'settingsBtn', 'settingsPop', 'settingsTitle', 'settingsToggle', 'settingsToggleLbl',
+  'settingsToggleHint', 'settingsNote',
   'srcbar', 'srcLabel', 'srcPath', 'downloadBtn', 'cad', 'start', 'startDrop', 'startOr', 'openBtn2',
   'keyMod', 'keyO', 'privacyLocal', 'privacyNoUpload', 'rangeLine', 'tipLink1', 'tipLink2',
   'loading', 'loadTitle', 'loadSize', 'stepFile', 'stepFileLbl', 'stepParse', 'stepParseLbl',
   'stepDraw', 'stepDrawLbl', 'loadBar', 'loadCnt', 'cancelBtn',
   'error', 'errIco', 'errTitle', 'errWhy', 'errNext', 'errOpenAnother', 'errDownloadBtn', 'errTryAgain',
+  'emptycard', 'emptyTitle',
   'hintPan', 'hintZoom', 'hintFit', 'dragOver', 'dropToOpenLbl',
+  'notice', 'noticeText', 'noticeSettings', 'noticeGot',
   'partial', 'partialMsg', 'partialDetailsBtn', 'partialDismissBtn', 'partialDet',
   'partialRows', 'fontNote', 'colType', 'colCount', 'colLayers',
-  'layoutTabs', 'drawnPill', 'renderedLbl', 'fileInput', 'printShot',
+  'layoutTabs', 'coords', 'drawnPill', 'renderedLbl', 'fileInput',
+  'layersPanel', 'layersTitle', 'layersCount', 'layersShowAll', 'layersHideAll', 'layersRows',
+  'rate', 'rateQuestion', 'rateStars', 'rateNotNow',
+  'printSheet', 'printName', 'printLayout', 'printDate', 'printLayers', 'printObjects', 'printShot2',
+  'pageStyle',
 ]) els[id] = $(id);
 
 let state = 'start';
@@ -53,6 +76,12 @@ let pollTimer = null;
 let current = null; // { meta, ver, bytes, counts, missed } while a drawing is open
 let retry = null; // link-error "Try again"
 let retryUrl = null; // link-error "Download instead"
+let settingsCache = null;
+let reviewRecord = migrateReview(null);
+let reviewTimer = null;
+let openStartedAt = 0;
+let layerRows = []; // [{name, input, label}]
+let hintDone = false;
 
 function setState(next) {
   state = next;
@@ -65,6 +94,9 @@ function fmtBytes(n) {
 }
 function fmtInt(n) {
   return n.toLocaleString('en-US');
+}
+function fmtCoord(n) {
+  return n.toLocaleString('en-US', { maximumFractionDigits: 2 });
 }
 function decodeSafe(s) {
   try {
@@ -124,13 +156,24 @@ function showStart() {
   }
   clearTimeout(cardTimer);
   clearInterval(pollTimer);
+  clearTimeout(reviewTimer);
   engine.dispose();
   els.fileInput.value = '';
   els.loading.hidden = true;
   els.error.hidden = true;
+  els.emptycard.hidden = true;
   els.partial.hidden = true;
   els.srcbar.hidden = true;
   els.drawnPill.hidden = true;
+  els.rate.hidden = true;
+  els.notice.hidden = true;
+  els.settingsPop.hidden = true;
+  els.settingsBtn.setAttribute('aria-expanded', 'false');
+  els.layersRows.replaceChildren();
+  layerRows = [];
+  document.body.dataset.layers = 'off';
+  els.layersBtn.setAttribute('aria-pressed', 'false');
+  els.coords.textContent = '';
   current = null;
   retry = null;
   retryUrl = null;
@@ -144,13 +187,19 @@ function cancelOpen() {
 
 /* ---------- partial notice + status bar ---------- */
 
+// F-10: the list is the undrawn object types by count; missing fonts are not
+// objects (their text is drawn with the fallback font) and only get the
+// font line in Details. Type codes the parser does not name (E1: "1 8C6")
+// and UNDERLAY records read as words, not raw codes.
+function typeName(t) {
+  if (t === 'OTHER' || /^[0-9A-Fa-f]{1,4}$/.test(t)) return msg('partialUnknownTypes');
+  if (/UNDERLAY$/i.test(t)) return msg('partialTypeUnderlay');
+  return t;
+}
+
 function showPartial() {
   if (!current) return;
   const { counts: c, missed: m } = current;
-  // F-10: the list is the undrawn object types by count; missing fonts are not
-  // objects (their text is drawn with the fallback font) and only get the
-  // font line in Details.
-  const typeName = (t) => (t === 'OTHER' ? msg('partialUnknownTypes') : t);
   const groups = c.byType ?? [];
   const items = groups.map((g) => msg('partialItem', fmtInt(g.count), typeName(g.type)));
   for (const x of [...m.xrefs, ...m.images]) items.push(msg('partialItem', '1', x.name));
@@ -189,31 +238,19 @@ function refreshCounts() {
   els.drawnPill.classList.toggle('undrawn', c.undrawn > 0);
   if (hasGaps()) showPartial();
   else els.partial.hidden = true;
+  checkReview();
 }
 
 /* ---------- view ---------- */
 
-// Print: the sheet shows a snapshot of the current view, not the live canvas
-// (engine.snapshot). F-15 (button, light colours, sheet header) is E2.
-window.addEventListener('beforeprint', () => {
-  if (state !== 'view') return;
-  const src = engine.snapshot();
-  if (src) {
-    els.printShot.src = src;
-    els.printShot.hidden = false;
-  }
-});
-window.addEventListener('afterprint', () => {
-  els.printShot.hidden = true;
-  els.printShot.removeAttribute('src');
-});
-
-// Tab title = default PDF file name in Chrome's print dialog (ТЗ 4.2.13): "{file} · {layout}".
-function updateTitle() {
+function activeLayoutName() {
   const active = engine.activeLayoutBtrId();
   const l = engine.listLayouts().find((x) => x.btrId === active);
-  const layout = !l || l.isModel ? msg('modelTab') : l.name;
-  document.title = msg('statusFileTitle', current.meta.name, layout);
+  return !l || l.isModel ? msg('modelTab') : l.name;
+}
+
+function updateTitle() {
+  document.title = msg('statusFileTitle', current.meta.name, activeLayoutName());
 }
 
 function renderTabs() {
@@ -245,6 +282,173 @@ function renderTabs() {
   );
 }
 
+/* ---------- layers panel (F-9) ---------- */
+
+const hexStr = (rgb) => `#${(rgb & 0xffffff).toString(16).padStart(6, '0')}`;
+
+function renderLayers() {
+  const ls = engine.layersInfo();
+  els.layersCount.textContent = fmtInt(ls.length);
+  layerRows = ls.map((l) => {
+    const label = document.createElement('label');
+    label.className = 'lrow';
+    if (!l.on) label.classList.add('off');
+    const box = document.createElement('input');
+    box.type = 'checkbox';
+    box.checked = l.on;
+    box.addEventListener('change', () => {
+      engine.setLayerVisible(l.name, box.checked);
+      label.classList.toggle('off', !box.checked);
+      l.on = box.checked;
+    });
+    const sw = document.createElement('span');
+    sw.className = 'sw';
+    sw.style.background = hexStr(l.colorHex);
+    const n = document.createElement('span');
+    n.className = 'n';
+    n.textContent = l.name;
+    n.title = l.name;
+    label.append(box, sw, n);
+    return { name: l.name, input: box, label };
+  });
+  els.layersRows.replaceChildren(...layerRows.map((r) => r.label));
+}
+
+function setAllLayers(on) {
+  for (const r of layerRows) {
+    r.input.checked = on;
+    r.label.classList.toggle('off', !on);
+  }
+  for (const r of layerRows) engine.setLayerVisible(r.name, on);
+}
+
+function setBackgroundUi(light) {
+  engine.setBackground(light);
+  document.body.dataset.cadbg = light ? 'light' : 'dark';
+  els.bgDark.setAttribute('aria-pressed', String(!light));
+  els.bgLight.setAttribute('aria-pressed', String(light));
+}
+
+async function chooseBackground(light) {
+  setBackgroundUi(light);
+  try {
+    settingsCache = await saveSettings({ background: light ? 'light' : 'dark' });
+  } catch {
+    // storage unavailable: the choice lives until the tab closes
+  }
+}
+
+/* ---------- settings popover (F-22) ---------- */
+
+function openSettingsPop(open) {
+  els.settingsPop.hidden = !open;
+  els.settingsBtn.setAttribute('aria-expanded', String(open));
+}
+
+function applySettingsUi() {
+  const s = settingsCache ?? { interceptLinks: true, background: 'dark', hintSeen: false };
+  els.settingsToggle.setAttribute('aria-checked', String(s.interceptLinks !== false));
+  const light = s.background === 'light';
+  if (state === 'view') setBackgroundUi(light);
+  els.bgDark.setAttribute('aria-pressed', String(!light));
+  els.bgLight.setAttribute('aria-pressed', String(light));
+}
+
+function syncSettings(storageChange) {
+  if (storageChange) {
+    if (settingsCache && 'interceptLinks' in storageChange) {
+      settingsCache.interceptLinks = storageChange.interceptLinks.newValue !== false;
+    }
+    if (settingsCache && 'background' in storageChange) {
+      settingsCache.background = storageChange.background.newValue === 'light' ? 'light' : 'dark';
+    }
+  }
+  applySettingsUi();
+}
+
+/* ---------- rating widget (F-27) ---------- */
+
+function saveReview() {
+  chrome.storage.local.set({ review: reviewRecord }).catch(() => {});
+}
+
+function checkReview() {
+  if (state !== 'view' || !current) {
+    els.rate.hidden = true;
+    return;
+  }
+  const show = shouldShow(reviewRecord, {
+    fullyDrawn: !hasGaps(),
+    msSinceOpen: Date.now() - openStartedAt,
+  });
+  els.rate.hidden = !show;
+}
+
+function armReview() {
+  clearTimeout(reviewTimer);
+  const wait = Math.max(0, REVIEW_MIN_SECONDS * 1000 - (Date.now() - openStartedAt));
+  reviewTimer = setTimeout(checkReview, wait + 250);
+}
+
+function buildStars() {
+  els.rateStars.replaceChildren(
+    ...[1, 2, 3, 4, 5].map((n) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'star';
+      b.setAttribute('aria-label', msg('rateStar', String(n)));
+      b.innerHTML = ICON_STAR;
+      b.addEventListener('click', () => {
+        reviewRecord = applyStars(reviewRecord);
+        saveReview();
+        els.rate.hidden = true;
+        chrome.tabs.create({ url: urlForStars(n), active: true });
+      });
+      const lit = (on) => {
+        for (const [i, s] of [...els.rateStars.children].entries()) {
+          s.classList.toggle('lit', on && i < n);
+        }
+      };
+      b.addEventListener('mouseenter', () => lit(true));
+      b.addEventListener('focus', () => lit(true));
+      b.addEventListener('mouseleave', () => lit(false));
+      b.addEventListener('blur', () => lit(false));
+      return b;
+    }),
+  );
+  // F-27 accessibility: arrow keys move focus across the star group.
+  els.rateStars.addEventListener('keydown', (e) => {
+    const kids = [...els.rateStars.children];
+    const at = kids.indexOf(document.activeElement);
+    if (at === -1) return;
+    if (e.key === 'ArrowRight' && kids[at + 1]) kids[at + 1].focus();
+    if (e.key === 'ArrowLeft' && kids[at - 1]) kids[at - 1].focus();
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') e.preventDefault();
+  });
+}
+
+/* ---------- print sheet (F-15) ---------- */
+
+function buildPrintSheet() {
+  if (state !== 'view' || !current) return;
+  els.printName.textContent = current.meta.name;
+  els.printLayout.textContent = activeLayoutName();
+  els.printDate.textContent = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(new Date());
+  const layers = engine.layersInfo();
+  els.printLayers.textContent = msg('printLayersOn', fmtInt(layers.filter((l) => l.on).length), fmtInt(layers.length));
+  const c = current.counts ?? engine.counts();
+  els.printObjects.textContent = msg('statusDrawn', fmtInt(c.drawn), fmtInt(c.total));
+  els.printShot2.src = engine.printView();
+  const live = document.querySelector('#cad canvas');
+  const landscape = (live?.clientWidth || 1) >= (live?.clientHeight || 1);
+  els.pageStyle.textContent = `@page { margin: 0; size: A4 ${landscape ? 'landscape' : 'portrait'}; }`;
+}
+
+window.addEventListener('beforeprint', buildPrintSheet);
+window.addEventListener('afterprint', () => {
+  els.printShot2.removeAttribute('src');
+});
+
 function enterView() {
   setState('view');
   els.loading.hidden = true;
@@ -264,6 +468,66 @@ function enterView() {
   }
   renderTabs();
   refreshCounts();
+  // Background choice applies to every drawing (settings.background).
+  setBackgroundUi(settingsCache?.background === 'light');
+  renderLayers();
+  // A drawing that reached the view without an error card counts as a
+  // useful day (F-27), and the empty-drawing card replaces a blank canvas.
+  reviewRecord = recordUsefulDay(reviewRecord);
+  saveReview();
+  armReview();
+  maybeShowNotice();
+  maybeShowEmptyCard();
+  maybeShowHint();
+}
+
+/* ---------- empty-drawing card (accepted at the E1 review) ---------- */
+
+// block.dxf / PolyLine2D.dxf: 0 of 0 objects; condominium.dwg: only 3DSOLID
+// solids the viewer does not draw. Both read as a blank screen without it.
+function maybeShowEmptyCard() {
+  const c = current?.counts;
+  if (!c || c.drawn > 0) {
+    els.emptycard.hidden = true;
+    return;
+  }
+  const solids = (c.byType ?? []).find((g) => /3DSOLID/i.test(g.type))?.count ?? 0;
+  const is3d = c.undrawn > 0 && solids >= Math.max(1, c.undrawn / 2);
+  els.emptyTitle.textContent = msg(is3d ? 'empty3dModel' : 'emptyNoObjects');
+  els.emptycard.hidden = false;
+}
+
+/* ---------- first-intercept notice (F-23) ---------- */
+
+function maybeShowNotice() {
+  if (!current?.meta.url || settingsCache?.linkNoticeSeen) return;
+  els.notice.hidden = false;
+}
+
+async function dismissNotice(openSettings) {
+  els.notice.hidden = true;
+  try {
+    settingsCache = await saveSettings({ linkNoticeSeen: true });
+  } catch {
+    // without storage the notice would reappear next time; acceptable
+  }
+  if (openSettings) openSettingsPop(true);
+}
+
+/* ---------- first-open hint (F-8) ---------- */
+
+function maybeShowHint() {
+  hintDone = settingsCache?.hintSeen === true;
+  els.stageHint.hidden = state !== 'view' || hintDone;
+}
+
+function dismissHint() {
+  if (hintDone) return;
+  hintDone = true;
+  els.stageHint.hidden = true;
+  saveSettings({ hintSeen: true }).then((s) => {
+    settingsCache = s;
+  }).catch(() => {});
 }
 
 /* ---------- open: shared pipeline ---------- */
@@ -335,6 +599,20 @@ function linkError(kind, meta) {
   });
 }
 
+// The drawn count keeps growing for a while after the engine reports idle
+// (late conversions of the active layout); fitting before it settles opened
+// example_r14 to partial extents (E1, item 13). Wait for two equal reads.
+async function settleCounts(token) {
+  let last = -1;
+  for (let i = 0; i < 20; i++) {
+    if (token !== openToken) return;
+    await new Promise((r) => setTimeout(r, 250));
+    const c = engine.counts();
+    if (c.drawn === last) return;
+    last = c.drawn;
+  }
+}
+
 async function finishDrawing(token, deadline) {
   pollTimer = setInterval(() => {
     if (token !== openToken) {
@@ -367,6 +645,12 @@ async function finishDrawing(token, deadline) {
     tooLarge(current.meta);
     return;
   }
+  await settleCounts(token);
+  if (token !== openToken) return;
+  // ТЗ 10.2 case 9: drawings open on Model; the file's saved-active layout
+  // stays one tab click away.
+  const model = engine.listLayouts().find((l) => l.isModel);
+  if (model && engine.activeLayoutBtrId() !== model.btrId) engine.showLayout(model.btrId, { fit: false });
   await engine.fit();
   if (token !== openToken) return;
   engine.captureZoomBaseline();
@@ -436,6 +720,7 @@ function openLocalFile(file) {
   cardTimer = setTimeout(() => {
     if (token === openToken) showCard(meta);
   }, 500);
+  openStartedAt = Date.now();
   setState('loading');
   runOpen(token, meta, async () => new Uint8Array(await file.arrayBuffer()));
 }
@@ -536,6 +821,7 @@ function openLink(url) {
   cardTimer = setTimeout(() => {
     if (token === openToken) showCard(meta, { reading: true });
   }, 500);
+  openStartedAt = Date.now();
   setState('loading');
   runOpen(token, meta, () => fetchLink(token, url));
 }
@@ -550,6 +836,15 @@ function downloadBytes() {
   a.download = current.meta.name;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 30_000);
+}
+
+function showCoords(e) {
+  if (state !== 'view') return;
+  const r = els.cad.getBoundingClientRect();
+  const w = engine.screenToWorld({ x: e.clientX - r.left, y: e.clientY - r.top });
+  if (!w) return;
+  const units = engine.unitsSuffix();
+  els.coords.textContent = msg('coordsXY', fmtCoord(w.x), fmtCoord(w.y), units);
 }
 
 function wire() {
@@ -569,6 +864,7 @@ function wire() {
   });
   els.errTryAgain.addEventListener('click', () => retry?.());
   els.downloadBtn.addEventListener('click', downloadBytes);
+  els.printBtn.addEventListener('click', () => window.print());
 
   els.zoomInBtn.addEventListener('click', () => {
     engine.zoomBy(1.25);
@@ -588,6 +884,65 @@ function wire() {
   els.cad.addEventListener('dblclick', (e) => {
     if (e.button === 0) fitAll();
   });
+
+  // Layers panel (F-9) and canvas background (F-11).
+  els.layersBtn.addEventListener('click', () => {
+    const on = document.body.dataset.layers !== 'on';
+    document.body.dataset.layers = on ? 'on' : 'off';
+    els.layersBtn.setAttribute('aria-pressed', String(on));
+  });
+  els.layersShowAll.addEventListener('click', () => setAllLayers(true));
+  els.layersHideAll.addEventListener('click', () => setAllLayers(false));
+  els.bgDark.addEventListener('click', () => chooseBackground(false));
+  els.bgLight.addEventListener('click', () => chooseBackground(true));
+
+  // Settings popover (F-22): one toggle, live in every open tab.
+  els.settingsBtn.addEventListener('click', () => openSettingsPop(els.settingsPop.hidden));
+  els.settingsToggle.addEventListener('click', async () => {
+    const next = els.settingsToggle.getAttribute('aria-checked') !== 'true';
+    els.settingsToggle.setAttribute('aria-checked', String(next));
+    try {
+      settingsCache = await saveSettings({ interceptLinks: next });
+    } catch {
+      // storage unavailable: the choice lives until the tab closes
+    }
+  });
+  document.addEventListener('pointerdown', (e) => {
+    if (els.settingsPop.hidden) return;
+    if (e.target.closest?.('#settingsPop, #settingsBtn')) return;
+    openSettingsPop(false);
+  });
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !els.settingsPop.hidden) openSettingsPop(false);
+  });
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area !== 'local') return;
+    if ('interceptLinks' in changes || 'background' in changes) syncSettings(changes);
+    if ('review' in changes) reviewRecord = migrateReview(changes.review.newValue);
+  });
+
+  // Link notice (F-23): both buttons dismiss it for good.
+  els.noticeGot.addEventListener('click', () => dismissNotice(false));
+  els.noticeSettings.addEventListener('click', () => dismissNotice(true));
+
+  // Rating widget (F-27).
+  els.rateNotNow.addEventListener('click', () => {
+    reviewRecord = applyNotNow(reviewRecord);
+    saveReview();
+    els.rate.hidden = true;
+  });
+
+  // Cursor coordinates (F-13) + zoom percent + the hint dismissal (F-8).
+  els.cad.addEventListener('mousemove', showCoords);
+  els.cad.addEventListener(
+    'wheel',
+    () => {
+      requestAnimationFrame(setZoomPct);
+      dismissHint();
+    },
+    { passive: true },
+  );
+  els.cad.addEventListener('pointerdown', dismissHint);
 
   els.partialDismissBtn.addEventListener('click', () => {
     els.partial.hidden = true;
@@ -682,14 +1037,44 @@ function localize() {
   t('colCount', 'colCount');
   t('colLayers', 'colLayers');
   t('renderedLbl', 'statusRendered');
+  t('layersLbl', 'layers');
+  t('layersTitle', 'layers');
+  t('layersShowAll', 'showAll');
+  t('layersHideAll', 'hideAll');
+  t('bgCap', 'background');
+  t('bgDark', 'dark');
+  t('bgLight', 'light');
+  t('printLbl', 'printSave');
+  t('settingsTitle', 'settings');
+  t('settingsToggleLbl', 'settingsToggleLbl');
+  t('settingsToggleHint', 'settingsToggleHint');
+  t('settingsNote', 'settingsNote');
+  t('noticeText', 'noticeText');
+  t('noticeSettings', 'settings');
+  t('noticeGot', 'noticeGot');
+  t('rateQuestion', 'rateQuestion');
+  t('rateNotNow', 'rateNotNow');
+  els.layersBtn.title = msg('layers');
+  els.printBtn.title = msg('printSave');
+  els.settingsBtn.title = msg('settings');
+  els.settingsBtn.innerHTML = ICON_SETTINGS;
+  buildStars();
   // CSS data-state rules drive these; the hidden attribute would win over them
   els.fileBox.hidden = false;
   els.zoomGroup.hidden = false;
 
   loadSettings()
     .then((s) => {
+      settingsCache = s;
+      applySettingsUi();
       // with link interception off, only the right-click tip applies
       if (s.interceptLinks === false) els.tipLink1.hidden = true;
+    })
+    .catch(() => {});
+  chrome.storage.local
+    .get('review')
+    .then((v) => {
+      reviewRecord = migrateReview(v.review);
     })
     .catch(() => {});
 }

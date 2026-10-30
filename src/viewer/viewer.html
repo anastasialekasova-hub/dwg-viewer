@@ -25,10 +25,38 @@
     <button class="btn icon" type="button" id="zoomOutBtn"></button>
     <span class="zoom" id="zoomPct"></span>
     <button class="btn icon" type="button" id="zoomInBtn"></button>
-    <button class="btn" type="button" id="fitBtn"></button>
+    <button class="btn" type="button" id="fitBtn">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><path d="M1.5 4.5v-3h3M8.5 1.5h3v3M11.5 8.5v3h-3M4.5 11.5h-3v-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
   </div>
+  <button class="btn on" type="button" id="layersBtn" aria-pressed="true" hidden>
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><path d="M6.5 1.5l5 2.5-5 2.5-5-2.5 5-2.5zM1.5 6.8l5 2.5 5-2.5M1.5 9.3l5 2.5 5-2.5" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg><span id="layersLbl"></span>
+  </button>
+  <div class="bgpick" id="bgPick" hidden>
+    <span class="cap" id="bgCap"></span>
+    <div class="seg" role="group">
+      <button type="button" id="bgDark"></button>
+      <button type="button" id="bgLight"></button>
+    </div>
+  </div>
+  <button class="btn" type="button" id="printBtn" hidden>
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><path d="M3.5 4.5v-3h6v3M3.5 9.5h-2v-5h10v5h-2M3.5 7.5h6v4h-6z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg><span id="printLbl"></span>
+  </button>
   <button class="btn icon" type="button" id="openBtn" title="Open file…"></button>
+  <button class="btn icon" type="button" id="settingsBtn" title="Settings" aria-haspopup="dialog" aria-expanded="false"></button>
 </header>
+
+<div class="pop" id="settingsPop" role="dialog" aria-label="Settings" hidden>
+  <p class="pt" id="settingsTitle"></p>
+  <div class="trow">
+    <button class="switch" type="button" role="switch" aria-checked="true" id="settingsToggle"></button>
+    <div>
+      <p class="tl" id="settingsToggleLbl"></p>
+      <p class="th" id="settingsToggleHint"></p>
+    </div>
+  </div>
+  <p class="tnote" id="settingsNote"></p>
+</div>
 
 <div class="srcbar" id="srcbar" hidden>
   <span class="src">
@@ -43,7 +71,6 @@
 <main class="body">
   <section class="stage" id="stage">
     <div class="cadhost" id="cad"></div>
-    <img class="printshot" id="printShot" alt="" hidden>
 
     <section class="empty" id="start" role="region">
       <div class="drop">
@@ -107,13 +134,47 @@
       </div>
     </section>
 
+    <section class="stagecenter" id="emptycard" hidden>
+      <div class="errcard quiet" role="status">
+        <span class="eico" aria-hidden="true" id="emptyIco">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M10 6.5v4.5l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </span>
+        <h2 id="emptyTitle"></h2>
+      </div>
+    </section>
+
     <div class="hint" id="stageHint" hidden>
       <span id="hintPan"></span><span id="hintZoom"></span><span id="hintFit"></span>
     </div>
 
+    <div class="notice" id="notice" role="status" aria-live="polite" hidden>
+      <svg class="ni" width="14" height="14" viewBox="0 0 13 13" fill="none" aria-hidden="true"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.3"/><path d="M6.5 6v3.2M6.5 3.9v.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span id="noticeText"></span>
+      <button class="btn sm" type="button" id="noticeSettings"></button>
+      <button class="btn sm" type="button" id="noticeGot"></button>
+    </div>
+
     <div class="dragover" id="dragOver" hidden><p id="dropToOpenLbl"></p></div>
   </section>
+
+  <aside class="layers" id="layersPanel" aria-label="Layers" hidden>
+    <div class="lhead">
+      <h2 class="h2" id="layersTitle"></h2>
+      <span class="count" id="layersCount"></span>
+      <span class="grow"></span>
+      <button class="link" type="button" id="layersShowAll"></button>
+      <button class="link" type="button" id="layersHideAll"></button>
+    </div>
+    <div class="lrows" id="layersRows"></div>
+  </aside>
 </main>
+
+<section class="rate" id="rate" hidden aria-label="Rate DWG Viewer">
+  <p class="q" id="rateQuestion"></p>
+  <div class="stars" id="rateStars" role="group"></div>
+  <span class="grow"></span>
+  <button class="btn" type="button" id="rateNotNow"></button>
+</section>
 
 <section class="warn" id="partial" hidden role="status">
   <div class="wl">
@@ -137,6 +198,7 @@
 
 <footer class="status">
   <div class="stabs" id="layoutTabs" role="tablist" hidden></div>
+  <span class="coords" id="coords"></span>
   <span class="grow"></span>
   <button class="pill acc" type="button" id="drawnPill" hidden></button>
   <span class="pill" id="localPill">
@@ -144,6 +206,19 @@
     <span id="renderedLbl"></span>
   </span>
 </footer>
+
+<!-- Print sheet (F-15): only this is shown in @media print. -->
+<section class="sheet" id="printSheet" aria-hidden="true">
+  <div class="phead">
+    <b id="printName"></b><span id="printLayout"></span><span class="date" id="printDate"></span>
+  </div>
+  <div class="pdraw"><img id="printShot2" alt=""></div>
+  <div class="pfoot">
+    <span id="printLayers"></span>
+    <span id="printObjects"></span>
+  </div>
+</section>
+<style id="pageStyle">@page { margin: 0; }</style>
 
 <input type="file" id="fileInput" accept=".dwg,.dxf,application/acad,image/vnd.dwg" hidden>
 </body>

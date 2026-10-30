@@ -18208,7 +18208,15 @@ var init_AcGiContext = __esm({
         this.backgroundIsDark = (_c3 = options.backgroundIsDark) !== null && _c3 !== void 0 ? _c3 : true;
         this.fallbackRgb = (_d3 = options.fallbackRgb) !== null && _d3 !== void 0 ? _d3 : 16777215;
       }
+/* DWG Viewer patch: color map */
+function __dwgMapRgb(rgb) {
+  const f = globalThis.__dwgColorMap;
+  return typeof f == "function" && typeof rgb == "number" ? f(rgb) : rgb;
+}
       AcGiContext2.prototype.resolveSubEntityTraitsRgb = function(traits) {
+        return __dwgMapRgb(__dwgResolveSubEntityTraitsRgbOrig.call(this, traits));
+      };
+      function __dwgResolveSubEntityTraitsRgbOrig(traits) {
         var _a5, _b3, _c3;
         var color = traits.color;
         if (color.isForeground) {
@@ -161215,7 +161223,9 @@ var B = class B2 extends Group {
     const r = ((l = t.color) == null ? void 0 : l.isForeground) === true;
     if (ve2(e, { isForeground: r }), r && !i)
       return;
-    const s = r && i ? acgiForegroundColorForBackground(i.currentBackgroundColor) : (c = t.color) == null ? void 0 : c.RGB;
+    const s = __dwgMapRgb(
+      r && i ? acgiForegroundColorForBackground(i.currentBackgroundColor) : (c = t.color) == null ? void 0 : c.RGB
+    );
     typeof s != "number" || this.getMaterialDisplayRgb(e) === s || T2.setMaterialColor(e, new Color(s));
   }
   getMaterialDisplayRgb(e) {
@@ -167668,7 +167678,7 @@ var pi2 = class pi3 {
    * the current layer-table swatch when it is available.
    */
   resolveMaterialRgb(e, t) {
-    return e.color.isByLayer && typeof t == "number" ? t : this.resolveTraitsRgb(e);
+    return __dwgMapRgb(e.color.isByLayer && typeof t == "number" ? t : this.resolveTraitsRgb(e));
   }
   /**
    * Builds the colour portion of a material cache key from symbolic CAD colour.
@@ -167692,13 +167702,15 @@ var pi2 = class pi3 {
       ve2(e, { isForeground: true }), T2.setMaterialColor(
         e,
         new Color(
-          acgiForegroundColorForBackground(this.options.currentBackgroundColor)
+          __dwgMapRgb(
+            acgiForegroundColorForBackground(this.options.currentBackgroundColor)
+          )
         )
       );
       return;
     }
     const n = i.RGB;
-    typeof n == "number" && (L(e).isForeground === true && ve2(e, { isForeground: false }), T2.setMaterialColor(e, new Color(n)));
+    typeof n == "number" && (L(e).isForeground === true && ve2(e, { isForeground: false }), T2.setMaterialColor(e, new Color(__dwgMapRgb(n))));
   }
 };
 pi2.CameraZoomUniform = { value: 1 };
@@ -234760,6 +234772,7 @@ export {
   W2 as AcEdOpenMode,
   AcGeBox2d,
   Ms3 as AcTrView2d,
+  WebGLRenderer,
   DP as acapFormatOpenFileErrorMessage,
   zP as acapFormatOpenFileErrorTitle,
   tg as acapGetCameraZoom,

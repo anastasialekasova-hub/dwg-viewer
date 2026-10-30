@@ -1,20 +1,49 @@
 /* DWG Viewer tab — design reference: design/*.dc.html (Start, Loading,
-   Errors, Partial, EntryPoints, Main). MVP Э1: open + draw + honest counter;
-   Layers/Background/Print/Settings screens are later phases. */
+   Errors, Partial, Main, Rating, EntryPoints, Print). Tokens from ТЗ 5.6;
+   interface theme follows the system (prefers-color-scheme), the canvas is
+   dark by default in both (Background switch, F-11). */
+
 :root {
-  --surface: #fbfaf8;
-  --raised: #f2f1ee;
-  --border: #dedcd6;
-  --text: #4d4842;
-  --muted: #847e75;
-  --faint: #e6e4df;
-  --accent: #3d6fe0;
-  --on-accent: #fff;
-  --danger: #d43c30;
-  --cad-bg: #302f2c;
-  --warn-bg: #fdf6e3;
-  --warn-border: #ecd9a0;
+  --canvas: oklch(93.5% 0.006 70);
+  --surface: oklch(98% 0.004 70);
+  --raised: oklch(95.5% 0.005 70);
+  --border: oklch(88% 0.008 70);
+  --text: oklch(30% 0.012 60);
+  --muted: oklch(52% 0.012 60);
+  --faint: oklch(90% 0.006 70);
+  --accent: oklch(48% 0.16 258);
+  --accent-text: oklch(48% 0.16 258);
+  --on-accent: oklch(99.5% 0 0);
+  --danger: oklch(55% 0.2 27);
+  --cad-bg: oklch(19% 0.008 60);
+  --radius: 9px;
+  --duration: 160ms;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  color-scheme: light;
 }
+@media (prefers-color-scheme: dark) {
+  :root {
+    --canvas: oklch(17% 0.007 60);
+    --surface: oklch(21% 0.008 60);
+    --raised: oklch(25% 0.009 60);
+    --border: oklch(34% 0.01 60);
+    --text: oklch(90% 0.01 75);
+    --muted: oklch(66% 0.012 70);
+    --faint: oklch(31% 0.01 60);
+    --accent: oklch(74% 0.12 250);
+    --accent-text: oklch(74% 0.12 250);
+    --on-accent: oklch(20% 0.03 258);
+    --danger: oklch(67% 0.19 30);
+    --cad-bg: oklch(16% 0.007 60);
+    color-scheme: dark;
+  }
+}
+/* Light canvas inside a dark interface: the mockup keeps --cad-bg a step
+   above the interface surface so the drawing area reads as a sheet. */
+body[data-cadbg="light"] {
+  --cad-bg: oklch(99.3% 0 0);
+}
+
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html, body { height: 100%; }
@@ -25,6 +54,15 @@ body {
   font: 12px/1.35 ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
   color: var(--text);
   background: var(--surface);
+  font-synthesis: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+button { transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease); }
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 p, h2 { margin: 0; }
 .grow { flex: 1 1 auto; }
@@ -87,16 +125,87 @@ p, h2 { margin: 0; }
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
+  cursor: pointer;
 }
 .btn svg { color: var(--muted); }
 .btn.icon { width: 30px; padding: 0; justify-content: center; }
+.btn.on { background: var(--faint); }
+.btn.on svg { color: var(--accent-text); }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .btn.primary svg { color: var(--on-accent); }
 .btn.sm { height: 26px; padding: 0 9px; font-size: 11px; }
 .group { display: flex; align-items: center; gap: 4px; }
 .zoom { min-width: 46px; text-align: center; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.bgpick { display: flex; align-items: center; gap: 6px; }
+.bgpick .cap { font-size: 11px; color: var(--muted); font-weight: 600; }
+.seg { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid var(--border); border-radius: 8px; background: var(--raised); }
+.seg button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: 0 0 0 1px var(--border); }
 body[data-busy="1"] .top .group,
-body[data-busy="1"] .top > .btn { opacity: .4; pointer-events: none; }
+body[data-busy="1"] .top > .btn,
+body[data-busy="1"] .top .bgpick { opacity: .4; pointer-events: none; }
+
+/* settings popover (F-22, EntryPoints mockup) */
+.pop {
+  position: fixed;
+  top: 52px;
+  right: 10px;
+  z-index: 40;
+  width: 320px;
+  max-width: calc(100vw - 20px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 18px oklch(12% 0.01 60 / 0.35);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pop .pt { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); }
+.pop .trow { display: flex; align-items: flex-start; gap: 10px; }
+.pop .tl { font-size: 12.5px; font-weight: 600; }
+.pop .th { font-size: 11.5px; line-height: 1.45; color: var(--muted); margin-top: 2px; }
+.pop .tnote { font-size: 11.5px; line-height: 1.45; color: var(--muted); border-top: 1px solid var(--border); padding-top: 8px; }
+.switch {
+  appearance: none;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 18px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--faint);
+  margin-top: 1px;
+  position: relative;
+  cursor: pointer;
+  font: inherit;
+}
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--border);
+  transition: transform var(--duration) var(--ease);
+}
+.switch[aria-checked="true"] { background: var(--accent); }
+.switch[aria-checked="true"]::after { transform: translateX(14px); background: var(--on-accent); box-shadow: none; }
 
 /* source bar (opened from a link) */
 .srcbar {
@@ -128,7 +237,7 @@ body[data-busy="1"] .top > .btn { opacity: .4; pointer-events: none; }
   align-items: center;
   justify-content: center;
   gap: 36px;
-  background: #eeece7;
+  background: var(--canvas);
   z-index: 5;
 }
 .drop {
@@ -172,7 +281,7 @@ kbd {
 .fact svg { color: var(--muted); flex: 0 0 auto; }
 .fact b { color: var(--text); font-weight: 600; }
 
-/* loading + error cards share the centered layout */
+/* loading + error + empty cards share the centered layout */
 .stagecenter {
   position: absolute;
   inset: 0;
@@ -191,7 +300,7 @@ kbd {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  box-shadow: 0 10px 30px rgba(20, 18, 14, .35);
+  box-shadow: 0 10px 30px oklch(20% 0.02 60 / 0.35);
 }
 .card .head { display: flex; align-items: baseline; gap: 10px; }
 .card .title { font-size: 15px; font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -218,12 +327,48 @@ kbd {
   display: grid;
   place-items: center;
   color: var(--danger);
+  flex: 0 0 auto;
 }
 .errcard h2 { font-size: 15px; font-weight: 700; }
 .errcard .why { font-size: 12.5px; line-height: 1.45; }
 .errcard .why b { font-weight: 600; }
 .errcard .next { font-size: 12.5px; line-height: 1.45; color: var(--muted); }
 .errcard .acts { display: flex; gap: 8px; margin-top: 6px; }
+/* empty-drawing card (accepted at the E1 review): explains a blank canvas */
+.errcard.quiet { align-items: center; text-align: center; }
+.errcard.quiet .eico { color: var(--muted); }
+
+/* layers panel (F-9, Main mockup) */
+.layers {
+  position: relative;
+  width: 248px;
+  flex: 0 0 auto;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.lhead { height: 42px; flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 0 12px; border-bottom: 1px solid var(--border); }
+.h2 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; }
+.count { color: var(--muted); font-size: 11px; font-weight: 600; }
+.link {
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 4px 2px;
+  color: var(--accent-text);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.lrows { display: flex; flex-direction: column; padding: 4px 0; overflow-y: auto; }
+.lrow { display: flex; align-items: center; gap: 9px; height: 30px; padding: 0 12px; font-size: 12px; cursor: pointer; }
+.lrow input { margin: 0; width: 14px; height: 14px; accent-color: var(--accent); }
+.lrow .sw { width: 10px; height: 10px; border-radius: 3px; flex: 0 0 auto; }
+.lrow.off .n { color: var(--muted); }
+.lrow .n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* stage hint */
 .hint {
@@ -234,12 +379,33 @@ kbd {
   gap: 12px;
   padding: 7px 11px;
   border-radius: 7px;
-  background: rgba(48, 47, 44, .9);
-  color: #eceae5;
+  background: oklch(30% 0.01 60 / 0.9);
+  color: oklch(93% 0.005 70);
   font-size: 11px;
   z-index: 4;
   pointer-events: none;
 }
+
+/* first-intercept notice (F-23, EntryPoints mockup) */
+.notice {
+  position: absolute;
+  left: 16px;
+  bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 7px 7px 12px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 18px oklch(12% 0.01 60 / 0.35);
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 6;
+}
+.notice .ni { color: var(--accent-text); flex: 0 0 auto; }
+.notice[hidden] { display: none; }
+body:not([data-state="view"]) .notice { display: none; }
 
 /* drag-over overlay */
 .dragover {
@@ -248,43 +414,64 @@ kbd {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(61, 111, 224, .18);
+  background: oklch(48% 0.16 258 / 0.18);
   border: 2px dashed var(--accent);
   z-index: 8;
   pointer-events: none;
 }
-.dragover p { font-size: 16px; font-weight: 700; color: var(--on-accent); background: rgba(48, 47, 44, .85); padding: 10px 18px; border-radius: 9px; }
+.dragover p { font-size: 16px; font-weight: 700; color: var(--on-accent); background: oklch(30% 0.01 60 / 0.85); padding: 10px 18px; border-radius: 9px; }
+
+/* rating widget (F-27, Rating mockup) — a bar under the canvas, not over it */
+.rate {
+  flex: 0 0 auto;
+  margin: 0 14px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 26px;
+}
+.rate .q { font-size: 14px; font-weight: 700; }
+.stars { position: relative; display: flex; gap: 4px; }
+.star {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  cursor: pointer;
+}
+.star svg { display: block; }
+.star svg path { fill: transparent; transition: fill var(--duration) var(--ease); }
+.star.lit svg path { fill: currentColor; }
+.star:hover, .star:focus-visible { background: var(--faint); }
 
 /* partial-render notice (above the drawing, not over it) */
 .warn {
   flex: 0 0 auto;
-  background: var(--warn-bg);
-  border-bottom: 1px solid var(--warn-border);
+  background: var(--warn-bg, oklch(96% 0.05 95));
+  border-bottom: 1px solid var(--warn-border, oklch(85% 0.08 95));
   padding: 8px 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
-.warn .wl { display: flex; align-items: center; gap: 12px; }
-.warn .row { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1 1 auto; }
-.warn .wi { color: #9a7b16; flex: 0 0 auto; }
-.warn .msg { font-size: 12px; line-height: 1.4; min-width: 0; }
-.warn .msg span:first-child { font-weight: 600; }
-.warn .acts { display: flex; gap: 12px; flex: 0 0 auto; }
-.link {
-  appearance: none;
-  border: 0;
-  background: none;
-  padding: 4px 2px;
-  color: var(--accent);
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 600;
-}
+.wl { display: flex; align-items: center; gap: 12px; }
+.row { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1 1 auto; }
+.wi { color: oklch(55% 0.12 85); flex: 0 0 auto; }
+.msg { font-size: 12px; line-height: 1.4; min-width: 0; }
+.msg span:first-child { font-weight: 600; }
+.acts { display: flex; gap: 12px; flex: 0 0 auto; }
 .warn table { border-collapse: collapse; font-size: 12px; }
-.warn th, .warn td { text-align: left; padding: 4px 18px 4px 0; border-bottom: 1px solid var(--warn-border); }
+.warn th, .warn td { text-align: left; padding: 4px 18px 4px 0; border-bottom: 1px solid var(--warn-border, oklch(85% 0.08 95)); }
 .warn th { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
-.warn td.mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
 .warn .foot { font-size: 11px; color: var(--muted); margin: 6px 0 0; }
 body:not([data-state="view"]) .warn { display: none; }
 
@@ -312,34 +499,69 @@ body:not([data-state="view"]) .warn { display: none; }
   font-size: 11px;
   font-weight: 600;
   color: var(--muted);
+  cursor: pointer;
 }
 .stab[aria-selected="true"] { background: var(--raised); border-color: var(--border); color: var(--text); }
+.coords { font: 11px ui-monospace, "SF Mono", Menlo, monospace; color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .pill { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
-button.pill { appearance: none; border: 0; background: none; padding: 0; font: inherit; color: inherit; }
+button.pill { appearance: none; border: 0; background: none; padding: 0; font: inherit; color: inherit; cursor: pointer; }
 .pill.acc { color: var(--text); }
-.pill.acc.undrawn { color: var(--accent); }
+.pill.acc.undrawn { color: var(--accent-text); }
 
 /* state visibility */
 body[data-state="start"] #start { display: flex; }
 body:not([data-state="start"]) #start { display: none; }
-#fileBox, #zoomGroup, #stageHint { display: none; }
+#fileBox, #zoomGroup, #stageHint, #layersBtn, #bgPick, #printBtn, #layersPanel { display: none; }
 body[data-state="view"] #fileBox,
-body[data-state="view"] #zoomGroup { display: flex; }
+body[data-state="view"] #zoomGroup,
+body[data-state="view"] #layersBtn,
+body[data-state="view"] #bgPick,
+body[data-state="view"] #printBtn { display: flex; }
 body[data-state="view"] #stageHint { display: flex; }
+body[data-state="view"][data-layers="on"] #layersPanel { display: flex; }
+body[data-layers="on"] #layersBtn { background: var(--faint); }
+body[data-layers="on"] #layersBtn svg { color: var(--accent-text); }
 
-/* Print / Save as PDF (ТЗ 4.2.13): zero page margins leave Chrome no room for
-   its header/footer (title, chrome-extension:// URL, date, page number), and
-   only the drawing canvas is printed. */
-@page { margin: 0; }
+/* Print sheet (F-15, Print mockup): zero page margins leave Chrome no room
+   for its header/footer, the sheet draws its own; light colours come from the
+   print snapshot (engine.printView), the live canvas is not printed. */
 @media print {
   html, body { height: auto; background: #fff; }
-  .top, .status, .warn, #stageHint, .stagecenter, .empty { display: none !important; }
+  .top, .status, .warn, .rate, .notice, #stageHint, .stagecenter, .empty, .srcbar, .layers, .pop, .dragover { display: none !important; }
   .body, .stage { position: static; display: block; height: 100vh; width: 100vw; overflow: hidden; }
-  .cadhost { position: absolute; inset: 0; }
-  .cadhost:has(+ .printshot:not([hidden])) { visibility: hidden; }
-  .printshot:not([hidden]) { display: block; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+  .cadhost { position: absolute; inset: 0; visibility: hidden; }
+  .sheet {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 9mm 11mm;
+    color: oklch(25% 0.01 60);
+    background: #fff;
+  }
+  .sheet .phead {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding-bottom: 7px;
+    border-bottom: 1px solid oklch(80% 0.004 60);
+    font-size: 11px;
+    color: oklch(40% 0.005 60);
+  }
+  .sheet .phead b { font-size: 12px; font-weight: 700; color: oklch(25% 0.01 60); }
+  .sheet .phead .date { margin-left: auto; }
+  .sheet .pdraw { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; }
+  .sheet .pdraw img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .sheet .pfoot {
+    display: flex;
+    gap: 14px;
+    padding-top: 7px;
+    border-top: 1px solid oklch(80% 0.004 60);
+    font-size: 10px;
+    color: oklch(40% 0.005 60);
+  }
 }
-@media screen { .printshot { display: none !important; } }
+@media screen { .sheet { display: none !important; } }
 
 /* The engine's own "Parsing … / Rendering drawing …" overlay with its brand
    spinner: the viewer shows its own loading card (F-5), and the engine overlay

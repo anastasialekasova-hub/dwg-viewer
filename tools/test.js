@@ -210,11 +210,11 @@ run('looksLikeHtml: body sniff catches mislabeled login pages', () => {
   assert.equal(looksLikeHtml(enc('%!PS')), false);
 });
 
-run('link size limit: 100 MB decimal, boundary inclusive', () => {
-  assert.equal(LINK_LIMIT_BYTES, 100 * 1e6);
+run('link size limit: LINK_LIMIT_MB decimal, boundary inclusive', () => {
+  assert.equal(LINK_LIMIT_BYTES, 20 * 1e6);
   assert.equal(isOverLinkLimit(0), false);
-  assert.equal(isOverLinkLimit(100 * 1e6), false);
-  assert.equal(isOverLinkLimit(100 * 1e6 + 1), true);
+  assert.equal(isOverLinkLimit(20 * 1e6), false);
+  assert.equal(isOverLinkLimit(20 * 1e6 + 1), true);
 });
 
 /* ---------- vendor fit patch (4.2.1, F-8) ---------- */

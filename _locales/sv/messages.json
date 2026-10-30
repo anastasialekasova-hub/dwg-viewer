@@ -3,6 +3,6 @@
     "message": "DWG Viewer"
   },
   "extDescription": {
-    "message": "View DWG and DXF drawings in a Chrome tab."
+    "message": "Use DWG Viewer to open a DWG file in Chrome, view DXF online, toggle layers and save the view to PDF. Nothing is uploaded."
   }
 }

@@ -3,7 +3,7 @@
     "message": "DWG Viewer"
   },
   "extDescription": {
-    "message": "View DWG and DXF drawings in a Chrome tab."
+    "message": "Use DWG Viewer to open a DWG file in Chrome, view DXF online, toggle layers and save the view to PDF. Nothing is uploaded."
   },
   "actionTitle": {
     "message": "DWG Viewer"
@@ -158,8 +158,20 @@
   "partialTypeFont": {
     "message": "Font"
   },
+  "partialTypeUnderlay": {
+    "message": "underlay"
+  },
   "partialUnknownTypes": {
     "message": "unsupported object types"
+  },
+  "emptyNoObjects": {
+    "message": "No visible objects in this drawing"
+  },
+  "empty3dModel": {
+    "message": "This is a 3D model"
+  },
+  "printLayersOn": {
+    "message": "$1 of $2 layers on"
   },
   "fontNote": {
     "message": "Text is drawn with a system font and may look different from your CAD program."
@@ -176,6 +188,33 @@
   "modelTab": {
     "message": "Model"
   },
+  "layers": {
+    "message": "Layers"
+  },
+  "showAll": {
+    "message": "Show all"
+  },
+  "hideAll": {
+    "message": "Hide all"
+  },
+  "background": {
+    "message": "Background"
+  },
+  "dark": {
+    "message": "Dark"
+  },
+  "light": {
+    "message": "Light"
+  },
+  "printSave": {
+    "message": "Print / Save as PDF"
+  },
+  "settings": {
+    "message": "Settings"
+  },
+  "coordsXY": {
+    "message": "X $1  Y $2  $3"
+  },
   "hintPan": {
     "message": "Drag to pan"
   },
@@ -190,6 +229,30 @@
   },
   "tipLink2": {
     "message": "Or right-click the link and choose Open in DWG Viewer."
+  },
+  "settingsToggleLbl": {
+    "message": "Open .dwg and .dxf links here"
+  },
+  "settingsToggleHint": {
+    "message": "When on, clicking a link to a .dwg or .dxf file opens it in DWG Viewer. When off, the file downloads as usual."
+  },
+  "settingsNote": {
+    "message": "Right-click a link and choose Open in DWG Viewer to open it here either way."
+  },
+  "noticeText": {
+    "message": "Links to .dwg and .dxf files now open in DWG Viewer."
+  },
+  "noticeGot": {
+    "message": "Got it"
+  },
+  "rateQuestion": {
+    "message": "Is DWG Viewer useful?"
+  },
+  "rateStar": {
+    "message": "Rate $1 out of 5"
+  },
+  "rateNotNow": {
+    "message": "Not now"
   },
   "srcOpenedFrom": {
     "message": "Opened from"
