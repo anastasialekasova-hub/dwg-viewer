@@ -55,7 +55,7 @@ for (const id of [
   'stepDraw', 'stepDrawLbl', 'loadBar', 'loadCnt', 'cancelBtn',
   'error', 'errIco', 'errTitle', 'errWhy', 'errNext', 'errOpenAnother', 'errDownloadBtn', 'errTryAgain',
   'emptycard', 'emptyTitle',
-  'hintPan', 'hintZoom', 'hintFit', 'dragOver', 'dropToOpenLbl',
+  'stageHint', 'hintPan', 'hintZoom', 'hintFit', 'dragOver', 'dropToOpenLbl',
   'notice', 'noticeText', 'noticeSettings', 'noticeGot',
   'partial', 'partialMsg', 'partialDetailsBtn', 'partialDismissBtn', 'partialDet',
   'partialRows', 'fontNote', 'colType', 'colCount', 'colLayers',

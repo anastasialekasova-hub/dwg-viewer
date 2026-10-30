@@ -5,6 +5,11 @@
  * Note: Viewer engine: AcApDocManager, scenes, adapters (bundled with three, lodash-es, @mlightcad/three-renderer, mtext-parser, mtext-renderer, data-model, @mlightcad/libredwg-converter). Wrapper entry: tools/vendor/cad-viewer-entry.js re-exports the names used by the extension.
  * Vendored by tools/vendor-build.js — do not edit.
  */
+/* DWG Viewer patch: color map */
+function __dwgMapRgb(rgb) {
+  const f = globalThis.__dwgColorMap;
+  return typeof f == "function" && typeof rgb == "number" ? f(rgb) : rgb;
+}
 
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -18208,11 +18213,6 @@ var init_AcGiContext = __esm({
         this.backgroundIsDark = (_c3 = options.backgroundIsDark) !== null && _c3 !== void 0 ? _c3 : true;
         this.fallbackRgb = (_d3 = options.fallbackRgb) !== null && _d3 !== void 0 ? _d3 : 16777215;
       }
-/* DWG Viewer patch: color map */
-function __dwgMapRgb(rgb) {
-  const f = globalThis.__dwgColorMap;
-  return typeof f == "function" && typeof rgb == "number" ? f(rgb) : rgb;
-}
       AcGiContext2.prototype.resolveSubEntityTraitsRgb = function(traits) {
         return __dwgMapRgb(__dwgResolveSubEntityTraitsRgbOrig.call(this, traits));
       };

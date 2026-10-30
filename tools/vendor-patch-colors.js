@@ -19,6 +19,8 @@ import { pathToFileURL } from 'node:url';
 
 const MARK = '/* DWG Viewer patch: color map */';
 
+// Top-level helper: the call sites live in different __esm() init blocks, so
+// the function must sit at bundle module scope, above every block.
 const HELPER = `${MARK}
 function __dwgMapRgb(rgb) {
   const f = globalThis.__dwgColorMap;
@@ -27,8 +29,7 @@ function __dwgMapRgb(rgb) {
 
 // The original body is renamed into a plain function the wrapper delegates to.
 const SITE_RESOLVE = `      AcGiContext2.prototype.resolveSubEntityTraitsRgb = function(traits) {`;
-const REPL_RESOLVE = `${HELPER}
-      AcGiContext2.prototype.resolveSubEntityTraitsRgb = function(traits) {
+const REPL_RESOLVE = `      AcGiContext2.prototype.resolveSubEntityTraitsRgb = function(traits) {
         return __dwgMapRgb(__dwgResolveSubEntityTraitsRgbOrig.call(this, traits));
       };
       function __dwgResolveSubEntityTraitsRgbOrig(traits) {`;
@@ -58,6 +59,10 @@ const REPL_LAYER_BOUND = `    const s = __dwgMapRgb(
 export async function patchColors(file) {
   let text = await readFile(file, 'utf8');
   if (text.includes(MARK)) return file;
+  // helper at top level, right after the vendor banner comment
+  const bannerEnd = text.indexOf(' */\n');
+  const at = bannerEnd === -1 ? 0 : bannerEnd + 4;
+  text = text.slice(0, at) + HELPER + '\n' + text.slice(at);
   for (const [site, repl, name] of [
     [SITE_RESOLVE, REPL_RESOLVE, 'context resolver'],
     [SITE_BYLAYER, REPL_BYLAYER, 'ByLayer material rgb'],
