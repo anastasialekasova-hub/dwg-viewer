@@ -98,7 +98,7 @@ const LAUNCH = (withExt) =>
   puppeteer.launch({
     executablePath: process.env.CHROME_PATH,
     headless: true,
-    protocolTimeout: 120000,
+    protocolTimeout: 60000,
     args: [
       '--lang=en-US',
       '--mute-audio',
@@ -141,6 +141,24 @@ try {
     p.__console = console_;
     return p;
   };
+  // page.click() hangs intermittently on this Windows CfT setup (same
+  // signature as the E1 first-fit hang: Runtime.callFunctionOn never
+  // returns). Synthetic clicks work for our handlers — none of them checks
+  // isTrusted — so they are the primary path; modifiers still need real
+  // input and keep their own races.
+  const jsClick = async (p, sel) => {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        return await Promise.race([
+          p.evaluate((s) => document.querySelector(s)?.click(), sel),
+          sleep(15000).then(() => Promise.reject(new Error(`jsClick ${sel} hang 15 s`))),
+        ]);
+      } catch (e) {
+        if (attempt === 1) throw e;
+        await sleep(1500);
+      }
+    }
+  };
   const allowDownloads = async (p) => {
     const cdp = await p.createCDPSession();
     await cdp.send('Browser.setDownloadBehavior', { behavior: 'allow', downloadPath: DL, eventsEnabled: true });
@@ -155,7 +173,9 @@ try {
       { timeout: ms },
     );
   const pageConsoleErrs = (p) =>
-    p.__console.filter((c) => c.type === 'error' || c.type === 'pageerror').filter((c) => !/net::|ERR_/i.test(c.text));
+    (p.__console ?? [])
+      .filter((c) => c.type === 'error' || c.type === 'pageerror')
+      .filter((c) => !/net::|ERR_/i.test(c.text));
 
   // ---------- case 2: link clicks ----------
   {
@@ -171,14 +191,14 @@ try {
           target: { tabId },
           func: () => {
             const m = window[Symbol.for('dwg-viewer:content')];
-            return { present: Boolean(m) };
+            return { present: Boolean(m), state: typeof m?.state === 'function' ? m.state() : null };
           },
         });
         return r?.result;
       }, siteTabId);
       note('case2.contentScriptProbe', { siteTabId, ...probe });
     }
-    await site.click('#plain');
+    await jsClick(site, '#plain');
     await sleep(2500);
     const ts1 = await tabs();
     const vt = ts1.filter((t) => t.url.includes('viewer.html'));
@@ -212,36 +232,46 @@ try {
     const site2 = await newPage();
     await site2.goto(`${SITE}/site.html`, { waitUntil: 'load' });
     const before2 = (await viewerTabs()).length;
-    await site2.click('#blank');
+    await jsClick(site2, '#blank');
     await sleep(1500);
     note('case2.targetBlank', { newViewer: (await viewerTabs()).length - before2 });
     hits.length = 0;
     await site2.keyboard.down('Alt');
-    await site2.click('#alt').catch(async () => {
-      // puppeteer click ignores modifiers on anchors reliably; use JS AltClick
-    });
+    await Promise.race([site2.click('#alt'), sleep(20000).then(() => Promise.reject(new Error('alt click hang 20 s')))]).catch(() => {});
     await site2.keyboard.up('Alt');
     await sleep(2500);
     note('case2.altClick', { newViewer: (await viewerTabs()).length - before2, downloads: dlFiles(), fileRequests: hits.length });
     // frame link
-    const fr = site2.frames().find((f) => f.url().includes('frame.html'));
-    if (fr) {
-      await fr.click('#frlink');
-      await sleep(2000);
+    try {
+      const fr = site2.frames().find((f) => f.url().includes('frame.html'));
+      if (fr) {
+        await jsClick(fr, '#frlink');
+        await sleep(2000);
+      }
+      note('case2.frameLink', { newViewer: (await viewerTabs()).length - before2 });
+    } catch (e) {
+      note('case2.frameLink', { err: String(e?.message ?? e).slice(0, 120) });
     }
-    note('case2.frameLink', { newViewer: (await viewerTabs()).length - before2 });
     // download attribute → intercepted the same way (it is a .dwg link)
-    hits.length = 0;
-    await site2.click('#withdownload');
-    await sleep(2000);
-    note('case2.downloadAttr', { newViewer: (await viewerTabs()).length - before2, fileRequests: hits.length });
+    try {
+      hits.length = 0;
+      await jsClick(site2, '#withdownload');
+      await sleep(2000);
+      note('case2.downloadAttr', { newViewer: (await viewerTabs()).length - before2, fileRequests: hits.filter((h) => !h.startsWith('ALL ')).length });
+    } catch (e) {
+      note('case2.downloadAttr', { err: String(e?.message ?? e).slice(0, 120) });
+    }
     // ctrl+click opens in background
-    await site2.keyboard.down('Control');
-    await site2.click('#plain');
-    await site2.keyboard.up('Control');
-    await sleep(2000);
-    const vtCtrl = await viewerTabs();
-    note('case2.ctrlClick', { newViewer: vtCtrl.length - before2 - 1, anyActive: vtCtrl.some((t) => t.active) });
+    try {
+      await site2.keyboard.down('Control');
+      await Promise.race([site2.click('#plain'), sleep(20000).then(() => Promise.reject(new Error('ctrl click hang 20 s')))]).catch(() => {});
+      await site2.keyboard.up('Control');
+      await sleep(2000);
+      const vtCtrl = await viewerTabs();
+      note('case2.ctrlClick', { newViewer: vtCtrl.length - before2 - 1, anyActive: vtCtrl.some((t) => t.active) });
+    } catch (e) {
+      note('case2.ctrlClick', { err: String(e?.message ?? e).slice(0, 120) });
+    }
     await site2.close().catch(() => {});
     await site.close().catch(() => {});
     // close the viewer tabs opened by this case to keep later counts clean
@@ -252,9 +282,22 @@ try {
   // ---------- case 3: tab opened before install ----------
   // Fresh browser without the extension, page open, extension loads via CDP.
   {
-    const b2 = await LAUNCH(false);
+    const b2 = await puppeteer.launch({
+      executablePath: process.env.CHROME_PATH,
+      headless: true,
+      protocolTimeout: 60000,
+      args: [
+        '--lang=en-US', '--mute-audio', '--no-first-run', '--no-default-browser-check',
+        '--disable-background-networking', '--enable-unsafe-swiftshader',
+        '--enable-unsafe-extension-debugging',
+        '--host-resolver-rules=MAP a.test 127.0.0.1', '--ignore-certificate-errors',
+      ],
+    });
     try {
       const site = await b2.newPage();
+      site.__console = [];
+      site.on('console', (m) => site.__console.push({ type: m.type(), text: m.text().slice(0, 300) }));
+      site.on('pageerror', (e) => site.__console.push({ type: 'pageerror', text: String(e).slice(0, 300) }));
       await site.goto(`${SITE}/site.html`, { waitUntil: 'load' });
       const bcdp = await b2.target().createCDPSession();
       try {
@@ -354,7 +397,7 @@ try {
     await site.goto(`${SITE}/site.html`, { waitUntil: 'load' });
     for (const [linkId, kind] of cases) {
       hits.length = 0;
-      await site.click(`#${linkId}`);
+      await jsClick(site, `#${linkId}`);
       await sleep(2500);
       const vt = await viewerTabs();
       const vp = await (async () => {
@@ -374,7 +417,7 @@ try {
         }));
         // Try again → one more request for the same URL
         const beforeHits = hits.length;
-        await vp.click('#errTryAgain').catch(() => {});
+        await jsClick(vp, '#errTryAgain').catch(() => {});
         await sleep(2500);
         const retried = hits.length - beforeHits;
         // Download instead → native download
@@ -382,7 +425,7 @@ try {
         fs.mkdirSync(DL, { recursive: true });
         const dlBtnVisible = await vp.evaluate(() => !document.getElementById('errDownloadBtn').hidden);
         if (dlBtnVisible) {
-          await vp.click('#errDownloadBtn').catch(() => {});
+          await jsClick(vp, '#errDownloadBtn').catch(() => {});
           await sleep(4000);
         }
         note(`case6.${linkId}`, { kind, card, retried, downloads: dlFiles() });
@@ -415,7 +458,7 @@ try {
     }));
     fs.rmSync(DL, { recursive: true, force: true });
     fs.mkdirSync(DL, { recursive: true });
-    await vp.click('#downloadBtn').catch(() => {});
+    await jsClick(vp, '#downloadBtn').catch(() => {});
     await sleep(4000);
     const files = dlFiles();
     const gotSha = files.length === 1 ? createHash('sha256').update(fs.readFileSync(path.join(DL, files[0]))).digest('hex') : null;
@@ -468,7 +511,7 @@ try {
       notNow: !document.getElementById('rateNotNow').hidden,
     }));
     const beforeTabs = (await tabs()).length;
-    await vp.click('#rateStars .star:nth-child(4)');
+    await jsClick(vp, '#rateStars .star:nth-child(4)');
     await sleep(2500);
     const ts4 = await tabs();
     note('case8.star4', {
@@ -496,7 +539,7 @@ try {
     }, input);
     await waitViewerSettled(vp2, 60000).catch(() => {});
     await sleep(62000);
-    await vp2.click('#rateStars .star:nth-child(2)');
+    await jsClick(vp2, '#rateStars .star:nth-child(2)');
     await sleep(2500);
     const ts2b = await tabs();
     note('case8.star2', {
