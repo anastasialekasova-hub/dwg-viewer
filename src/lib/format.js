@@ -13,9 +13,10 @@ export const VERSION_CODES = {
 
 // Placeholders until the 4.2.1 corpus run settles the real range.
 export const SUPPORTED_RANGE = { oldest: 'AC1014', newest: 'AC1032' };
-// --release gates on this: flipped only after the 4.2.1 corpus confirms the
-// real {oldest}/{newest} range.
-export const RANGE_VERIFIED = false;
+// --release gates on this: the 4.2.1 corpus drew all seven versions AC1014–
+// AC1032 on screen (E1 report, final table) and Ana approved exactly this
+// range at the E1 review (30.10), so the placeholders are the real range now.
+export const RANGE_VERIFIED = true;
 
 const BINARY_DXF_SENTINEL = 'AutoCAD Binary DXF\r\n\x1a\x00';
 

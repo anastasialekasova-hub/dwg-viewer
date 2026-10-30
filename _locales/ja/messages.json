@@ -3,6 +3,6 @@
     "message": "DWG Viewer"
   },
   "extDescription": {
-    "message": "Use DWG Viewer to open a DWG file in Chrome, view DXF online, toggle layers and save the view to PDF. Nothing is uploaded."
+    "message": "DWG Viewer を使うと、Chrome で DWG ファイルを開き、DXF をオンラインで表示し、レイヤーの表示/非表示を切り替え、ビューを PDF に保存できます。ファイルがアップロードされることはありません。"
   }
 }
