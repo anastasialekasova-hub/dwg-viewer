@@ -41,9 +41,14 @@ try {
         continue;
       }
       seen.set(loc, f);
-      const keys = Object.keys(entry ?? {});
-      if (keys.length !== 1 || keys[0] !== 'extDescription') {
-        errors.push(`${f}/${loc}: keys ${keys.join(',')} — only extDescription allowed (UI strings stay English)`);
+      const keys = Object.keys(entry ?? {}).sort();
+      const allowed = keys.every((k) => k === 'extDescription' || k === 'extName');
+      if (!allowed || keys.length === 0) {
+        errors.push(`${f}/${loc}: keys ${keys.join(',')} — only extName/extDescription allowed (UI strings stay English)`);
+      }
+      const nm = entry?.extName;
+      if (nm !== undefined && (typeof nm !== 'string' || nm.length === 0 || nm.length > 30)) {
+        errors.push(`${f}/${loc}: extName empty or > 30 chars`);
       }
       const text = entry?.extDescription;
       if (typeof text !== 'string' || text.length === 0) {

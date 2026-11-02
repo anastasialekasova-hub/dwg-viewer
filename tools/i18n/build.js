@@ -29,12 +29,17 @@ const require = createRequire(import.meta.url);
 
 async function loadTables() {
   const merged = new Map();
+  const names = new Map(); // национальные названия 12 локалей (этап 6)
   const files = (await readdir(tablesDir)).filter((f) => f.endsWith('.js')).sort();
   for (const f of files) {
     const table = require(path.join(tablesDir, f));
     for (const [loc, entry] of Object.entries(table)) {
       if (!LOCALES.includes(loc)) throw new Error(`${f}: unknown locale ${loc}`);
       if (merged.has(loc)) throw new Error(`${loc}: already in another table`);
+      if (typeof entry?.extName === 'string' && entry.extName) {
+        if (entry.extName.length > 30) throw new Error(`${f}/${loc}: extName > 30 chars`);
+        names.set(loc, entry.extName);
+      }
       const desc = entry?.extDescription;
       if (typeof desc !== 'string' || !desc || desc.length > 132) {
         throw new Error(`${f}/${loc}: extDescription missing or > 132 chars`);
@@ -44,18 +49,20 @@ async function loadTables() {
   }
   const missing = LOCALES.filter((l) => l !== 'en' && !merged.has(l));
   if (missing.length) throw new Error(`no translation for: ${missing.join(', ')}`);
-  return merged;
+  return { merged, names };
 }
 
 const escapeDollar = (text) => text.replace(/\$/g, '$$');
 
-const descriptions = await loadTables();
+const { merged: descriptions, names } = await loadTables();
 await rm(outDir, { recursive: true, force: true });
 for (const loc of LOCALES) {
   const keys = loc === 'en' ? Object.keys(MESSAGES) : ['extName', 'extDescription'];
   const json = {};
   for (const key of keys) {
-    const text = key === 'extDescription' && loc !== 'en' ? descriptions.get(loc) : MESSAGES[key];
+    let text = MESSAGES[key];
+    if (loc !== 'en' && key === 'extDescription') text = descriptions.get(loc);
+    if (loc !== 'en' && key === 'extName' && names.has(loc)) text = names.get(loc);
     json[key] = { message: escapeDollar(text) };
   }
   const dir = path.join(outDir, loc);
