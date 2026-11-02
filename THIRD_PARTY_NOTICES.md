@@ -39,3 +39,11 @@ renamed "Cad Sans" (the name table is stripped). Used only as the fallback
 for text whose own font is not in the drawing.
 
 | CadSans-subset.ttf (subset of DejaVu Sans) | 2.37.3 | Bitstream Vera license (fonts) / public domain (modifications) | https://github.com/dejavu-fonts/dejavu-fonts |
+
+## Source archives (GPL-3.0 complete-corresponding-source)
+
+Verbatim npm tarballs of the pinned GPL-3.0 packages are committed in
+`third_party-sources/` (and attached to the v1.0.0 release): libredwg-web
+0.7.17 (contains libredwg-web.wasm and its build scripts; upstream tag
+v0.7.17) and libredwg-converter 3.15.17..sha256 sums are listed in
+`third_party-sources/README.md`.
