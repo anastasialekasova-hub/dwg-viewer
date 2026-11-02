@@ -122,3 +122,11 @@ DXF (ТЗ 4.2.2) — `tools/e2e/e1/manifests/corpus.json`, тестовые фа
 
 `src/lib/config.js`: `LINK_LIMIT_MB = 20`; `OPEN_TIME_LIMIT_S` = 60 —
 используется viewer'ом как дедлайн открытия, тест-харнесс читает тот же лимит.
+
+## Служебные страницы (этап 5, опубликовано 30.10.2026)
+
+- Welcome: https://anastasialekasova-hub.github.io/dwg-viewer-pages/welcome/
+- Uninstall: https://anastasialekasova-hub.github.io/dwg-viewer-pages/uninstall/ (форма: FORM_ID 1FAIpQLSctHK2qwGowpZvwIby1C7UrxGvvXGb1ekP93NAgjOUBi148Vw)
+- Feedback: https://anastasialekasova-hub.github.io/dwg-viewer-pages/feedback/ (форма: 1FAIpQLSdmTeIB0Lf1UUgjpr_OpzG0eGC9qU7FuXwNA5AI6DwiS7mRgw)
+- Privacy: https://pinwisp.com/dwg-viewer/privacy/ (MR !79)
+- Репо страниц: github.com/anastasialekasova-hub/dwg-viewer-pages
