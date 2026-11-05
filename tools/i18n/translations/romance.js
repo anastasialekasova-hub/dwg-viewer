@@ -1,6 +1,7 @@
 /** Spanish (es, es_419), Brazilian and European Portuguese, Catalan, French, Italian, Romanian. */
 export const es = {
-  extDescription: "Usa DWG Viewer para abrir DWG en Chrome, ver DXF en línea, mostrar u ocultar capas y guardar la vista en PDF. No se sube nada.",
+  extName: "Visor DWG",
+  extDescription: "Usa Visor DWG para abrir un archivo DWG en Chrome, ver DWG online, cambiar capas y guardar la vista en PDF. No se sube nada.",
 };
 
 export const es_419 = {
@@ -20,11 +21,13 @@ export const ca = {
 };
 
 export const fr = {
-  extDescription: "Ouvrez DWG dans Chrome et DXF en ligne avec DWG Viewer, affichez/masquez les calques, enregistrez la vue en PDF. Rien n’est importé.",
+  extName: "Visionneuse DWG - DWG Viewer",
+  extDescription: "Utilisez Visionneuse DWG - DWG Viewer pour ouvrir un fichier DWG dans Chrome : calques et impression PDF. Rien n'est téléversé.",
 };
 
 export const it = {
-  extDescription: "Apri DWG in Chrome e DXF online con DWG Viewer, mostra o nascondi i livelli e salva la vista in PDF. Nulla viene caricato.",
+  extName: "Visualizzatore DWG-DWG Viewer",
+  extDescription: "Usa Visualizzatore DWG-DWG Viewer per aprire file DWG in Chrome, gestire i livelli e stampare la vista in PDF. Nessun upload.",
 };
 
 export const ro = {

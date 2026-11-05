@@ -524,7 +524,7 @@ body[data-layers="on"] #layersBtn svg { color: var(--accent-text); }
 
 /* Print sheet (F-15, Print mockup): zero page margins leave Chrome no room
    for its header/footer, the sheet draws its own; light colours come from the
-   print snapshot (engine.printView), the live canvas is not printed. */
+   synchronous print snapshot (engine.printCanvas), the live canvas is not printed. */
 @media print {
   html, body { height: auto; background: #fff; }
   .top, .status, .warn, .rate, .notice, #stageHint, .stagecenter, .empty, .srcbar, .layers, .pop, .dragover, .body { display: none !important; }
@@ -550,7 +550,7 @@ body[data-layers="on"] #layersBtn svg { color: var(--accent-text); }
   .sheet .phead b { font-size: 12px; font-weight: 700; color: oklch(25% 0.01 60); }
   .sheet .phead .date { margin-left: auto; }
   .sheet .pdraw { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; }
-  .sheet .pdraw img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .sheet .pdraw canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
   .sheet .pfoot {
     display: flex;
     gap: 14px;

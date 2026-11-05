@@ -1,5 +1,5 @@
 // Diagnose the link-flow open stall: dump every captured request (full URLs)
-// and poll engine counters right after the #raw= open starts, so we can see
+// and poll engine counters right after the encoded #src= open starts, so we can see
 // which waitUntilIdle gate (_numOfEntitiesToProcess vs _pendingGeometryJobs)
 // stays busy, or which fetch hangs.
 //   CHROME_PATH=... node tools/e2e/e1/diag-link.js <file> [--direct]
@@ -15,7 +15,6 @@ import {
 } from './lib.js';
 
 const fileArg = path.resolve(process.argv[2]);
-const direct = process.argv.includes('--direct');
 const fname = path.basename(fileArg);
 
 const serverLog = [];
@@ -40,13 +39,8 @@ try {
   const page = await viewerPage(browser, extId, capture);
   await armPage(page);
   await armAuto(page);
-  if (direct) {
-    await page.evaluate((u) => {
-      location.hash = `#raw=${u}`;
-    }, fileUrl);
-  } else {
-    await page.goto(fileUrl, { waitUntil: 'load', timeout: 30000 });
-  }
+  // This diagnostic exercises explicit viewer fetches, not native navigation.
+  await page.goto(`chrome-extension://${extId}/src/viewer/viewer.html#src=${encodeURIComponent(fileUrl)}`, { waitUntil: 'load', timeout: 30000 });
   for (let i = 0; i < 10; i++) {
     await new Promise((r) => setTimeout(r, 2000));
     const tick = await page

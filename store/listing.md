@@ -14,7 +14,7 @@ DWG Viewer
 
 Use DWG Viewer to open a DWG file in Chrome, view DXF online, toggle layers and save the view to PDF. Nothing is uploaded.
 
-## Полное описание — утверждённый вариант (4725 симв., со строкой GPL)
+## Полное описание — утверждённый вариант (4724 симв., со строкой GPL)
 
 Need to know how to open DWG file attachments without a CAD program?
 
@@ -128,7 +128,6 @@ Questions and Answers
 ❓ Why did a link fail to open?
 👉 Some sites keep files behind a login or a share page, so DWG Viewer can't always fetch them. Press "Download instead" and drop the file into the tab.
 
-
 Open source under GPL-3.0: https://github.com/anastasialekasova-hub/dwg-viewer
 
 AutoCAD is a registered trademark of Autodesk, Inc. DWG Viewer is an independent product and is not affiliated with, endorsed or sponsored by Autodesk. DWG and DXF are names of file formats.
@@ -146,14 +145,16 @@ contextMenus: adds "Open in DWG Viewer" to the right-click menu, only on links
 to .dwg and .dxf files.
 scripting: after install or update, adds the link handler to tabs that were
 already open, so a click on a .dwg or .dxf link works without reloading them.
-declarativeNetRequestWithHostAccess: when the user navigates directly to a
-.dwg or .dxf address, opens it in the viewer instead of a download.
 Host permissions (http://*/*, https://*/*): drawings are linked from any site
 (manufacturers, file shares, portals). The content script reads only the address
 of the clicked link, and only if it ends in .dwg or .dxf; it does not read or
 change page content. The viewer downloads the clicked file from its own site,
 with the user's cookies for that site, and renders it on the computer.
 Nothing is sent anywhere else.
+Direct addresses, script navigation and redirects use Chrome's native behavior;
+only drawing-link clicks and the explicit context-menu action open the viewer.
+Download instead navigates the current viewer tab to the source URL, with no
+request interception rules or downloads permission.
 
 Remote code: No. All code is in the package, including the WebAssembly DWG
 parser (LibreDWG, GPL-3.0); 'wasm-unsafe-eval' is used only to run that

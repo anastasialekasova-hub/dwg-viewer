@@ -23,8 +23,10 @@ The vendored `src/vendor/libredwg-web.wasm` is a byte-for-byte copy of
 `@mlightcad/libredwg-web@0.7.17` `wasm/libredwg-web.wasm` (GPL-3.0,
 https://github.com/mlightcad/libredwg-web). It is a build of LibreDWG
 (https://github.com/LibreDWG/libredwg, GPL-3.0) compiled to WebAssembly by
-that package; the exact sources and build scripts are the libredwg-web
-repository at tag v0.7.17.
+that package. The pinned upstream repository is libredwg-web at tag v0.7.17
+(commit 2654a724bce3d5f588a0d16b6426a23e3f0fef46); its committed WASM
+matches the packaged binary. This identifies the distributed artifact, but
+is not an independently verified record of its native compilation inputs.
 
 ## src/vendor/fonts/CadSans-subset.ttf
 
@@ -40,10 +42,26 @@ for text whose own font is not in the drawing.
 
 | CadSans-subset.ttf (subset of DejaVu Sans) | 2.37.3 | Bitstream Vera license (fonts) / public domain (modifications) | https://github.com/dejavu-fonts/dejavu-fonts |
 
-## Source archives (GPL-3.0 complete-corresponding-source)
+## npm distribution archives
 
-Verbatim npm tarballs of the pinned GPL-3.0 packages are committed in
-`third_party-sources/` (and attached to the v1.0.0 release): libredwg-web
-0.7.17 (contains libredwg-web.wasm and its build scripts; upstream tag
-v0.7.17) and libredwg-converter 3.15.17..sha256 sums are listed in
-`third_party-sources/README.md`.
+`third_party-sources/` contains verbatim npm distribution tarballs of
+libredwg-web 0.7.17 and libredwg-converter 3.15.17, also attached to the
+v1.0.0 release. Checksums are listed in `third_party-sources/README.md`.
+These are published JS/declaration/binary distributions, not complete
+source trees: the C/C++/embind implementation and native build inputs are
+not included in those tarballs. They must not be presented as a complete
+corresponding-source bundle.
+
+## Component source delivery
+
+The exact pinned native/embind/TypeScript source trees, licenses, build
+inputs and restoration instructions are in the separate
+`dwg-viewer-gpl-component-sources.tar.gz`. It must be kept with the three
+self-contained Git history bundles documented in
+`third_party-sources/README.md`; the archive alone omits Git history.
+Fresh local-only restoration, source blob identity and equality with the
+shipped WASM have been verified. Native bootstrap/builds and binary
+reproduction have not been run. The matching source delivery is listed at
+https://github.com/anastasialekasova-hub/dwg-viewer/releases/tag/v1.0.1
+with checksums and restoration instructions; this notice does not certify
+legal compliance.

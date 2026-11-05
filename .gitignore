@@ -7,3 +7,6 @@ tools/libredwg-0.14/
 tools/libredwg-0.14.tar.xz
 tools/bin/
 .DS_Store
+paste-into-console.js
+paste-and-run.js
+en-detailed.txt

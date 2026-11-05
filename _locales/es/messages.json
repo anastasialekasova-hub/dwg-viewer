@@ -1,8 +1,8 @@
 {
   "extName": {
-    "message": "DWG Viewer"
+    "message": "Visor DWG"
   },
   "extDescription": {
-    "message": "Usa DWG Viewer para abrir DWG en Chrome, ver DXF en línea, mostrar u ocultar capas y guardar la vista en PDF. No se sube nada."
+    "message": "Usa Visor DWG para abrir un archivo DWG en Chrome, ver DWG online, cambiar capas y guardar la vista en PDF. No se sube nada."
   }
 }

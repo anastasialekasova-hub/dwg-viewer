@@ -1,23 +1,15 @@
 import { WELCOME_URL, UNINSTALL_URL } from '../lib/config.js';
 import { isDrawingUrl } from '../lib/links-match.js';
 
-const DNR_RULE_ID = 1;
-const DNR_ALLOW_ID = 2;
-const ALLOW_MS = 60_000;
-
 const VIEWER_PAGE = chrome.runtime.getURL('src/viewer/viewer.html');
 
-// F-26: the uninstall page is re-armed on every service-worker start, not
-// only on install/update events (the worker restarts often; MV3 forgets).
+// F-26: re-arm on every service-worker start (MV3 restarts frequently).
 chrome.runtime.setUninstallURL(UNINSTALL_URL);
 
-function viewerUrlFor(url, hashKey) {
-  return VIEWER_PAGE + `#${hashKey}=${encodeURIComponent(url)}`;
-}
-
 async function openViewerTab(url, background, sender) {
-  const createProps = { url: viewerUrlFor(url, 'src'), active: background !== true };
+  const createProps = { url: VIEWER_PAGE + `#src=${encodeURIComponent(url)}`, active: background !== true };
   if (sender?.tab?.index !== undefined) createProps.index = sender.tab.index + 1;
+  if (sender?.tab?.windowId !== undefined) createProps.windowId = sender.tab.windowId;
   await chrome.tabs.create(createProps);
 }
 
@@ -25,20 +17,6 @@ chrome.runtime.onInstalled.addListener(({ reason }) => {
   if (reason === 'install') chrome.tabs.create({ url: WELCOME_URL });
   injectIntoOpenTabs();
   setupMenu();
-  syncDnrRules();
-});
-
-// F-18 / F-22: link interception is on by default and the settings toggle
-// turns the DNR navigation rule off (and back on) live, in every tab.
-async function syncDnrRules() {
-  const on = (await chrome.storage.local.get('interceptLinks')).interceptLinks !== false;
-  await chrome.declarativeNetRequest.updateDynamicRules({
-    removeRuleIds: [DNR_RULE_ID],
-    addRules: on ? [dnrRule()] : [],
-  });
-}
-chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'local' && 'interceptLinks' in changes) syncDnrRules().catch(() => {});
 });
 
 async function injectIntoOpenTabs() {
@@ -74,61 +52,28 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId !== 'open-in-viewer') return;
   const url = info.linkUrl || info.srcUrl || info.pageUrl;
   if (!url || !isDrawingUrl(url)) return;
-  openViewerTab(url, false, tab);
+  openViewerTab(url, false, { tab });
 });
-
-function dnrRule() {
-  return {
-    id: DNR_RULE_ID,
-    priority: 1,
-    condition: {
-      regexFilter: '^https?://[^?#]*\\.(dwg|dxf)([?#].*)?',
-      isUrlFilterCaseSensitive: false,
-      resourceTypes: ['main_frame'],
-    },
-    action: {
-      type: 'redirect',
-      redirect: { regexSubstitution: VIEWER_PAGE + '#raw=\\0' },
-    },
-  };
-}
-
-async function allowDownloadOnce(url, tabId) {
-  await chrome.declarativeNetRequest.updateSessionRules({
-    removeRuleIds: [DNR_ALLOW_ID],
-    addRules: [
-      {
-        id: DNR_ALLOW_ID,
-        priority: 2,
-        condition: { urlFilter: url, resourceTypes: ['main_frame'] },
-        action: { type: 'allow' },
-      },
-    ],
-  });
-  setTimeout(() => {
-    chrome.declarativeNetRequest.updateSessionRules({ removeRuleIds: [DNR_ALLOW_ID] }).catch(() => {});
-  }, ALLOW_MS);
-  if (tabId !== undefined) await chrome.tabs.update(tabId, { url });
-  else await chrome.tabs.create({ url });
-}
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (!msg || typeof msg !== 'object') return false;
-  if (msg.type === 'open-link') {
-    if (typeof msg.url === 'string' && isDrawingUrl(msg.url)) {
-      openViewerTab(msg.url, msg.background === true, sender);
-    }
-    sendResponse({ ok: true });
+  if (msg.type !== 'open-link' && msg.type !== 'download-instead') return false;
+  if (typeof msg.url !== 'string' || !isDrawingUrl(msg.url)) {
+    sendResponse({ ok: false });
     return false;
   }
-  if (msg.type === 'download-instead') {
-    if (typeof msg.url === 'string' && isDrawingUrl(msg.url)) {
-      allowDownloadOnce(msg.url, sender.tab?.id);
-    }
-    sendResponse({ ok: true });
-    return false;
-  }
-  return false;
+  // Keep the worker alive until the tab operation completes. Native navigation
+  // does not generate a content-script click and needs no interception bypass.
+  const task = msg.type === 'open-link'
+    ? openViewerTab(msg.url, msg.background === true, sender)
+    : sender.tab?.id !== undefined
+      ? chrome.tabs.update(sender.tab.id, { url: msg.url })
+      : chrome.tabs.create({ url: msg.url });
+  Promise.resolve(task).then(
+    () => sendResponse({ ok: true }),
+    () => sendResponse({ ok: false }),
+  );
+  return true;
 });
 
 // F-16 / F-17: the icon (and Alt+Shift+D) focuses the viewer tab the icon
@@ -143,7 +88,7 @@ chrome.action.onClicked.addListener(async (tab) => {
     const { iconTabId } = await chrome.storage.session.get('iconTabId');
     if (typeof iconTabId === 'number') {
       const [ctx] = await chrome.runtime.getContexts({ contextTypes: ['TAB'], tabIds: [iconTabId] });
-      if (ctx && typeof ctx.tabId === 'number' && (ctx.url || '').startsWith(VIEWER_PAGE)) {
+      if (ctx && typeof ctx.tabId === 'number' && (ctx.documentUrl || '').startsWith(VIEWER_PAGE)) {
         await chrome.tabs.update(iconTabId, { active: true });
         const t = await chrome.tabs.get(iconTabId).catch(() => null);
         if (t?.windowId !== undefined) await chrome.windows.update(t.windowId, { focused: true });

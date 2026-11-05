@@ -1,8 +1,6 @@
-// Link flow (ТЗ 4.2.7–4.2.10): serve a fixture over local http, navigate to
-// the .dwg/.dxf URL as main_frame — the DNR rule must redirect to
-// viewer.html#raw=<url> and the viewer must open the file. Records cookie
-// headers seen by the server, final URL, timings, heap. Also usable directly:
-// open-corpus-style #raw= open for big-file sizing (4.2.4/4.2.9).
+// Source-link fetch flow: serve a fixture over local http and load the
+// encoded #src route for sizing. --direct remains accepted for old batch plans.
+// Actual click and native file navigation are tested in ../navigation.js.
 //   CHROME_PATH=... node tools/e2e/e1/open-link.js <file-in-root> [--direct] [--tag <t>]
 import http from 'node:http';
 import fs from 'node:fs';
@@ -23,7 +21,6 @@ import {
 } from './lib.js';
 
 const fileArg = path.resolve(process.argv[2]);
-const direct = process.argv.includes('--direct');
 const tagIdx = process.argv.indexOf('--tag');
 const tag = tagIdx > -1 ? process.argv[tagIdx + 1] : 'link';
 const fname = path.basename(fileArg);
@@ -53,20 +50,11 @@ const extId = await extensionId(browser);
 const capture = {};
 const page = await viewerPage(browser, extId, capture);
 await armPage(page); // current document (covers --direct, which stays in-page)
-await armAuto(page); // future documents (covers the DNR redirect navigation)
+await armAuto(page); // future documents (--direct source route)
 const t0 = Date.now();
-const row = { file: fname, sizeKB: Math.round(fs.statSync(fileArg).size / 1024), mode: direct ? 'direct-#raw' : 'dnr-redirect' };
+const row = { file: fname, sizeKB: Math.round(fs.statSync(fileArg).size / 1024), mode: 'explicit-#src' };
 
-if (direct) {
-  await page.evaluate((u) => {
-    location.hash = `#raw=${u}`;
-  }, fileUrl);
-  // hashchange → openLink fires in-page
-} else {
-  await page.goto(fileUrl, { waitUntil: 'load', timeout: 30000 }).catch((e) => {
-    row.navError = String(e).slice(0, 120);
-  });
-}
+await page.goto(`chrome-extension://${extId}/src/viewer/viewer.html#src=${encodeURIComponent(fileUrl)}`, { waitUntil: 'load' });
 try {
   await page.waitForFunction(
     () => {
@@ -101,7 +89,7 @@ if (!row.ok) {
 row.ms_total = Date.now() - t0;
 row.finalUrl = page.url().slice(0, 120);
 row.urlIsExtension = page.url().startsWith('chrome-extension://');
-row.rawInUrl = page.url().includes('#raw=');
+row.srcInUrl = page.url().includes('#src=');
 const mem = await page.evaluate(() => window.__stopMem?.() ?? { peak: 0 }).catch(() => ({ peak: 0 }));
 row.heapPeakMB = Math.round(mem.peak / 1048576);
 row.cookies = await page.cookies().then((cs) => cs.map((c) => `${c.domain}${c.name}`));
@@ -118,4 +106,4 @@ server.close();
 const rows = [row];
 finish(rows, `open-link-${tag}.json`, { fileUrl });
 console.log('SERVERLOG ' + JSON.stringify(serverLog));
-process.exit(0);
+process.exit(row.ok && row.srcInUrl ? 0 : 1);

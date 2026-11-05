@@ -1,8 +1,8 @@
 {
   "extName": {
-    "message": "DWG Viewer"
+    "message": "DWG-fremviser - DWG Viewer"
   },
   "extDescription": {
-    "message": "Brug DWG Viewer til at åbne en DWG-fil i Chrome, se DXF online, slå lag til og fra og gemme visningen som PDF. Intet uploades."
+    "message": "Med DWG-fremviser - DWG Viewer åbner du DWG- og DXF-tegninger i Chrome, skifter lag og udskriver visningen som PDF. Intet uploades."
   }
 }

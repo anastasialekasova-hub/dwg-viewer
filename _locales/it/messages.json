@@ -1,8 +1,8 @@
 {
   "extName": {
-    "message": "DWG Viewer"
+    "message": "Visualizzatore DWG-DWG Viewer"
   },
   "extDescription": {
-    "message": "Apri DWG in Chrome e DXF online con DWG Viewer, mostra o nascondi i livelli e salva la vista in PDF. Nulla viene caricato."
+    "message": "Usa Visualizzatore DWG-DWG Viewer per aprire file DWG in Chrome, gestire i livelli e stampare la vista in PDF. Nessun upload."
   }
 }

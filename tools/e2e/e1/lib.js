@@ -89,8 +89,8 @@ export async function armPage(page) {
   });
 }
 
-// Same sampler, but installed for every future document (survives the DNR
-// redirect navigation in the link flow). __openStart resets per document.
+// Same sampler, installed for future documents (explicit source-link loads).
+// __openStart resets per document.
 export async function armAuto(page) {
   await page.evaluateOnNewDocument(() => {
     window.__openStart = performance.now();

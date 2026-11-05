@@ -1,22 +1,22 @@
 /** Hungarian, Greek, Turkish, Lithuanian, Latvian, Amharic, Swahili. */
 export const hu = {
-  extDescription: "DWG Viewerrel DWG-t nyithat a Chrome-ban, DXF-t online, rétegeket kapcsolhat, a nézetet PDF-be mentheti. Semmi nem töltődik fel.",
+  extDescription: "DWG-fájlok megnyitása a Chrome-ban a DWG Viewerrel, DXF online, rétegek kapcsolása, nézet mentése PDF-be. Feltöltés nélkül.",
 };
 
 export const el = {
-  extDescription: "Με το DWG Viewer ανοίγετε DWG στο Chrome και DXF online, διαχειρίζεστε επίπεδα, αποθηκεύετε την προβολή σε PDF. Καμία μεταφόρτωση.",
+  extDescription: "Ανοίξτε DWG στο Chrome με το DWG Viewer, δείτε DXF online, εναλλάξτε επίπεδα, αποθηκεύστε σε PDF. Καμία μεταφόρτωση.",
 };
 
 export const tr = {
-  extDescription: "DWG Viewer DWG'yi Chrome'da açar, DXF'yi online gösterir, katmanları açıp kapatır, görünümü PDF'e kaydeder. Karşıya yükleme yoktur.",
+  extDescription: "DWG dosyasını Chrome’da DWG Viewer ile açın, DXF’yi online görün, katmanları açıp kapatın, görünümü PDF’e kaydedin. Yükleme yok.",
 };
 
 export const lt = {
-  extDescription: "DWG Viewer atveria DWG Chrome'yje ir DXF internete, įjungia ir išjungia sluoksnius, įrašo rodinį į PDF. Nieko neįkeliama.",
+  extDescription: "Atidarykite DWG failą Chrome su DWG Viewer, žiūrėkite DXF internete, valdykite sluoksnius, įrašykite rodinį į PDF. Nieko neįkeliama.",
 };
 
 export const lv = {
-  extDescription: "DWG Viewer atver DWG failus Chrome un DXF tiešsaistē, ieslēdz un izslēdz slāņus, saglabā skatu kā PDF. Nekas netiek augšupielādēts.",
+  extDescription: "Atveriet DWG failu Chrome ar DWG Viewer, skatieties DXF tiešsaistē, pārslēdziet slāņus, saglabājiet skatu kā PDF. Augšupielādes nav.",
 };
 
 export const am = {

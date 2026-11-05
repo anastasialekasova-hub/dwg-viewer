@@ -134,7 +134,7 @@ try {
       await page.mouse.move(500, 400);
       await sleep(300);
       out.coords = await page.evaluate(() => document.getElementById('coords').textContent);
-      // toggle off → DNR rule removed (F-22 semantics)
+      // toggle off → content-script clicks stay native (F-22 semantics)
       const ruleOff = await page.evaluate(async () => {
         document.getElementById('settingsToggle').click();
         await new Promise((r) => setTimeout(r, 800));

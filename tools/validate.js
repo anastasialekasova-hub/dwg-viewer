@@ -5,7 +5,7 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { MESSAGES, TEMP_EXT_DESCRIPTION } from './i18n/schema.js';
 import { RANGE_VERIFIED } from '../src/lib/format.js';
 
@@ -30,12 +30,12 @@ check(
   'manifest: CSP extension_pages exact',
 );
 
-const EXPECTED_PERMISSIONS = ['storage', 'contextMenus', 'scripting', 'declarativeNetRequestWithHostAccess'];
+const EXPECTED_PERMISSIONS = ['storage', 'contextMenus', 'scripting'];
 const EXPECTED_HOSTS = ['http://*/*', 'https://*/*'];
 const FORBIDDEN = ['tabs', 'downloads', 'webNavigation', 'webRequest', 'activeTab', 'notifications', 'unlimitedStorage', 'offscreen'];
 check(
   JSON.stringify([...(manifest.permissions ?? [])].sort()) === JSON.stringify([...EXPECTED_PERMISSIONS].sort()),
-  'manifest: permissions exactly 6.4 list',
+  'manifest: permissions exactly storage/contextMenus/scripting',
   JSON.stringify(manifest.permissions),
 );
 check(
@@ -46,6 +46,9 @@ check(
   FORBIDDEN.every((f) => !(manifest.permissions ?? []).includes(f) && !(manifest.host_permissions ?? []).includes(f)),
   'manifest: no forbidden permissions',
 );
+
+check(!manifest.web_accessible_resources?.length, 'manifest: viewer is not web-accessible');
+check(manifest.version === (await readFile(path.join(root, 'VERSION'), 'utf8')).trim(), 'manifest: version matches VERSION');
 
 const relPaths = [
   ...Object.values(manifest.icons ?? {}),
@@ -76,6 +79,16 @@ check(
   '_locales/en: extDescription ≤ 132 chars',
 );
 
+// Stage 6 national names come from the family tables; nb mirrors no.
+const namesFromTables = new Map();
+const tablesDir = path.join(root, 'tools/i18n/translations');
+for (const file of (await readdir(tablesDir)).filter((f) => f.endsWith('.js'))) {
+  const table = await import(pathToFileURL(path.join(tablesDir, file)).href);
+  for (const [loc, entry] of Object.entries(table)) {
+    if (entry.extName !== undefined) namesFromTables.set(loc, entry.extName);
+  }
+}
+
 let localesOk = true;
 let localeDetail = '';
 for (const loc of LOCALES) {
@@ -93,9 +106,10 @@ for (const loc of LOCALES) {
     localeDetail = `${loc}: empty extName/extDescription`;
     break;
   }
-  if (m.extName.message !== en.extName.message) {
+  const expectedName = namesFromTables.get(loc === 'nb' ? 'no' : loc) ?? MESSAGES.extName;
+  if (m.extName.message !== expectedName || m.extName.message.length > 30) {
     localesOk = false;
-    localeDetail = `${loc}: extName differs from en (translations land with the listing)`;
+    localeDetail = `${loc}: extName differs from translation source or exceeds 30 chars`;
     break;
   }
   if (`${m.extDescription.message}`.length > 132) {

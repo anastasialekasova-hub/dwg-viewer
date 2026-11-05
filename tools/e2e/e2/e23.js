@@ -357,10 +357,11 @@ try {
       return true;
     });
     await sleep(800);
-    const ruleCount = await swEval(async () => {
-      const r = await chrome.declarativeNetRequest.getDynamicRules();
-      return Array.isArray(r?.rules) ? r.rules.filter((x) => x.id === 1).length : JSON.stringify(r);
+    const noDnrPermission = await swEval(async () => {
+      const p = await chrome.permissions.getAll();
+      return !p.permissions.some((x) => x.startsWith('declarativeNetRequest'));
     });
+    if (!noDnrPermission) throw new Error('Unexpected request-interception permission');
     const site = await newPage();
     await allowDownloads(site);
     await site.goto(`${SITE}/site.html`, { waitUntil: 'load' });
@@ -369,22 +370,18 @@ try {
     fs.mkdirSync(DL, { recursive: true });
     await site.click('#plain');
     await sleep(3500);
-    note('case4.interceptOff', { newViewer: (await viewerTabs()).length, downloads: dlFiles(), fileRequests: hits.length, dnrRule: ruleCount });
+    note('case4.interceptOff', { newViewer: (await viewerTabs()).length, downloads: dlFiles(), fileRequests: hits.length, noDnrPermission });
     // toggle back on — live, without reload
     await swEval(async () => {
       await chrome.storage.local.set({ interceptLinks: true });
       return true;
     });
     await sleep(800);
-    const ruleCount2 = await swEval(async () => {
-      const r = await chrome.declarativeNetRequest.getDynamicRules();
-      return Array.isArray(r?.rules) ? r.rules.filter((x) => x.id === 1).length : JSON.stringify(r);
-    });
-    await site.reload({ waitUntil: 'load' });
+    // No reload: the already-open content script observes storage.onChanged.
     const before = (await viewerTabs()).length;
     await site.click('#plain');
     await sleep(3000);
-    note('case4.interceptOnAgain', { newViewer: (await viewerTabs()).length - before, dnrRule: ruleCount2 });
+    note('case4.interceptOnAgain', { newViewer: (await viewerTabs()).length - before, noDnrPermission });
     await site.close().catch(() => {});
     for (const t of await viewerTabs()) await swEval((id) => chrome.tabs.remove(id), t.id).catch(() => {});
   }
@@ -463,13 +460,8 @@ try {
     hits.length = 0;
     const vp = await newPage();
     await allowDownloads(vp);
-    await vp.goto(`${SITE}/files/orig.dwg?via=case7direct`, { waitUntil: 'load' }).catch(() => {});
-    // DNR intercepts this navigation; if it landed on the viewer, fine — else
-    // open the viewer with #src directly.
-    let onViewer = vp.url().includes('viewer.html');
-    if (!onViewer) {
-      await vp.goto(`chrome-extension://${extId}/src/viewer/viewer.html#src=${encodeURIComponent(`${SITE}/files/orig.dwg?via=case7`)}`, { waitUntil: 'load' });
-    }
+    // Explicit source flow; a direct file navigation stays native in 1.0.1.
+    await vp.goto(`chrome-extension://${extId}/src/viewer/viewer.html#src=${encodeURIComponent(`${SITE}/files/orig.dwg?via=case7`)}`, { waitUntil: 'load' });
     await waitViewerSettled(vp).catch(() => {});
     const meta = await vp.evaluate(() => ({
       state: document.body.dataset.state,

@@ -1,6 +1,7 @@
 /** Indonesian, Malay, Vietnamese, Thai, Filipino. */
 export const id = {
-  extDescription: "Buka DWG di Chrome dan lihat DXF online dengan DWG Viewer, nyalakan/matikan layer, simpan tampilan ke PDF. Tidak ada yang diunggah.",
+  extName: "Penampil DWG - DWG Viewer",
+  extDescription: "Gunakan Penampil DWG - DWG Viewer untuk membuka file DWG di Chrome, atur lapisan, dan cetak ke PDF. Tidak ada yang diunggah.",
 };
 
 export const ms = {

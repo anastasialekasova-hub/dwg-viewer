@@ -1,26 +1,32 @@
 /** German, Dutch, Swedish, Danish, Norwegian, Finnish, Estonian. */
 export const de = {
-  extDescription: "Mit DWG Viewer: DWG in Chrome und DXF online öffnen, Ebenen ein und aus blenden, Ansicht als PDF speichern. Nichts wird hochgeladen.",
+  extName: "DWG Viewer",
+  extDescription: "DWG-Datei öffnen und DXF online ansehen mit DWG Viewer in Chrome: Ebenen umschalten, Ansicht als PDF drucken. Kein Upload.",
 };
 
 export const nl = {
-  extDescription: "Open DWG in Chrome en bekijk DXF online met DWG Viewer, schakel lagen in/uit en sla de weergave op als PDF. Niets wordt geüpload.",
+  extName: "DWG Viewer",
+  extDescription: "DWG-bestand openen en DXF online bekijken met DWG Viewer: lagen aan/uit en opslaan als PDF. Niets wordt geüpload.",
 };
 
 export const sv = {
-  extDescription: "Använd DWG Viewer för att öppna en DWG-fil i Chrome, visa DXF online, slå på och av lager och spara vyn som PDF. Inget laddas upp.",
+  extName: "Öppna DWG-fil - DWG Viewer",
+  extDescription: "Med Öppna DWG-fil - DWG Viewer visas DWG- och DXF-ritningar i Chrome: zooma, växla lager, skriv ut vyn som PDF. Inget laddas upp.",
 };
 
 export const da = {
-  extDescription: "Brug DWG Viewer til at åbne en DWG-fil i Chrome, se DXF online, slå lag til og fra og gemme visningen som PDF. Intet uploades.",
+  extName: "DWG-fremviser - DWG Viewer",
+  extDescription: "Med DWG-fremviser - DWG Viewer åbner du DWG- og DXF-tegninger i Chrome, skifter lag og udskriver visningen som PDF. Intet uploades.",
 };
 
 export const no = {
-  extDescription: "Bruk DWG Viewer til å åpne en DWG-fil i Chrome, se DXF på nettet, slå av og på lag og lagre visningen som PDF. Ingenting lastes opp.",
+  extName: "Åpne DWG-fil - DWG Viewer",
+  extDescription: "Med Åpne DWG-fil - DWG Viewer åpner du DWG- og DXF-tegninger i Chrome, slår lag av/på og skriver ut som PDF. Ingenting lastes opp.",
 };
 
 export const fi = {
-  extDescription: "Avaa DWG Viewerilla DWG-tiedosto Chromessa, katso DXF verkossa, näytä ja piilota tasoja, tallenna näkymä PDF:nä. Mitään ei ladata.",
+  extName: "DWG-katselin - DWG Viewer",
+  extDescription: "DWG-tiedoston avaaminen ja katselu Chromessa: DWG-katselin - DWG Viewer: tasot, zoom ja PDF-tulostus. Mitään ei ladata.",
 };
 
 export const et = {

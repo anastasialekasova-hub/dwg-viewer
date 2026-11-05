@@ -1,8 +1,8 @@
 {
   "extName": {
-    "message": "DWG Viewer"
+    "message": "Visionneuse DWG - DWG Viewer"
   },
   "extDescription": {
-    "message": "Ouvrez DWG dans Chrome et DXF en ligne avec DWG Viewer, affichez/masquez les calques, enregistrez la vue en PDF. Rien n’est importé."
+    "message": "Utilisez Visionneuse DWG - DWG Viewer pour ouvrir un fichier DWG dans Chrome : calques et impression PDF. Rien n'est téléversé."
   }
 }

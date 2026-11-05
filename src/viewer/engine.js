@@ -18,6 +18,8 @@ import { OPEN_TIME_LIMIT_S } from '../lib/config.js';
 import { LIGHT_BACKGROUND_RGB, darkenToContrast } from '../lib/colors.js';
 
 let manager = null;
+// Pinned engine's AcTrViewMode.PAN = 1; selection mode only pans with MIDDLE.
+const PAN_VIEW_MODE = 1;
 // DWG: [{handle, type, layer}] for model + paper space, as parsed (pre-conversion).
 let rawEntities = null;
 // DXF: entities the DXF reader skipped as unknown (no per-type detail upstream).
@@ -358,6 +360,7 @@ export function activeLayoutBtrId() {
 
 export function showLayout(btrId, { fit: doFit = true } = {}) {
   view().activeLayoutBtrId = btrId;
+  view().mode = PAN_VIEW_MODE;
   if (doFit) fit();
 }
 
@@ -398,6 +401,7 @@ export async function open({ name, bytes, onProgress } = {}) {
     ]);
     if (opened === 'timeout') return { ok: false, reason: 'timeout', version: ver };
     if (opened !== true) return { ok: false, reason: 'error', version: ver };
+    view().mode = PAN_VIEW_MODE;
     // The mockup canvas colour for this file; setBackground(false) restores it.
     try {
       view().backgroundColor = DARK_CAD_BG;
@@ -464,13 +468,13 @@ function printAdapter(gl) {
   };
 }
 
-export function printView() {
+export function printCanvas() {
   const v = view();
-  if (!v) return '';
+  if (!v) return null;
   const scene = v._scene;
   const lv = v._layoutViewManager?.activeLayoutView;
   const cam = lv?._camera;
-  if (!scene || !cam) return '';
+  if (!scene || !cam) return null;
 
   const live = document.querySelector('#cad canvas');
   const cssW = live?.clientWidth || 1280;
@@ -506,9 +510,12 @@ export function printView() {
     }
     for (const [vv, rr] of saved) vv._renderer = rr;
   }
-  const url = printGL.domElement.toDataURL('image/png');
   if (!wasLight) applyPalette(false);
-  return url;
+  return printGL.domElement;
+}
+
+export function printView() {
+  return printCanvas()?.toDataURL('image/png') ?? '';
 }
 
 // Relative zoom around the viewport center, mirroring the engine's own

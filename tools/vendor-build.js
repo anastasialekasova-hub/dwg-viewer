@@ -234,8 +234,10 @@ The vendored \`src/vendor/libredwg-web.wasm\` is a byte-for-byte copy of
 \`@mlightcad/libredwg-web@${lwVer}\` \`wasm/libredwg-web.wasm\` (GPL-3.0,
 https://github.com/mlightcad/libredwg-web). It is a build of LibreDWG
 (https://github.com/LibreDWG/libredwg, GPL-3.0) compiled to WebAssembly by
-that package; the exact sources and build scripts are the libredwg-web
-repository at tag v${lwVer}.
+that package. The upstream source reference is the libredwg-web repository
+at tag v${lwVer}; this reference is not an independently verified record of
+the native compilation inputs. The npm tarball is a distribution package,
+not a complete corresponding-source bundle.
 
 ## src/vendor/fonts/CadSans-subset.ttf
 
@@ -250,6 +252,23 @@ renamed "Cad Sans" (the name table is stripped). Used only as the fallback
 for text whose own font is not in the drawing.
 
 ${fontRow}
+
+## npm distribution archives
+
+The pinned npm tarballs in \`third_party-sources/\` are published
+JS/declaration/binary distributions, not complete source trees. They do
+not include the C/C++/embind implementation or all native build inputs.
+Do not present those tarballs as a complete corresponding-source bundle.
+
+## Component source delivery
+
+The exact pinned source trees, licenses, build inputs and restoration
+instructions are supplied separately from the npm distributions. The
+source archive must be kept with all three self-contained Git history
+bundles: upstream bootstrap/version scripts use that history. See
+\`third_party-sources/README.md\` for asset names, exact commits, checksums,
+verification limits and the matching release. Native builds and
+bit-for-bit binary reproduction must not be inferred from source presence.
 `;
 await writeFile(path.join(root, 'THIRD_PARTY_NOTICES.md'), notices);
 console.log('THIRD_PARTY_NOTICES.md regenerated');

@@ -1,8 +1,8 @@
 {
   "extName": {
-    "message": "DWG Viewer"
+    "message": "عارض DWG - DWG Viewer"
   },
   "extDescription": {
-    "message": "استخدم DWG Viewer لفتح ملف DWG في Chrome ومشاهدة DXF عبر الإنترنت وتشغيل/إيقاف الطبقات وحفظ العرض بتنسيق PDF. لا يتم تحميل أي شيء."
+    "message": "استخدم عارض DWG - DWG Viewer لفتح رسومات DWG و DXF في Chrome، وتبديل الطبقات، وحفظ العرض كملف PDF. لا يتم تحميل أي شيء."
   }
 }

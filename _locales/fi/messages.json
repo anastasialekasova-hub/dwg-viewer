@@ -1,8 +1,8 @@
 {
   "extName": {
-    "message": "DWG Viewer"
+    "message": "DWG-katselin - DWG Viewer"
   },
   "extDescription": {
-    "message": "Avaa DWG Viewerilla DWG-tiedosto Chromessa, katso DXF verkossa, näytä ja piilota tasoja, tallenna näkymä PDF:nä. Mitään ei ladata."
+    "message": "DWG-tiedoston avaaminen ja katselu Chromessa: DWG-katselin - DWG Viewer: tasot, zoom ja PDF-tulostus. Mitään ei ladata."
   }
 }

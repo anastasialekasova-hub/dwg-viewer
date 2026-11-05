@@ -95,8 +95,8 @@
     event.preventDefault();
     event.stopPropagation();
     const background = event.type === 'auxclick' || event.ctrlKey || event.metaKey;
-    chrome.runtime.sendMessage({ type: 'open-link', url: anchor.href, background }, () => {
-      if (chrome.runtime.lastError) nativeFallback(anchor.href, background);
+    chrome.runtime.sendMessage({ type: 'open-link', url: anchor.href, background }, (response) => {
+      if (chrome.runtime.lastError || response?.ok === false) nativeFallback(anchor.href, background);
     });
   }
 

@@ -372,6 +372,20 @@ run('colors: mapping is idempotent and keeps passing colours untouched', () => {
   assert.equal(darkenToContrast(m), m);
 });
 
+/* ---------- navigation interception removal ---------- */
+
+const { testNavigation } = await import('./test-navigation.js');
+const navigation = await testNavigation();
+n += navigation.total;
+failed.push(...navigation.failed);
+
+/* ---------- synchronous print / left-drag pan ---------- */
+
+const { testViewer } = await import('./test-viewer.js');
+const viewer = testViewer();
+n += viewer.total;
+failed.push(...viewer.failed);
+
 /* ---------- report ---------- */
 
 for (const f of failed) console.log(`FAIL ${f}`);

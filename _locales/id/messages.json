@@ -1,8 +1,8 @@
 {
   "extName": {
-    "message": "DWG Viewer"
+    "message": "Penampil DWG - DWG Viewer"
   },
   "extDescription": {
-    "message": "Buka DWG di Chrome dan lihat DXF online dengan DWG Viewer, nyalakan/matikan layer, simpan tampilan ke PDF. Tidak ada yang diunggah."
+    "message": "Gunakan Penampil DWG - DWG Viewer untuk membuka file DWG di Chrome, atur lapisan, dan cetak ke PDF. Tidak ada yang diunggah."
   }
 }

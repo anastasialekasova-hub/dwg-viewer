@@ -1,10 +1,11 @@
 // Viewer tab logic (ТЗ 7.4): start → loading → view/error, open from disk or
-// link (#src=, #raw=), progress card, honest drawn/total counter, partial
+// link (#src=), progress card, honest drawn/total counter, partial
 // notice, layers panel, background switch, print sheet, settings popover,
 // link notice, rating widget (F-8…F-27).
 import * as engine from './engine.js';
 import { OPEN_TIME_LIMIT_S, LINK_LIMIT_MB, REVIEW_MIN_SECONDS } from '../lib/config.js';
 import { loadSettings, saveSettings } from '../lib/settings.js';
+import { isDrawingUrl } from '../lib/links-match.js';
 import {
   REVIEW_DEFAULTS,
   migrateReview,
@@ -438,7 +439,12 @@ function buildPrintSheet() {
   els.printLayers.textContent = msg('printLayersOn', fmtInt(layers.filter((l) => l.on).length), fmtInt(layers.length));
   const c = current.counts ?? engine.counts();
   els.printObjects.textContent = msg('statusDrawn', fmtInt(c.drawn), fmtInt(c.total));
-  els.printShot2.src = engine.printView();
+  // Native Print blocks image decoding until afterprint on macOS. Copy pixels
+  // synchronously instead, so button, keyboard and browser-menu print agree.
+  const canvas = engine.printCanvas();
+  els.printShot2.width = canvas?.width ?? 0;
+  els.printShot2.height = canvas?.height ?? 0;
+  if (canvas) els.printShot2.getContext('2d').drawImage(canvas, 0, 0);
   const live = document.querySelector('#cad canvas');
   const landscape = (live?.clientWidth || 1) >= (live?.clientHeight || 1);
   els.pageStyle.textContent = `@page { margin: 0; size: A4 ${landscape ? 'landscape' : 'portrait'}; }`;
@@ -446,7 +452,8 @@ function buildPrintSheet() {
 
 window.addEventListener('beforeprint', buildPrintSheet);
 window.addEventListener('afterprint', () => {
-  els.printShot2.removeAttribute('src');
+  els.printShot2.width = 0;
+  els.printShot2.height = 0;
 });
 
 function enterView() {
@@ -733,7 +740,7 @@ function openLocalFile(file) {
   runOpen(token, meta, async () => new Uint8Array(await file.arrayBuffer()));
 }
 
-/* ---------- link source (#src= / #raw=) ---------- */
+/* ---------- link source (#src=) ---------- */
 
 // ТЗ 7.5: cookies are sent (sites behind a login), HTML responses mean a sign
 // -in page, and oversized streams are cut off as soon as the cap is crossed.
@@ -807,6 +814,11 @@ async function fetchLink(token, url) {
 }
 
 function openLink(url) {
+  // Treat a forged/malformed hash as an empty viewer; never fetch it.
+  if (!isDrawingUrl(url)) {
+    setState('start');
+    return;
+  }
   let u = null;
   try {
     u = new URL(url);
@@ -1095,10 +1107,8 @@ function init() {
   localize();
   wire();
   const h = location.hash;
-  // #src= is written encoded by the SW; #raw= comes from the DNR redirect
-  // with the URL inserted verbatim (regexSubstitution) — never decode it.
+  // Only the encoded source-link route is supported.
   if (h.startsWith('#src=')) openLink(decodeSafe(h.slice(5)));
-  else if (h.startsWith('#raw=')) openLink(h.slice(5));
   else setState('start');
 }
 

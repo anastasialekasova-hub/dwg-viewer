@@ -18,6 +18,7 @@ import path from 'node:path';
 import { launchWithExtension, extensionId, viewerPage, ensureOut } from './e1/lib.js';
 import { WELCOME_URL, UNINSTALL_URL, FEEDBACK_URL, STORE_REVIEWS_URL } from '../../src/lib/config.js';
 
+const expectedVersion = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'manifest.json'), 'utf8')).version;
 const OUT = path.join(ensureOut(), '..', 'live');
 fs.mkdirSync(OUT, { recursive: true });
 const results = [];
@@ -55,7 +56,7 @@ const swEval = async (fn, ...args) => {
 // ---------- extension card ----------
 try {
   const card = await swEval(() => chrome.management.getSelf());
-  check('extension card', card.version === '1.0.0' && card.installType === 'development',
+  check('extension card', card.version === expectedVersion && card.installType === 'development',
     `version ${card.version}, installType ${card.installType}, enabled ${card.enabled}`);
 } catch (e) {
   check('extension card', false, String(e?.message ?? e).slice(0, 140));
@@ -143,19 +144,26 @@ try {
     };
   });
   await page.evaluate(() => document.getElementById('printBtn').click());
-  // The stubbed window.print() cannot fire Chrome's beforeprint; dispatch the
-  // exact event a real Ctrl+P sends so the sheet builder runs.
+  // Synchronous-raster smoke only. Native Print/Save is checked separately
+  // on the Air; this synthetic event is not evidence of native printing.
   await page.evaluate(() => window.dispatchEvent(new Event('beforeprint')));
   await sleep(1500);
   const sheet = await page.evaluate(() => ({
     printed: window.__printed,
-    imgKB: Math.round(((document.getElementById('printShot2')?.src ?? '').length * 3) / 4 / 1024),
+    raster: (() => {
+      const canvas = document.getElementById('printShot2');
+      if (canvas?.tagName !== 'CANVAS' || !canvas.width || !canvas.height) return { valid: false };
+      const pixels = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+      let ink = 0;
+      for (let i = 0; i < pixels.length; i += 4) if (pixels[i + 3] && Math.min(pixels[i], pixels[i + 1], pixels[i + 2]) < 220) ink++;
+      return { valid: true, width: canvas.width, height: canvas.height, ink };
+    })(),
     layers: document.getElementById('printLayers').textContent,
     objects: document.getElementById('printObjects').textContent,
     page: document.getElementById('pageStyle').textContent,
   }));
-  check('print sheet builds', sheet.printed === 1 && sheet.imgKB > 20,
-    `print() calls ${sheet.printed}, snapshot ${sheet.imgKB} KB, ${sheet.layers}, ${sheet.objects}, ${sheet.page.trim()}`);
+  check('print sheet builds', sheet.printed === 1 && sheet.raster.valid && sheet.raster.ink > 0,
+    `print() calls ${sheet.printed}, raster ${JSON.stringify(sheet.raster)}, ${sheet.layers}, ${sheet.objects}, ${sheet.page.trim()}`);
   await page.close();
 } catch (e) {
   info('live drawing section', String(e?.message ?? e).slice(0, 160));

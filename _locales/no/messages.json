@@ -1,8 +1,8 @@
 {
   "extName": {
-    "message": "DWG Viewer"
+    "message": "Åpne DWG-fil - DWG Viewer"
   },
   "extDescription": {
-    "message": "Bruk DWG Viewer til å åpne en DWG-fil i Chrome, se DXF på nettet, slå av og på lag og lagre visningen som PDF. Ingenting lastes opp."
+    "message": "Med Åpne DWG-fil - DWG Viewer åpner du DWG- og DXF-tegninger i Chrome, slår lag av/på og skriver ut som PDF. Ingenting lastes opp."
   }
 }

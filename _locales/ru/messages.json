@@ -1,8 +1,8 @@
 {
   "extName": {
-    "message": "DWG Viewer"
+    "message": "Просмотр DWG онлайн-DWG Viewer"
   },
   "extDescription": {
-    "message": "Открывайте DWG в Chrome и DXF онлайн в DWG Viewer, включайте/выключайте слои, сохраняйте вид в PDF. Ничего не загружается на сервер."
+    "message": "Откройте DWG в Chrome: Просмотр DWG онлайн-DWG Viewer — слои, масштаб и сохранение вида в PDF. Файлы не уходят на сервер."
   }
 }

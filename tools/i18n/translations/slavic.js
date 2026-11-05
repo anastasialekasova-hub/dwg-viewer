@@ -4,7 +4,8 @@ export const pl = {
 };
 
 export const ru = {
-  extDescription: "Открывайте DWG в Chrome и DXF онлайн в DWG Viewer, включайте/выключайте слои, сохраняйте вид в PDF. Ничего не загружается на сервер.",
+  extName: "Просмотр DWG онлайн-DWG Viewer",
+  extDescription: "Откройте DWG в Chrome: Просмотр DWG онлайн-DWG Viewer — слои, масштаб и сохранение вида в PDF. Файлы не уходят на сервер.",
 };
 
 export const uk = {
@@ -28,7 +29,7 @@ export const hr = {
 };
 
 export const sr = {
-  extDescription: "Отварайте DWG у Chrome-у и DXF онлајн у DWG Viewer, укључујте и искључујте слојеве, сачувајте приказ у PDF. Ништа се не отпрема.",
+  extDescription: "Отварајте DWG у Chrome-у и DXF онлајн у DWG Viewer, укључујте и искључујте слојеве, сачувајте приказ у PDF. Ништа се не отпрема.",
 };
 
 export const bg = {
